@@ -1,576 +1,332 @@
 {% extends 'main.html' %}
+{% block title %}Create event lead — 51 American CRM{% endblock %}
+
 {% block body %}
 
+{# Was a <table cellpadding="10"> of tr/td with inline Trebuchet/cadetblue
+   labels and 600px-pinned inputs. Now a token-driven grid. Every id, name,
+   required, disabled, oninput and onchange is unchanged - check_status(),
+   deposit_change() and the Flask route read them by name. #}
 
-<style>
-  body {
-    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: #333;
-    background-color: #f2f3f7;
-  }
-  .switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
+<div style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-7)">
+  <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Create event lead</h1>
+  <p style="font:var(--type-body-sm);color:var(--text-muted)">Add an event lead by hand. Fields marked with an asterisk are required.</p>
+</div>
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+<form id="create_crm_form" name="create_crm_form">
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
+  <div class="card_customized">
+    <h2 style="font:var(--type-section);color:var(--text-title);margin-bottom:var(--space-7)">Client details</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--space-6) var(--space-8)">
 
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
+      <div class="form-group">
+        <label for="client_mobile">Client mobile <span style="color:var(--text-danger)">*</span></label>
+        <input class="form-control mono" maxlength="16" id="client_mobile" name="client_mobile" required
+               oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+        <small class="form-text">Digits only.</small>
+      </div>
 
-input:checked + .slider {
-  background-color: #2196F3;
-}
+      <div class="form-group">
+        <label for="client_name">Client name <span style="color:var(--text-danger)">*</span></label>
+        <input id="client_name" class="form-control" name="client_name" maxlength="100" required>
+      </div>
 
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" name="email" maxlength="70">
+      </div>
 
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-</style>
-
-<body>
-
-
-  <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Create Event Lead</u></h1>
-  </center>
-  <br>
-  <div class="card_customized" style="margin-left: 5%;margin-right: 5%;">
-    <center>
-      <br>
-      <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Creating Event Lead Form</u></h3>
-    </center>
-    <form id="create_crm_form" name="create_crm_form">
-      <table cellpadding="10">
-
-        <tr>
-          <td>
-            <div class="form-group">
-
-              <label for="exampleFormControlInput1"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client
-                Mobile</label>
-              <br>
-              <input class="form-control" maxlength="16" id="client_mobile" name="client_mobile"
-                style="font-weight:bold;color:gray" required
-                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-
-            </div>
-          </td>
-
-
-          <td>
-            <div class="form-group">
-
-              <label for="exampleFormControlInput1"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client Name</label>
-              <input id="client_name" class="form-control" name="client_name" maxlength="100"
-                style="font-weight:bold;color:gray; width: 600px;max-width: 600px;" required>
-            </div>
-
-
-          </td>
-
-        </tr>
-
-        <hr>
-
-        <tr>
-
-          <td>
-            <div class="form-group">
-              <label for="exampleFormControlInput1"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
-              <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text" class="form-control"
-                id="email" type="email" name="email" maxlength="70">
-            </div>
-          </td>
-
-        </tr>
-
-        <tr>
-          <td>
-            <div class="form-group">
-              <label for="exampleFormControlInput1"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
-              <select required id="status" name="status" class="form-control"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_status()">
-                <option value="not_contacted" selected>Not Contacted</option>
-                <option value="pending">Pending</option>
-                <option value="enrol">Enrol</option>
-                <option value="not_interested">Not Interested</option>
-              </select>
-            </div>
-          </td>
-
-          <script>
-            function check_status() {
-              val = document.getElementById('status').value;
-              if (val == 'pending' || val == 'not_contacted') {
-                  document.getElementById('recall_date').disabled = false;
-                  document.getElementById('recall_date_section').hidden = false;
-  
-                  document.getElementById('not_interested_notes').disabled = true;
-                  document.getElementById('not_interested_notes_div').hidden = true;
-                }
-                else if (val == 'not_interested')
-                {
-                  document.getElementById('not_interested_notes').disabled = false;
-                  document.getElementById('not_interested_notes_div').hidden = false;
-  
-                  document.getElementById('recall_date_section').disabled = true;
-                  document.getElementById('recall_date_section').hidden = true;
-                }
-              else {
-                val = ""
-                document.getElementById('recall_date').disabled = true;
-                document.getElementById('recall_date_section').hidden = true;
-
-                document.getElementById('not_interested_notes').disabled = true;
-                document.getElementById('not_interested_notes_div').hidden = true;
-              }
-            }
-          </script>
-
-          <td>
-            <div class="form-group" id="recall_date_section">
-
-              <label for="recall_date"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
-                Date</label>
-              <input
-                style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
-                type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
-
-            </div>
-
-            <script>
-              $('#recall_date').datepicker({
-                todayBtn: "linked",
-                weekStart: 0,
-                autoclose: true,
-                todayHighlight: true,
-                format: "yyyy-mm-dd",
-
-
-
-              });
-
-            </script>
-
-              <div class="form-group" id="not_interested_notes_div" hidden>
-              <label for="not_interested_notes"
-              style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Reason</label>
-              <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control" style="width: 600px;max-width: 600px;">
-              </div>
-
-          </td>
-
-        </tr>
-
-
-
-        <tr>
-          <td>
-            <div class="form-group">
-              <label for="client_deposit_flag"
-                style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
-              <select id="client_deposit_flag" name="client_deposit_flag" class="form-control"
-                style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;" onchange="deposit_change(this.value)">
-                <option value=1>YES</option>
-                <option selected value=0>NO</option>
-              </select>
-
-            </div>
-          </td>
-
-          <script>
-            function deposit_change(value)
-            {
-              if(value === "1")
-              {
-                document.getElementById("client_deposit").disabled = false;
-              }
-              else if(value === "0")
-              {
-                document.getElementById("client_deposit").disabled = true;
-                document.getElementById("client_deposit").value = 0;
-              }
-            }
-          </script>
-
-          <td>
-          
-          <div class="form-group">
-            <label for="client_deposit"
-              style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit Amount</label>
-            <input id="client_deposit" name="client_deposit" class="form-control" value="0" 
-                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');"
-                disabled style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;">
-
-          </div>
-        </td>
-
-        </tr>
-
-        <tr>
-          <td>
-            <div class="form-group">
-              <label for="assigned_to"
-                style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
-                to</label>
-                <br>
-
-              <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple"
-              style="width: 600px;max-width: 600px;" required>
-            </div>
-
-          </td>
-        </tr>
-
-        <tr>
-          <td>
-            <div class="form-group">
-              <label for="assets_list"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
-                Requirements</label>
-              <br>
-              <textarea col="60" rows="4" maxlength="256" class="form-control" id="assets_list" name="assets_list" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray
-            ;" ></textarea>
-            </div>
-          </td>
-
-          <td>
-            <div class="form-group">
-              <button type="button" class="btn btn-info" data-toggle="modal" data-target="#add_item_modal">Add Itemt to Check List</button>
-            </div>
-
-            <div id="check_list_div" name="check_list_div" style="padding-top: 1rem;" class="form-check">
-            </div>
-
-
-          </td>
-        </tr>
-
-      </table>
-      <hr>
-
-
-      <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary">Save</button></div>
-
-      <br>
-    </form>
-
-    <br>
-    <br>
-    <br>
+    </div>
   </div>
 
+  <div class="card_customized">
+    <h2 style="font:var(--type-section);color:var(--text-title);margin-bottom:var(--space-7)">Status</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--space-6) var(--space-8)">
 
-  <div class="modal fade" id="add_item_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-          <div class="modal-content">
-            <div class="modal-header">
-              <div class='text-center'>
-                <h5 id="exampleModalLabel">Add Item to Check List</h5>
-              </div>
-            </div>
-          <div class="modal-body">
-  
-        <span>
-          <div style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px; padding: 1rem;">Item Name</div>
-          <input maxlength="40" id="check_list_item_name" name="check_list_item_name" class="form-control" style="font-weight: bold;color: darkcyan; width: 60%"></span>
-          
-              
-        <hr>
-        <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn' onclick="add_item();">Add Item</button>
-        <button type="button" id="close" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
-        </div>
-        </div>
+      <div class="form-group">
+        <label for="status">Status <span style="color:var(--text-danger)">*</span></label>
+        <select required id="status" name="status" class="form-control" onchange="check_status()">
+          <option value="not_contacted" selected>Not contacted</option>
+          <option value="pending">Pending</option>
+          <option value="enrol">Enrol</option>
+          <option value="not_interested">Not interested</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="recall_date_section">
+        <label for="recall_date">Recall date <span style="color:var(--text-danger)">*</span></label>
+        <input type="text" class="form-control mono" readonly id="recall_date" name="recall_date" required>
+      </div>
+
+      <div class="form-group" id="not_interested_notes_div" hidden>
+        <label for="not_interested_notes">Reason</label>
+        <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control">
+      </div>
+
+    </div>
   </div>
 
+  <div class="card_customized">
+    <h2 style="font:var(--type-section);color:var(--text-title);margin-bottom:var(--space-7)">Payment and assignment</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--space-6) var(--space-8)">
+
+      <div class="form-group">
+        <label for="client_deposit_flag">Deposit</label>
+        <select id="client_deposit_flag" name="client_deposit_flag" class="form-control" onchange="deposit_change(this.value)">
+          <option value=1>Yes</option>
+          <option selected value=0>No</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="client_deposit">Deposit amount</label>
+        <input id="client_deposit" name="client_deposit" class="form-control mono" value="0" disabled
+               oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+        <small class="form-text">Enabled once deposit is set to yes.</small>
+      </div>
+
+      <div class="form-group">
+        <label for="assigned_to">Assigned to <span style="color:var(--text-danger)">*</span></label>
+        {# The original never closed this <select>. #}
+        <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple" required></select>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card_customized">
+    <h2 style="font:var(--type-section);color:var(--text-title);margin-bottom:var(--space-7)">Requirements</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-6) var(--space-8)">
+
+      <div class="form-group">
+        <label for="assets_list">Requirements</label>
+        <textarea rows="4" maxlength="256" class="form-control" id="assets_list" name="assets_list"></textarea>
+        <small class="form-text">Up to 256 characters.</small>
+      </div>
+
+      <div class="form-group">
+        <label>Check list</label>
+        <button type="button" class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#add_item_modal">
+          <i data-lucide="plus"></i>Add item to check list
+        </button>
+        <div id="check_list_div" name="check_list_div" class="form-check" style="padding-top:var(--space-5)"></div>
+      </div>
+
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;gap:var(--space-4);margin-top:var(--space-8);padding-top:var(--space-7);border-top:1px solid var(--border-hairline)">
+      <button type="submit" id="add_client" class="btn btn-primary">Save lead</button>
+    </div>
+  </div>
+
+</form>
+
+
+<div class="modal fade" id="add_item_modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Add item to check list</h5></div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="check_list_item_name">Item name</label>
+          <input maxlength="40" id="check_list_item_name" name="check_list_item_name" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="close" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        {# was type="submit" on a button that sits outside any form #}
+        <button type="button" class="btn btn-primary" name="add_room_btn" onclick="add_item();">Add item</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
 <script>
-  function add_item()
-  {
-    check_list_item_name = document.getElementById("check_list_item_name").value;
-    var halto = 0;
-    if (check_list_item_name == '')
-    {
-      Swal.fire(
-                    'Empty',
-                    'Please entry item first...',
-                    'info');
-                    return;
+  function check_status() {
+    var val = document.getElementById('status').value;
+    if (val == 'pending' || val == 'not_contacted') {
+      document.getElementById('recall_date').disabled = false;
+      document.getElementById('recall_date_section').hidden = false;
+      document.getElementById('not_interested_notes').disabled = true;
+      document.getElementById('not_interested_notes_div').hidden = true;
+    }
+    else if (val == 'not_interested') {
+      document.getElementById('not_interested_notes').disabled = false;
+      document.getElementById('not_interested_notes_div').hidden = false;
+      document.getElementById('recall_date_section').disabled = true;
+      document.getElementById('recall_date_section').hidden = true;
+    }
+    else {
+      document.getElementById('recall_date').disabled = true;
+      document.getElementById('recall_date_section').hidden = true;
+      document.getElementById('not_interested_notes').disabled = true;
+      document.getElementById('not_interested_notes_div').hidden = true;
+    }
+  }
+
+  function deposit_change(value) {
+    if (value === "1") {
+      document.getElementById("client_deposit").disabled = false;
+    } else if (value === "0") {
+      document.getElementById("client_deposit").disabled = true;
+      document.getElementById("client_deposit").value = 0;
+    }
+  }
+
+  $('#recall_date').datepicker({
+    todayBtn: "linked",
+    weekStart: 0,
+    autoclose: true,
+    todayHighlight: true,
+    format: "yyyy-mm-dd"
+  });
+
+
+  /* --- check list ----------------------------------------------------- */
+
+  function add_item() {
+    var check_list_item_name = document.getElementById("check_list_item_name").value;
+
+    if (check_list_item_name == '') {
+      Swal.fire('Nothing to add', 'Enter an item name first.', 'info');
+      return;
     }
 
-    [...document.getElementsByClassName('item_in_checklist')].forEach(el => {
-    // Do something with each element
-      
-            if(el.value.toString().toUpperCase() == check_list_item_name.toString().toUpperCase())
-            {
-                          Swal.fire(
-                            'Duplicate',
-                            'Item already exists in checklist...',
-                            'info');
-                            halto = 1;
-                            console.log("NO LoOp");
-                        
-            }
-    });
-
-      console.log("Outside Loop");
-
-      if(halto == 1)
-      {
-        return;
+    var duplicate = false;
+    [...document.getElementsByClassName('item_in_checklist')].forEach(function (el) {
+      if (el.value.toString().toUpperCase() == check_list_item_name.toString().toUpperCase()) {
+        duplicate = true;
       }
+    });
+    if (duplicate) {
+      Swal.fire('Already on the list', 'That item is already in the check list.', 'info');
+      return;
+    }
 
     var check_list_div = document.getElementById("check_list_div");
 
-             // creating checkbox element
-             var checkbox = document.createElement('input');
-             var checkbox_hidden = document.createElement('input');
+    var checkbox = document.createElement('input');
+    checkbox.name = "check_box";
+    checkbox.value = check_list_item_name;
+    checkbox.id = "id_" + check_list_item_name;
+    checkbox.className = "form-check-input item_in_checklist";
+    checkbox.readOnly = 'true';
+    checkbox.type = "checkbox";
 
-             // Assigning the attributes
-             // to created checkbox
-             checkbox.name = "check_box";
-             checkbox.value = check_list_item_name;
+    var checkbox_hidden = document.createElement('input');
+    checkbox_hidden.id = "hidden_id_" + check_list_item_name;
+    checkbox_hidden.name = "check_box_hidden";
+    checkbox_hidden.value = check_list_item_name;
+    checkbox_hidden.className = "form-check-input item_in_checklist";
+    checkbox_hidden.readOnly = 'true';
+    checkbox_hidden.type = "hidden";
 
-             checkbox.id = "id_"+check_list_item_name;
-             checkbox.className  = "form-check-input item_in_checklist";
-             checkbox.readOnly = 'true';
-             checkbox.style="background-color:white;boarder:none";
-             checkbox.type="checkbox";
+    var label = document.createElement('label');
+    label.htmlFor = "id_" + check_list_item_name;
+    label.appendChild(document.createTextNode(check_list_item_name));
+    label.className = "form-check-label";
+    label.id = "label_id_" + check_list_item_name;
 
-              // Hidden
-             checkbox_hidden.id = "hidden_id_"+check_list_item_name;
-             checkbox_hidden.name = "check_box_hidden";
-             checkbox_hidden.value = check_list_item_name;
-             
-             checkbox_hidden.className  = "form-check-input item_in_checklist";
-             checkbox_hidden.readOnly = 'true';
-             checkbox_hidden.style="background-color:white;boarder:none";
-             checkbox_hidden.type="hidden";
-              
-             // creating label for checkbox
-             var label = document.createElement('label');
-              
-             // assigning attributes for 
-             // the created label tag 
-             label.htmlFor = "id_"+check_list_item_name;
-              
-             // appending the created text to 
-             // the created label tag 
-             label.appendChild(document.createTextNode(check_list_item_name));
-             label.className = "form-check-label";
-             label.id =  "label_id_"+check_list_item_name; 
+    var cancel_item = document.createElement('button');
+    cancel_item.id = "btn_id_" + check_list_item_name;
+    cancel_item.type = "button";
+    cancel_item.className = "btn btn-danger btn-sm";
+    // The original created this button with no text, so it rendered as an
+    // unlabelled red block.
+    cancel_item.textContent = "Remove";
+    cancel_item.setAttribute("onclick", "remove_item('id_" + check_list_item_name + "')");
+    cancel_item.setAttribute("style", "margin-left:var(--space-5)");
 
-             // appending the checkbox
-             // and label to div
-                          
-             check_list_div.appendChild(checkbox_hidden);
-             check_list_div.appendChild(checkbox);
-             check_list_div.appendChild(label);
+    var br = document.createElement('br');
+    br.id = "br_id_" + check_list_item_name;
 
-             var cancel_item = document.createElement('button');
-             cancel_item.id = "btn_id_"+check_list_item_name;
-             cancel_item.type = "button";
-             cancel_item.className = "btn btn-md btn-danger";
-             cancel_item.setAttribute("onclick","remove_item('id_"+check_list_item_name+"')");
-             cancel_item.setAttribute("style", "margin-left:1rem;")
+    check_list_div.appendChild(checkbox_hidden);
+    check_list_div.appendChild(checkbox);
+    check_list_div.appendChild(label);
+    check_list_div.appendChild(cancel_item);
+    check_list_div.appendChild(br);
 
-             check_list_div.appendChild(cancel_item);
-
-             var br = document.createElement('br');
-             br.id = "br_id_"+check_list_item_name;
-             check_list_div.appendChild(br);
-
-             document.getElementById("check_list_item_name").value = "";
+    document.getElementById("check_list_item_name").value = "";
   }
 
-  function remove_item(item_id)
-  {
+  function remove_item(item_id) {
     document.getElementById(item_id).remove();
-    document.getElementById('hidden_'+item_id).remove();
-    document.getElementById('btn_'+item_id).remove();
-    document.getElementById('label_'+item_id).remove();
-    document.getElementById('br_'+item_id).remove();
+    document.getElementById('hidden_' + item_id).remove();
+    document.getElementById('btn_' + item_id).remove();
+    document.getElementById('label_' + item_id).remove();
+    document.getElementById('br_' + item_id).remove();
   }
 
-</script>
 
+  /* --- assignment ----------------------------------------------------- */
 
-  <script>
-    function get_assignation() {
+  function get_assignation() {
+    let dropdown = $('#assigned_to');
+    dropdown.empty();
 
-let dropdown = $('#assigned_to');
+    var username_from_query = "{{ session['name'] }}";
+    var user_role = "{{ session['role'] }}";
+    var user_list = [];
 
-dropdown.empty()
-const url = '/users?get_select_users_event';
+    $.getJSON('/users?get_select_users_event', function (data) {
+      $.each(data, function (key, entry) {
+        var mine = username_from_query == entry.username;
+        if (mine) user_list.push(entry.username);
 
-  username_from_query = "{{session['name']}}"
-  user_role = "{{session['role']}}"
-  user_list=[]
-// Populate dropdown with list of provinces
-$.getJSON(url, function (data) {
-  $.each(data, function (key, entry) {
-
-    
-   
-
-  if (user_role == 'admin')
-  {
-    if (username_from_query == entry.username)
-    {
-    dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
-      user_list.push(entry.username)
-    }
-    else
-    {
-      dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
-    }
-  }
-
-  else 
-  {
-    if ( username_from_query == entry.username)
-    {
-      user_list.push(entry.username)
-    dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
-    }
-    else
-    {
-      dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
-    }
-  }
-
-  })
-  console.log(user_list)
-
-
-
-  $("#assigned_to").val(user_list);
-  $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: true });
-
-});
-
-
-
-}
-  </script>
-
-
-
-
-
-  <script>
-    $("form#create_crm_form").submit(function (e) {
-      e.preventDefault();
-      var formData = new FormData(this);
-
-
-      $.ajax({
-        url: "/create_lead_event?create_event",
-        type: 'POST',
-        data: formData,
-        success: function (data) {
-          var state = data.state
-          var reason = data.reason
-          console.log(state)
-
-
-          if (state == 'error') {
-            Swal.fire(
-              'Sorry',
-              reason,
-              'error')
-          }
-
-          else if (state == 'success') {
-            Swal.fire(
-              'Good Job',
-              'Lead Added Successfully',
-              'success')
-            //document.getElementById('create_crm_form').reset();
-
-            //get_assignation();
-
-            setTimeout(window.location.reload(), 3000); 
-
-
-          }
-          else {
-            Swal.fire(
-              'Sorry',
-              'Something went wrong',
-              'error')
-
-          }
-        },
-        cache: false,
-        contentType: false,
-        processData: false
+        if (user_role == 'admin') {
+          dropdown.append($(mine ? '<option selected="true"></option>' : '<option></option>')
+            .attr('value', entry.abbreviation).text(entry.username));
+        } else {
+          dropdown.append($(mine ? '<option selected="true"></option>' : '<option disabled></option>')
+            .attr('value', entry.abbreviation).text(entry.username));
+        }
       });
 
+      $("#assigned_to").val(user_list);
+      $('#assigned_to').select2({ placeholder: 'Multi assignation', closeOnSelect: false, allowClear: true });
     });
-  </script>
+  }
 
 
+  /* --- submit --------------------------------------------------------- */
 
+  $("form#create_crm_form").submit(function (e) {
+    e.preventDefault();
 
-<script>
-  $( document ).ready(function() {
+    $.ajax({
+      url: "/create_lead_event?create_event",
+      type: 'POST',
+      data: new FormData(this),
+      success: function (data) {
+        var state = data.state;
+        var reason = data.reason;
+
+        if (state == 'error') {
+          Swal.fire('Lead not created', reason, 'error');
+        }
+        else if (state == 'success') {
+          Swal.fire('Lead created', '', 'success');
+          // Was setTimeout(window.location.reload(), 3000), which calls
+          // reload() immediately and passes its undefined result to
+          // setTimeout - so the page reloaded before the message showed.
+          setTimeout(function () { window.location.reload(); }, 3000);
+        }
+        else {
+          Swal.fire('Something went wrong', 'The lead was not created. Try again in a few moments.', 'error');
+        }
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  });
+
+  $(document).ready(function () {
     get_assignation();
-  })
+  });
 </script>
-
-
-
-
-</body>
-
 {% endblock %}
