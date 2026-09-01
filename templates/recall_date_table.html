@@ -1,374 +1,162 @@
 {% extends 'main.html' %}
+{% block title %}Education recall dates — 51 American CRM{% endblock %}
+
 {% block body %}
 
+{# The heading, the date picker and its init script all used to sit INSIDE
+   <table>, before <thead>, together with six <br>, an <hr> and a stray
+   </center> with no opening tag. Browsers hoist that out of the table, which
+   is what made the layout unpredictable. #}
+<div style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-7)">
+  <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Education recall dates</h1>
+  <p style="font:var(--type-body-sm);color:var(--text-muted)">Leads due for a call back on the selected date.</p>
+</div>
 
-<style>
-    body {
-        font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
-        margin: 0;
-        padding: 0;
-        color: #333;
-        background-color: #f2f3f7;
-    }
-   
-    .switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
+<div class="card_customized" style="margin-bottom:var(--space-7)">
+  <div class="form-group" style="max-width:260px;margin-bottom:0">
+    <label for="recall_date">Date</label>
+    <input type="text" class="form-control mono" id="recall_date" name="recall_date"
+           readonly onchange="get_recall_date()">
+    <small class="form-text">Pick a date to load the leads recalled that day.</small>
+  </div>
+</div>
 
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
+<div class="card_customized" style="padding:0">
+  <table id="recall_date_table" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th>Assigned username</th>
+        <th>Student ID</th>
+        <th>Student mobile</th>
+        <th>Student name</th>
+        <th>Done</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tfoot>
+      <tr>
+        <th>Assigned username</th>
+        <th>Student ID</th>
+        <th>Student mobile</th>
+        <th>Student name</th>
+        <th>Done</th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
 
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-</style>
-
-<body >
+{% endblock %}
 
 
-    <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Recall Date Table</u>
-    </h1>
-    </center>
-    <br>
-
-
-
-    <div class="card_customized" style="margin-left: 3%;margin-right: 3%;">
-        <table id="recall_date_table" class="display" style="width:100%">
-
-            <br>
-            
-
-
-                <br>
-                <br>
-                <br>
-                <center>
-                <div class="form-group">
-                    <label for="exampleFormControlInput1"
-                        style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;font-size: 20px;">Date</label>
-                    <input style="text-align:center;color:blue;width: 70%;background-color: white;width:30%" type="text" class="form-control"
-                        id="recall_date" name="recall_date" readonly onchange="get_recall_date()">
-                </div>
-                <br>
-                <br>
-            </center>
-
-                <script>
-                    $('#recall_date').datepicker({
-                      todayBtn: "linked",
-                      weekStart: 0,
-                      autoclose: true,
-                      todayHighlight: true,
-                      format: "yyyy-mm-dd",
-
-
-        
-                    });
-                    
-                    
-                        var date = new Date();
-                        
-
-                    $('#recall_date').datepicker("endDate","today");
-                    $('#recall_date').datepicker("setDate", date);
-
-        
-                    //console.log("A");
-                  </script>
-                <br>
-                <br>
-                <hr>
-                <thead>
-
-                    <tr>
-                      <th>Assigned Username</th>
-                        <th>Student ID</th>
-                        <th>Student Mobile</th>
-                        <th>Student Name</th>
-                        <th>Done</th>
-
-                        <th></th>
-                    </tr>
-
-                </thead>
-                <tfoot>
-                    <tr>
-                       <th>Assigned Username</th>
-                        <th>Student ID</th>
-                        <th>Student Mobile</th>
-                        <th>Student Name</th>
-                        <th>Done</th>
-                        <th></th>
-                    </tr>
-                </tfoot>
-        </table>
-
-    </div>
-
-
-    <script>
-
-        function get_recall_date() {
-            
-        $('#recall_date_table').DataTable().destroy();
-       
-
-            date = document.getElementById('recall_date').value;
-            var table = $('#recall_date_table').DataTable({
-                ajax: { url: '/get_recall_date?date='+date, mimeType: 'json' },
-                deferRender: true,
-                columns: [
-                    { data: 'assigned_username' },
-                    { data: 'student_id' },
-                    { data: 'student_mobile' },
-                    { data: 'student_name' },
-                    {
-                        
-                        mRender: function (data, type, row) {
-                            if (row.done == '1')
-                            {
-                                return '<label class="switch" style="margin-bottom: 0px;"> <input onchange="change_done('+row.student_id+')" type="checkbox"  checked> <span class="slider round"></span> </label>'
-                            }
-                            else
-                            {
-                                return '<label class="switch" style="margin-bottom: 0px;"> <input onchange="change_done('+row.student_id+')"  type="checkbox"> <span class="slider round"></span> </label>' 
-                            }   
-                        },
-                    },
-                    {
-                        mRender: function (data, type, row) {
-
-                               
-                                    return '<div class="btn-group"><button id="add_notes" name="add_notes" class="btn btn-warning" value="Add Notes" onclick="add_notes_swal('+row.student_id+','+row.student_mobile+')"> Add Notes </button><button id="visit_profile" name="visit_profile" class="btn btn-info" value="Profile" onclick="window.location.assign(\'/update_american_lead?student_data='+row.student_id+' - '+row.student_mobile+' - '+row.student_name+'\');">Profile</button></div>';
-
-                                
-                            
-
-
-                        },
-                    }
-
-
-
-                ],
-
-
-                rowId: 'extn',
-                select: true,
-                paging: false,
-                dom: 'Bfrtip',
-                scrollX: true,
-                select: false,
-                "order": [[3,"desc"]],
-                buttons: [
-                    'copy', 'csv', 'excel', 'pdf', 'print',
-                    {
-                        text: 'Reload table',
-                        exportOptions: {
-                            columns: [0, 1, 2]
-                        },
-                        action: function () {
-                            table.ajax.reload();
-                        }
-                    }
-                ]
-
-            });
-
-
-        }
-
-    </script>
-
-
+{% block scripts %}
 <script>
-    async function add_notes_swal(id,student_mobile)
-    {
-    const { value: text } = await Swal.fire({
-  input: 'textarea',
-  inputLabel: 'Notes',
-  inputPlaceholder: 'Type your notes here...',
-  inputAttributes: {
-    'aria-label': 'Type your message here'
-  },
-  showCancelButton: true
-})
-
-if (text) {
-  notes = text
-  $.post('/add_notes_recall',{student_id:id,student_mobile:student_mobile,notes:notes}).done(function (response) {
-    state = response.state
-    if (state == 'success')
-    {
-        Swal.fire("","Notes Added Successfully",'success')
-
-    }
-    else
-    {
-        Swal.fire("Sorry",'Something went wrong','error')
-    }
-
-  })
-  
-}
-else
-{
-    Swal.fire("Nothing Changed")
-}
-}
-</script>
-
-
-<script>
-function change_done(student_id)
-{
-
-  $.post('/change_done',{student_id:student_id}).done(function (response) {
-
-    state = response.state
-    if (state == 'success')
-    {
-      console.log("done")
-      var table = $('#recall_date_table').DataTable()
-      table.ajax.reload()
-    }
-    else
-    {
-      table.ajax.reload()
-      swal.fire("Sorry","Something Went Wrong","error")
-    }
-
-  })
-}
-
-
-  </script>
-    <!-- Edit Client Modal -->
-    <!-- Modal -->
-
-    <!-- Edit Client Modal -->
-
-
-
-    <!-- Add Client Modal -->
-    <!-- Modal -->
-
-
-
-
- 
-<script>
-    function change_confirmation(id)
-{
-
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, change it!'
-  }).then((result) => {
-    if (result.isConfirmed) {
-
-      $.post("/change_confirmation", { cheque_id:id  }).done(function (response) {
-        state = response.state;
-
-        //setTimeout(() => {  window.location.replace("/logout"); }, 3000);
-
-        if (state == "success") {
-        
-          Swal.fire({
-            icon: 'success',
-            title: 'Done',
-            text: 'Cheque Confirmation Changed',
-            showConfirmButton: false,
-            showCancelButton: false
-          });
-          $('#recall_date_table').DataTable().ajax.reload();
-          
-
-      }
-
-
-
-        else {
-          Swal.fire(
-            'Hmmm',
-            'Something went wrong, try again in a few moments',
-            'error');
-        }
-
-      });
-    }
+  $('#recall_date').datepicker({
+    todayBtn: "linked",
+    weekStart: 0,
+    autoclose: true,
+    todayHighlight: true,
+    format: "yyyy-mm-dd"
   });
+  $('#recall_date').datepicker("endDate", "today");
+  $('#recall_date').datepicker("setDate", new Date());
 
-}
+  function get_recall_date() {
+    $('#recall_date_table').DataTable().destroy();
+
+    var date = document.getElementById('recall_date').value;
+
+    var table = $('#recall_date_table').DataTable({
+      ajax: { url: '/get_recall_date?date=' + encodeURIComponent(date), mimeType: 'json' },
+      deferRender: true,
+      columns: [
+        { data: 'assigned_username' },
+        { data: 'student_id',     className: 'mono' },
+        { data: 'student_mobile', className: 'mono' },
+        { data: 'student_name' },
+        {
+          mRender: function (data, type, row) {
+            var checked = row.done == '1' ? ' checked' : '';
+            return '<label class="switch"><input onchange="change_done(' + row.student_id + ')" ' +
+                   'type="checkbox"' + checked + '><span class="slider round"></span></label>';
+          }
+        },
+        {
+          mRender: function (data, type, row) {
+            // Arguments are quoted: a mobile with a leading zero would
+            // otherwise be emitted as a bare, invalid numeric literal.
+            return '<div class="btn-group">' +
+              '<button id="add_notes" name="add_notes" class="btn btn-secondary btn-sm" ' +
+              'onclick="add_notes_swal(\'' + row.student_id + '\',\'' + row.student_mobile + '\')">' +
+              '<i data-lucide="notebook-pen"></i>Add notes</button>' +
+              '<button id="visit_profile" name="visit_profile" class="btn btn-secondary btn-sm" ' +
+              'onclick="window.location.assign(\'/update_american_lead?student_data=' +
+              row.student_id + ' - ' + row.student_mobile + ' - ' + row.student_name + '\');">Profile</button>' +
+              '</div>';
+          }
+        }
+      ],
+
+      // Was paging:false. Also dropped rowId:'extn' - no such field exists
+      // anywhere in the app - and a duplicated select key that set true then
+      // false. The effective value was false, which is kept.
+      select: false,
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
+      dom: 'Blfrtip',
+      scrollX: true,
+      order: [[3, "desc"]],
+      buttons: [
+        'copy', 'csv', 'excel', 'pdf', 'print',
+        {
+          text: 'Reload table',
+          exportOptions: { columns: [0, 1, 2] },
+          action: function () { table.ajax.reload(); }
+        }
+      ],
+
+      drawCallback: function () {
+        lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14, 'stroke-width': 1.75 } });
+      }
+    });
+  }
+
+  async function add_notes_swal(id, student_mobile) {
+    const { value: text } = await Swal.fire({
+      input: 'textarea',
+      inputLabel: 'Notes',
+      inputPlaceholder: 'What came out of the call?',
+      inputAttributes: { 'aria-label': 'Call notes' },
+      showCancelButton: true,
+      confirmButtonText: 'Save notes',
+      cancelButtonText: 'Cancel'
+    });
+
+    if (!text) return;
+
+    $.post('/add_notes_recall', { student_id: id, student_mobile: student_mobile, notes: text })
+      .done(function (response) {
+        if (response.state == 'success') {
+          Swal.fire('', 'Notes saved', 'success');
+        } else {
+          Swal.fire('Something went wrong', 'The notes were not saved. Try again in a few moments.', 'error');
+        }
+      });
+  }
+
+  function change_done(student_id) {
+    $.post('/change_done', { student_id: student_id }).done(function (response) {
+      var table = $('#recall_date_table').DataTable();
+      table.ajax.reload();
+      if (response.state != 'success') {
+        Swal.fire('Something went wrong', 'The status was not changed. Try again in a few moments.', 'error');
+      }
+    });
+  }
+
+  $(document).ready(function () {
+    get_recall_date();
+  });
 </script>
-
-
-
-<script>
- $( document ).ready(function() {
-
-  get_recall_date();
-})
-</script>
-
-
-
-</body>
-
 {% endblock %}
