@@ -1,0 +1,32 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Data" subtitle="Data table, toolbar, KPI tiles, sparkline, key-values" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--surface-card);padding:20px;display:flex;align-items:center}#root{width:100%}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:14px}.lbl{font:var(--type-overline);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-subtle)}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, Card, Badge, Tag, Avatar, Spinner, Icon, Input, Textarea, Select, Checkbox, Radio, Switch, SearchField, FormField, Alert, Toast, Dialog, Tooltip, ProgressBar, Skeleton, EmptyState, SideNav, TopBar, Tabs, Breadcrumbs, Pagination, Menu, DataTable, TableToolbar, StatCard, Sparkline, KeyValueList } = window.AdminDesignSystem_b1fc08;
+
+const rows=[{id:1,name:'Acme Inc',plan:'Enterprise',mrr:'$4,200',status:'Active',tone:'success'},
+ {id:2,name:'Northwind',plan:'Growth',mrr:'$980',status:'Past due',tone:'warning'},
+ {id:3,name:'Globex',plan:'Growth',mrr:'$860',status:'Active',tone:'success'},
+ {id:4,name:'Initech',plan:'Free',mrr:'$0',status:'Churned',tone:'neutral'}];
+function Demo(){const [sel,setSel]=React.useState([2]);const [sort,setSort]=React.useState({key:'mrr',dir:'desc'});return (
+ <div className="col">
+  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+   <StatCard label="MRR" value="$48,210" delta="+6.2%" icon="dollar-sign" chart={<Sparkline data={[12,18,15,22,30,28,36]} />} />
+   <StatCard label="Active customers" value="248" delta="+12" icon="users" />
+   <StatCard label="Churn" value="1.8%" delta="-0.4%" deltaTone="success" icon="user-minus" />
+  </div>
+  <Card padded={false}>
+   <TableToolbar selectionCount={sel.length} bulkActions={<><Button size="sm">Export</Button><Button size="sm" variant="danger" iconStart="trash-2">Delete</Button></>} />
+   <DataTable selectable selectedIds={sel} onSelectionChange={setSel} sort={sort} onSortChange={setSort} rows={rows}
+    columns={[{key:'name',header:'Customer',sortable:true},{key:'plan',header:'Plan'},{key:'mrr',header:'MRR',numeric:true,sortable:true},
+     {key:'status',header:'Status',render:r=><Badge tone={r.tone} dot>{r.status}</Badge>},
+     {key:'a',header:'',width:52,align:'right',render:()=><IconButton icon="ellipsis" label="Actions" size="sm" />}]} />
+  </Card>
+ </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

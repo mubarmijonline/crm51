@@ -1,0 +1,25 @@
+:root{
+/* Breakpoints — mobile-first. Layout switches at md; the rail collapses at lg. */
+--bp-xs:360px; /* @kind spacing */
+--bp-sm:480px; /* @kind spacing */
+--bp-md:768px; /* @kind spacing */
+--bp-lg:1024px; /* @kind spacing */
+--bp-xl:1280px; /* @kind spacing */
+--bp-2xl:1536px; /* @kind spacing */
+/* Touch — minimum hit target on phones and tablets */
+--touch-target:44px;
+--mobile-header-height:52px;
+--mobile-tabbar-height:56px;
+--mobile-pad-page:16px;
+--mobile-row-height:60px;
+--safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+@media (max-width:767px){:root{
+--pad-page:var(--mobile-pad-page);
+--pad-card:16px;
+--row-height:60px;
+--cell-pad-x:16px;
+--control-height-md:40px;
+--control-height-lg:48px;
+--gap-section:20px;
+}}

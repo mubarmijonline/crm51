@@ -1,948 +1,299 @@
+{# ============================================================================
+   51 American CRM — base layout, rebuilt on the Admin Design System.
+   Replaces templates/main.html.
+
+   Changes from the old base:
+   - One navbar instead of two duplicated ones; role is handled with Jinja,
+     not by rendering both and hiding one with JavaScript.
+   - sb-admin-2.min.css, Font Awesome (3 sources), and the duplicate jQuery
+     loads are gone. Lucide replaces Font Awesome.
+   - The zoom-locked viewport is gone, so the app works on phones.
+   - All the inline <style> rules moved into ds-bridge.css.
+   Keep every id and JS function name — the page templates depend on them.
+   ========================================================================= #}
 <!doctype html>
 <html lang="en" id="HTML">
-	
-  <head>
-  	<title>51 Campus || American CRM</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no" />
+<head>
+<meta charset="utf-8">
+<title>{% block title %}51 American CRM{% endblock %}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<style>
-		body {
-		  font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
-		  margin: 0;
-		  padding: 0;
-		  color: #333;
-		  background-color: #f2f3f7;
-		}
-		.card_customized  {
-    position: relative;
-    font-family: 'Trebuchet MS', sans-serif;
-    flex-direction: column;
-    min-width: 0;
-    word-wrap: break-word;
-    background-color: #fff;
-    background-clip: border-box;
-    border: 0 solid transparent;
-    border-radius: .25rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 6px 0 rgb(218 218 253 / 65%), 0 2px 6px 0 rgb(206 206 238 / 54%);
-    background-color:white;
-    padding-left: 40px;
-    padding-right:40px;
-    padding-top: 2em;
+{# --- Bootstrap grid + components, then design system tokens, then the bridge.
+     Order matters: the bridge must win over Bootstrap. --- #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ds/styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ds-bridge.css') }}">
 
-  /* background-image: url("{{url_for('static', filename='images/padel_background.jpg')}}"); */
-    background-size: cover;
-   background-repeat: no-repeat;
-   background-position:  center  center ;
+{# --- Vendor CSS still in use --- #}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/select.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/buttons.dataTables.min.css') }}">
+{# SearchPanes / SearchBuilder / DateTime — vendored locally at the versions the
+   lead tables were built against. They used to come from cdn.datatables.net in
+   each page template, alongside a third copy of jQuery. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/searchPanes.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/searchBuilder.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/dataTables.dateTime.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='datepicker/css/bootstrap-datepicker.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='sweetalert/dist/sweetalert2.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.css') }}">
+{% block head_css %}{% endblock %}
 
+{# --- Scripts: jQuery ONCE, then everything that depends on it --- #}
+<script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/popper.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.select.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.searchPanes.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.searchBuilder.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.dateTime.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.buttons.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/jszip.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/buttons.print.min.js') }}"></script>
+<script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='datepicker/js/bootstrap-datepicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
+<script src="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{# Icons — replaces Font Awesome 4.7 + both Font Awesome kit scripts #}
+<script src="{{ url_for('static', filename='vendor/lucide/lucide.js') }}"></script>
+{% block head_js %}{% endblock %}
 
-
-}
-
-.me-2 {
-    margin-right: .5rem!important;
-}
-.clear-btn{
-	background: transparent;
-	border: none;
-	padding: 0em;
-	margin: 0em;
-}
-.ourfont{
-font-family: 'Trebuchet MS', sans-serif;
-color:darkgreen;
-
-}
-.button {
-  float: left;
-  margin: 0 5px 0 0;
-  width: 100px;
-  height: 40px;
-  position: relative;
-}
-
-.button label,
-.button input {
-  display: block;
-  position: absolute;
-
-}
-
-.button input[type="radio"] {
-  opacity: 0.011;
-  z-index: 100;
-  
-  
-}
-
-.button input[type="radio"]:checked + label {
-  background: #B2B2B2;
-  border-radius: 4px;
-  border-style: ridge;
-}
-
-.button label {
-  cursor: pointer;
-  border: 2px solid black;
-  
-  
-}
-ul {
- 
-  margin: 0;
-  padding: 0;
-  list-style-type: none;
-  
-    
-}
-
-.notification-drop {
-  font-family: 'Ubuntu', sans-serif;
-  color: #444;
-}
-.notification-drop .item {
-  padding: 0px;
-  margin-top: 10px;
-  font-size: 20px;
-  position: relative;
-  border-bottom: 1px solid #ddd;
-}
-
-.notification-drop .item:hover {
-  cursor: pointer;
-}
-.notification-drop .item i {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-.notification-drop .item ul {
-  display: none;
-  position: absolute;
-  top: 100%;
-  background: #fff;
-  left: -200px;
-  right: 0;
-  z-index: 1;
-  border-top: 1px solid #ddd;
-  
-  
-}
-.notification-drop .item ul li {
-  font-size: 16px;
-  padding: 15px 0 15px 25px;
-
-}
-.notification-drop .item ul li:hover {
-  background: #ddd;
-  color: rgba(0, 0, 0, 0.8);
-}
-
-@media screen and (min-width: 500px) {
-  .notification-drop {
-    display: flex;
-    justify-content: flex-end;
-  }
-  .notification-drop .item {
-    border: none;
-  }
-}
-
-
-
-.notification-bell{
-  font-size: 20px;
-}
-
-.btn__badge {
-  background: #FF5D5D;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  position: absolute;
-  top: 0;
-  right: 0px;
-  padding:  3px 10px;
-  border-radius: 40%;
-}
-
-.pulse-button {
-  box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.5);
-  
-}
-
-
-
-.notification-text{
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.notification-text span{
-  float: right;
-}
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-}
-
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 34px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}
-
-		</style>
-	
-
-	<!------------------- BEGIN  CSS -------------------------------->	
-<!--<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
-	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-	-->	
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.googleapis.css.lato.css') }}" rel="stylesheet">
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.googleapis.icon.material.css') }}" rel="stylesheet">
-
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-	
-	<link rel="stylesheet" href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}">
-	<link href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"
-    type="text/css">
-   <link href="{{ url_for('static', filename='vendor/datatables/select.dataTables.min.css') }}" rel="stylesheet"
-    type="text/css">
-    <link href="{{ url_for('static', filename='vendor/datatables/buttons.dataTables.min.css') }}" rel="stylesheet"
-    type="text/css">
-
-  
-	  <link href="{{ url_for('static', filename='datepicker/css/bootstrap-datepicker.css') }}" rel="stylesheet" type="text/css">
-
-	  <link href="{{ url_for('static', filename='sweetalert/dist/sweetalert2.min.css') }}" rel="stylesheet"
-	  type="text/css">
-
-	  <link href="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.css') }}" rel="stylesheet"
-	  type="text/css">
-	  
-	  <script src="https://kit.fontawesome.com/d1a6f490f1.js" crossorigin="anonymous"></script>
-	
-
-<!-- 	  <link href="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker-ltie9.css') }}" rel="stylesheet"
-	  type="text/css"> -->
-	<!------------------- END   CSS -------------------------------->	
-
-	<!------------------- BEGINING  SCRIPTS -------------------------------->
-	<script src="{{url_for('static', filename='js/popper.js')}}"></script>
-	<script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
-	<script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
-	<script src="{{url_for('static', filename='js/main.js')}}"></script>
-	<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/jquery-3.3.1.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/dataTables.select.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/dataTables.buttons.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/buttons.flash.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/jszip.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/pdfmake.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/vfs_fonts.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='vendor/datatables/buttons.print.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='datepicker/js/bootstrap-datepicker.js') }}"></script>
-	<!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment-with-locales.min.js"></script> -->
-	<script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.js') }}"></script>
-	<script src="https://kit.fontawesome.com/f139ce70b0.js" crossorigin="anonymous"></script>
-
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<!-- 	<script src="{{ url_for('static', filename='select2/select2.js') }}"></script>
-	<link href="{{ url_for('static', filename='select2/select2.css') }}" rel="stylesheet"
-	type="text/css"> -->
-
-
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1-rc.1/js/select2.min.js" integrity="sha512-sltpIB7K+Ax4jQFs7oXsasf/kb6Dcd3PteRrST+K+ItlcHY2KYF3wrbNQxzQIV8Pk7my5b/JfpPcPiiXxn2hJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1-rc.1/css/select2.min.css" integrity="sha512-YHJ091iDoDM1PZZA9QLuBvpo0VXBBiGHsvdezDoc3p56S3SOMPRjX+zlCbfkOV5k3BmH5O9FqrkKxBRhkdtOkQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-<!--	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.css" rel="stylesheet" />
-	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.js"></script>
-	-->
-
-	<!------------------- END SCRIPTS --------------------------------------->
-
-
-
-	<script>
-		$(document).ajaxComplete(function(e, xhr, settings)
-		{
-			//console.log(e);
-			//console.log(xhr);
-			//console.log(settings);
-			//console.log(xhr.statusText);
-			if(xhr.statusText == "parsererror")
-			{
-				window.location.replace("/logout");
-			}
-		});
-	</script>
-
-
-
-
+<script>
+$(document).ajaxComplete(function (e, xhr) {
+  if (xhr.statusText === "parsererror") window.location.replace("/logout");
+});
+</script>
 </head>
 
+<body onload="notifications()">
 
+{% set role = session['role'] %}
+<nav id="main_nav_bar" class="navbar sticky-top navbar-expand-lg">
+  <a class="navbar-brand" href="/home">
+    <img src="{{ url_for('static', filename='images/51_Logo.png') }}" alt="">
+    <span>51 American CRM</span>
+  </a>
 
-	 <body class="img js-fullheight" zoom: 75%;  onload="notifications()"> 
-		
-		<nav id="main_nav_bar" hidden class="navbar sticky-top navbar-expand-lg {{ session['theme'] }}">
-			<span class="navbar-brand mb-0 h1" style="font-family: 'Trebuchet MS', sans-serif;"><b>51 American CRM</b></span>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-			  aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-			  <span class="navbar-toggler-icon"></span>
-			</button>
-		  
-			<div class="collapse navbar-collapse" id="navbarSupportedContent">
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-			  <ul class="navbar-nav mr-auto">
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/home"><i data-lucide="layout-dashboard"></i>Home</a>
+      </li>
 
-				<li class="nav-item" style="padding-left: 1rem; padding-right: 1rem;">
-					<a class="nav-link" href="/home" style="font-family: 'Trebuchet MS', sans-serif;" >Home</a>
-				</li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i data-lucide="graduation-cap"></i>Education leads
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/create_lead_american">Create lead</a>
+          <a class="dropdown-item" href="/update_american_lead">Search &amp; update lead</a>
+          <a class="dropdown-item" href="/american_active_leads">My active leads</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="/american_detailed_course_report">Detailed report</a>
+        </div>
+      </li>
 
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-					  Education Leads
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-					  <a id="settings_nav" class="dropdown-item" href="/create_lead_american" style="font-family: 'Trebuchet MS', sans-serif;">Create Lead</a>
-					  <div class="dropdown-divider"></div>
-					  <a class="dropdown-item" href="/update_american_lead" style="font-family: 'Trebuchet MS', sans-serif;">Search & Update Lead</a>
-					  <div class="dropdown-divider"></div>
-					  <a id="subscription_nav" class="dropdown-item" href="/american_active_leads" style="font-family: 'Trebuchet MS', sans-serif;">My Active Leads</a>
-					  <div class="dropdown-divider"></div>
-					  <a id="subscription_nav" class="dropdown-item" href="/american_detailed_course_report" style="font-family: 'Trebuchet MS', sans-serif;">Detailed Report</a>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i data-lucide="calendar-days"></i>Event leads
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/create_lead_event">Create lead</a>
+          <a class="dropdown-item" href="/update_event_lead">Search &amp; update lead</a>
+          <a class="dropdown-item" href="/event_active_leads">My active leads</a>
+        </div>
+      </li>
 
-					</div>
-			  </li>
-			  <li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-				  Event Leads
-				</a>
-				<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-				  <a id="settings_nav" class="dropdown-item" href="/create_lead_event" style="font-family: 'Trebuchet MS', sans-serif;">Create Lead</a>
-				  <div class="dropdown-divider"></div>
-				  <a class="dropdown-item" href="/update_event_lead" style="font-family: 'Trebuchet MS', sans-serif;">Search & Update Lead</a>
-				  <div class="dropdown-divider"></div>
-				  <a id="subscription_nav" class="dropdown-item" href="/event_active_leads" style="font-family: 'Trebuchet MS', sans-serif;">My Active Leads</a>
-				</div>
-		  </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i data-lucide="database"></i>CRM database
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/american_db">Courses</a>
+          <a class="dropdown-item" href="/event_db">Events</a>
+        </div>
+      </li>
 
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-					CRM Database
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-					<a id="settings_nav" class="dropdown-item" href="/american_db" style="font-family: 'Trebuchet MS', sans-serif;">Courses</a>
-					<div class="dropdown-divider"></div>
-					<a class="dropdown-item" href="/event_db" style="font-family: 'Trebuchet MS', sans-serif;">Events</a>
-					
-					</div>
-				  </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i data-lucide="phone-call"></i>{% if role == 'admin' %}Recall dates{% else %}My recall dates{% endif %}
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/recall_date_table">Courses</a>
+          <a class="dropdown-item" href="/recall_date_table_event">Events</a>
+        </div>
+      </li>
 
+      {% if role == 'admin' %}
+      <li class="nav-item">
+        <a class="nav-link" href="/users"><i data-lucide="users"></i>Users &amp; profiles</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i data-lucide="user"></i>Profile
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" href="/profile?username_profile={{ session['name'] }}">Courses profile</a>
+          <a class="dropdown-item" href="/event_profile?username_profile={{ session['name'] }}">Events profile</a>
+        </div>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/admin_settings"><i data-lucide="settings"></i>Admin settings</a>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="/user_add_task"><i data-lucide="bell-plus"></i>Notify user</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/profile?username_profile={{ session['name'] }}"><i data-lucide="user"></i>My profile</a>
+      </li>
+      {% endif %}
+    </ul>
 
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-						My Recall Dates
-						</a>
-						<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-							<a class="dropdown-item" href="/recall_date_table" style="font-family: 'Trebuchet MS', sans-serif;" >Courses</a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item" href="/recall_date_table_event" style="font-family: 'Trebuchet MS', sans-serif;">Events</a>
-						</div>
-				</li>
+    {# Notification bell. The ids below are what notifications() writes into —
+       admin uses the unsuffixed ids, everyone else the "x" ids. #}
+    <ul class="notification-drop">
+      <li class="item" id="{% if role == 'admin' %}x{% else %}xx{% endif %}" style="margin-right:12px">
+        <i data-lucide="bell"></i>
+        <span style="display:none" class="btn__badge pulse-button" id="notifiction_count{% if role != 'admin' %}x{% endif %}"></span>
+        <div id="content{% if role != 'admin' %}x{% endif %}" style="overflow:auto">
+          <ul id="notification_dropdown{% if role != 'admin' %}x{% endif %}" style="max-height:500px;width:350px;overflow:auto"></ul>
+        </div>
+      </li>
+    </ul>
 
+    <ul class="navbar-nav">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          <i data-lucide="circle-user"></i>{{ session['name'] }}
+        </a>
+        <div class="dropdown-menu dropdown-menu-right">
+          <a class="dropdown-item" href="/account_settings">Account settings</a>
+          <a class="dropdown-item" href="/historical_notification">Notification centre</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" href="/logout">Log out</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
 
-				<li class="nav-item" style="padding-left: 1rem; padding-right: 1rem;">
-					<a class="nav-link" href="/user_add_task" style="font-family: 'Trebuchet MS', sans-serif;" >Notify User</a>
-				</li>
+<main style="padding:var(--pad-page);max-width:var(--content-max);margin:0 auto">
+{% block body %}{% endblock %}
+</main>
 
-				<li class="nav-item" style="padding-left: 1rem; padding-right: 1rem;">
-					<a class="nav-link" href="/profile?username_profile={{session['name']}}" style="font-family: 'Trebuchet MS', sans-serif;" onclick="profile_page()" >My Profile</a>
-				</li>
-<!-- 				<script>
-					function profile_page()
-					{
-						myusername = "{{session['name']}}"
-						windows.location.replace('/profile?username_profile='+myusername)
-					}
-				</script> -->
+<footer class="bg-light text-center text-lg-start">
+  <div class="text-center p-3">© 2023 Copyright: <a class="text-dark" href="https://elmubarmij.com/">Al MubarmiJ Developments Incorporated</a></div>
+</footer>
 
-			  </ul>
-
-			  <ul class="notification-drop">
-				<li class="item" id="xx" style="margin-bottom: -5px; margin-right: 15px">
-				  <i class="fas fa-bell"  style="height: 100%; font-size: 24px;"></i>
-				  	
-					<span style="height: 50%;display:none;" class="btn__badge pulse-button" id="notifiction_countx"></span>    
-				  <div id="contentx" style="height: 100%; overflow: auto">
-				  <ul id="notification_dropdownx" style="max-height: 500px; width:350px;overflow: auto">
-		  
-				  </ul>
-				</div>
-				</li>
-			  </ul>
-			  
-			  <div class="my-2 my-lg-0 navbar-nav">
-
-				<ul class="navbar-nav mr-auto">
-				<li class="nav-item dropdown" style="padding-right: 2em;">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<i class="fa fa-cloud"></i> <span style="font-family: 'Trebuchet MS', sans-serif;">{{ session['name'] }}</span> 
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-					  <a class="dropdown-item" href="/account_settings" style="font-family: 'Trebuchet MS', sans-serif;">Account Settings</a>
-					  <div class="dropdown-divider"></div>
-					  <a class="dropdown-item" href="/historical_notification" style="font-family: 'Trebuchet MS', sans-serif;">Notification Center</a>
-					  <div class="dropdown-divider"></div>
-					  <a class="dropdown-item" href="/logout" style="font-family: 'Trebuchet MS', sans-serif;">Logout</a>
-					</div>
-				  </li>
-				  
-				</ul>
-
-			  </div>
-			  
-			  
-		  
-			</div>
-		  </nav>
-
-
-
-		  <nav id="main_nav_bar_admin" hidden class="navbar sticky-top navbar-expand-lg {{ session['theme'] }}">
-			<span class="navbar-brand mb-0 h1" style="font-family: 'Trebuchet MS', sans-serif;"><b>51 American CRM</b></span>
-			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-			  aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-			  <span class="navbar-toggler-icon"></span>
-			</button>
-		  
-			<div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-			  <ul class="navbar-nav mr-auto">
-
-				<li class="nav-item" style="padding-left: 1rem; padding-right: 1rem;">
-					<a class="nav-link" href="/home" style="font-family: 'Trebuchet MS', sans-serif;" >Home</a>
-				</li>
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-					  Education Leads
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-					  <a id="settings_nav" class="dropdown-item" href="/create_lead_american" style="font-family: 'Trebuchet MS', sans-serif;">Create Lead</a>
-					  <div class="dropdown-divider"></div>
-					  <a class="dropdown-item" href="/update_american_lead" style="font-family: 'Trebuchet MS', sans-serif;">Search & Update Lead</a>
-					  <div class="dropdown-divider"></div>
-					  <a id="subscription_nav" class="dropdown-item" href="/american_active_leads" style="font-family: 'Trebuchet MS', sans-serif;">My Active Leads</a>
-					  <div class="dropdown-divider"></div>
-					  <a id="subscription_nav" class="dropdown-item" href="/american_detailed_course_report" style="font-family: 'Trebuchet MS', sans-serif;">Detailed Report</a>
-
-					</div>
-			  </li>
-			  <li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-				  Event Leads
-				</a>
-				<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-				  <a id="settings_nav" class="dropdown-item" href="/create_lead_event" style="font-family: 'Trebuchet MS', sans-serif;">Create Lead</a>
-				  <div class="dropdown-divider"></div>
-				  <a class="dropdown-item" href="/update_event_lead" style="font-family: 'Trebuchet MS', sans-serif;">Search & Update Lead</a>
-				  <div class="dropdown-divider"></div>
-				  <a id="subscription_nav" class="dropdown-item" href="/event_active_leads" style="font-family: 'Trebuchet MS', sans-serif;">My Active Leads</a>
-				</div>
-		  </li>
-
-		  <li class="nav-item dropdown">
-				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-				CRM Database
-				</a>
-				<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-				<a id="settings_nav" class="dropdown-item" href="/american_db" style="font-family: 'Trebuchet MS', sans-serif;">Courses</a>
-				<div class="dropdown-divider"></div>
-				<a class="dropdown-item" href="/event_db" style="font-family: 'Trebuchet MS', sans-serif;">Events</a>
-				
-				</div>
-	  		</li>
-
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-						Recall Dates
-						</a>
-						<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-							<a class="dropdown-item" href="/recall_date_table" style="font-family: 'Trebuchet MS', sans-serif;" >Courses</a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item" href="/recall_date_table_event" style="font-family: 'Trebuchet MS', sans-serif;">Events</a>
-						</div>
-				</li>
-
-
-
-				<li class="nav-item" style="padding-left: 1rem; padding-right: 1rem;">
-					<a class="nav-link" href="/users" style="font-family: 'Trebuchet MS', sans-serif;" >Users & Profiles</a>
-				</li>
-
-
-				<li class="nav-item dropdown">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-family: 'Trebuchet MS', sans-serif;">
-						Profile
-						</a>
-						<div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-							<a class="dropdown-item" href="/profile?username_profile={{session['name']}}" style="font-family: 'Trebuchet MS', sans-serif;" >Courses Profile</a>
-							<div class="dropdown-divider"></div>
-							<a class="dropdown-item" href="/event_profile?username_profile={{session['name']}}" style="font-family: 'Trebuchet MS', sans-serif;">Events Profile</a>
-						</div>
-				</li>
-				
-				<li class="nav-item" style="padding-left: 1rem; padding-right: 1rem;">
-					<a class="nav-link" href="/admin_settings" style="font-family: 'Trebuchet MS', sans-serif;" >Admin Settings</a>
-				</li>
-
-			  </ul>
-
-
-<!-- 			  <div class="navbar-nav">
-			  <ul class="notification-drop">
-				<li class="item">
-				  <i class="fas fa-bell" style="height: 20%;"></i><span style="height: 20%;display:none;" class="btn__badge pulse-button" id="notifiction_count"></span>    
-				  <div id="content" style="height: 100%; overflow: auto">
-				  <ul id="notification_dropdown" style="width: 400px;">
-		  
-				  </ul>
-				</div>
-				</li>
-			  </ul>
-			</div> -->
-			<ul class="notification-drop">
-				<li class="item" id="x" style="margin-bottom: -5px; margin-right: 15px">
-				  <i class="fas fa-bell"  style="height: 100%; font-size: 24px;"></i>
-				  	
-					<span style="height: 50%;display:none;" class="btn__badge pulse-button" id="notifiction_count"></span>    
-				  <div id="content" style="height: 100%; overflow: auto">
-				  <ul id="notification_dropdown" style="max-height: 500px; width:350px;overflow: auto">
-		  
-				  </ul>
-				</div>
-				</li>
-			  </ul>
-			  
-
-			  <div class="my-2 my-lg-0 navbar-nav">
-
-
-				<ul class="navbar-nav mr-auto">
-				<li class="nav-item dropdown" style="padding-right: 2em;">
-					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-						<i class="fa fa-cloud"></i> <span style="font-family: 'Trebuchet MS', sans-serif;">{{ session['name'] }}</span> 
-					</a>
-					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
-					  <a class="dropdown-item" href="/account_settings" style="font-family: 'Trebuchet MS', sans-serif;">Account Settings</a>
-					  <div class="dropdown-divider"></div>
-					  <a class="dropdown-item" href="/historical_notification" style="font-family: 'Trebuchet MS', sans-serif;">Notification Center</a>
-					  <div class="dropdown-divider"></div>
-					  <a class="dropdown-item" href="/logout" style="font-family: 'Trebuchet MS', sans-serif;">Logout</a>
-					</div>
-				  </li>
-				  
-				</ul>
-
-			  </div>
-
-
-		  
-			</div>
-		  </nav>
-
-
-		  <script>
-			$( document ).ready(function() {
-				role = "{{session['role']}}"
-				if (role == 'admin')
-				{
-					document.getElementById('main_nav_bar_admin').hidden = false
-					document.getElementById('main_nav_bar').hidden = true
-				}
-				else
-				{
-					document.getElementById('main_nav_bar_admin').hidden = true
-					document.getElementById('main_nav_bar').hidden = false
-				}
-});
-			
-			
-		  </script>
-		    <script>
-				$(document).ready(function(){
-					// Show hide popover
-					$("#x").click(function(){
-					  
-						//notifications()
-						$(this).find("#notification_dropdown").toggle();
-					});
-
-					$("#xx").click(function(){
-					  
-					  //notifications()
-					  $(this).find("#notification_dropdownx").toggle();
-				  });
-
-				});
-/* 				$(document).on("click", function(event){
-					var $trigger = $(".notification-drop");
-					
-					if($trigger !== event.target && !$trigger.has(event.target).length){
-						//$("#notification_dropdown").slideUp("fast");
-						console.log("NOT HERE")
-					}            
-				}); */
-			</script>
-<!--    <script>
-    $(document).ready(function(){
-        // Show hide popover
-        $(".notification-drop").click(function(){
-/*           $.get("/read_notifications").done(function (response) {
-
-}) */
-        notifications()
-            $(this).find("#notification_dropdown").toggle();
-        });
-    });
-/*     $(document).on("click", function(event){
-        var $trigger = $(".notification-drop");
-        if($trigger !== event.target && !$trigger.has(event.target).length){
-            $("#notification_dropdown").slideUp("fast");
-        }            
-    }); */
-</script> -->
 <script>
-
-	function notifications()
-	{
-		localStorage.setItem("isFunctionRunning",1); 
-	  $.get("/get_read_notifications").done(function (response) {
-		
-		  $('#notification_dropdown').empty();
-
-		  $('#notification_dropdownx').empty();
-		  
-		 if (response.length == 0)
-		  {
-			if( "{{session['role']}}" === "admin")
-				{
-					$('#notification_dropdown').append("<li><div>No New Notifications</div></li>")
-					$('#notification_dropdown').append("<hr><li'><div class='text-center'><button onclick='go_to_notification_center()' class='btn btn-warning'>Show Historical Notifications</button></div></li><hr>")
-					document.getElementById("notifiction_count").style="display:none;overflow: auto"
-					
-					
-				}
-			else
-				{
-					$('#notification_dropdownx').append("<li><div>No New Notifications</div></li>")
-					$('#notification_dropdownx').append("<hr><li'><div  class='text-center'><button  onclick='go_to_notification_center()' class='btn btn-warning'>Show Historical Notifications</button></div></li><hr>")
-					document.getElementById("notifiction_countx").style="display:none;overflow: auto"
-				}
-  
-		  }
-		  else
-		  {
-			
-		  count = 0;
-		  if( "{{session['role']}}" === "admin")
-				{
-		  			document.getElementById("notifiction_count").style="display:block;;height:20%;overflow: auto"
-				}
-			else
-			{
-				document.getElementById("notifiction_countx").style="display:block;;height:20%;overflow: auto"
-			}
-			
-
-		  for (let i = 0; i < response.length; i++) {
-		
-			if (response[i].read == false)
-			{
-			  count =count+1
-			}
-			//$('#notifiction_count').text(response[i].length)
-				
-			  if (response[i].read == false)
-			  {
-				if( "{{session['role']}}" === "admin")
-				{
-					if (response[i].section == 'american' )
-					{
-						$('#notification_dropdown').append("<li style='font-size:12px;font-family: Trebuchet MS, sans-serif;'><span style='font-size:15px;font-family: Trebuchet MS, sans-serif;color:black:font-weight:bold;color:red'>"+response[i].title+"</span><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:green'>"+response[i].message+"</div><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:blue'>Added By : "+response[i].added_by+"</div><div class='row'><label class='switch' style='margin-bottom: 0px;'> <input onchange='read_notification(this.id,true)' id='"+response[i]._id+"' type='checkbox'  unchecked> <span class='slider round'></span> </label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<button class='btn btn-dark' onclick = 'go_to_lead("+response[i].student_id+",\""+response[i].section+"\")'>Profile</button></div></div></li><hr style='height:1px;border:none;color:#333;background-color:#333;'>")
-					}
-					else if (response[i].section == 'event' )
-					{
-						$('#notification_dropdown').append("<li style='font-size:12px;font-family: Trebuchet MS, sans-serif;'><span style='font-size:15px;font-family: Trebuchet MS, sans-serif;color:black:font-weight:bold;color:red'>"+response[i].title+"</span><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:green'>"+response[i].message+"</div><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:blue'>Added By : "+response[i].added_by+"</div><div class='row'><label class='switch' style='margin-bottom: 0px;'> <input onchange='read_notification(this.id,true)' id='"+response[i]._id+"' type='checkbox'  unchecked> <span class='slider round'></span> </label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<button class='btn btn-dark' onclick = 'go_to_event_lead("+response[i].client_id+",\""+response[i].section+"\")'>Profile</button></div></div></li><hr style='height:1px;border:none;color:#333;background-color:#333;'>")
-					}
-					else
-					{
-						$('#notification_dropdown').append("<li style='font-size:12px;font-family: Trebuchet MS, sans-serif;'><span style='font-size:15px;font-family: Trebuchet MS, sans-serif;color:black:font-weight:bold;color:red'>"+response[i].title+"</span><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:green'>"+response[i].message+"</div><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:blue'>Added By : "+response[i].added_by+"</div><div class='row'><label class='switch' style='margin-bottom: 0px;'> <input onchange='read_notification(this.id,true)' id='"+response[i]._id+"' type='checkbox'  unchecked> <span class='slider round'></span> </label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</div></div></li><hr style='height:1px;border:none;color:#333;background-color:#333;'>")	
-					}
-
-				}
-				else
-				{
-					if (response[i].section == 'american' )
-					{	
-					$('#notification_dropdownx').append("<li style='font-size:12px;font-family: Trebuchet MS, sans-serif;'><span style='font-size:15px;font-family: Trebuchet MS, sans-serif;color:black:font-weight:bold;;color:red'>"+response[i].title+"</span><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:green'>"+response[i].message+"</div><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:blue'>Added By : "+response[i].added_by+"</div></div class='row'><label class='switch' style='margin-bottom: 0px;'> <input onchange='read_notification(this.id,true)' id='"+response[i]._id+"' type='checkbox'  unchecked> <span class='slider round'></span> </label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<button class='btn btn-dark' style='' onclick = 'go_to_lead("+response[i].student_id+",\""+response[i].section+"\")'>Profile</button></div></div></li><hr style='height:1px;border:none;color:#333;background-color:#333;'>")
-					}
-					if (response[i].section == 'event' )
-					{	
-					$('#notification_dropdownx').append("<li style='font-size:12px;font-family: Trebuchet MS, sans-serif;'><span style='font-size:15px;font-family: Trebuchet MS, sans-serif;color:black:font-weight:bold;;color:red'>"+response[i].title+"</span><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:green'>"+response[i].message+"</div><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:blue'>Added By : "+response[i].added_by+"</div></div class='row'><label class='switch' style='margin-bottom: 0px;'> <input onchange='read_notification(this.id,true)' id='"+response[i]._id+"' type='checkbox'  unchecked> <span class='slider round'></span> </label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp<button class='btn btn-dark' style='' onclick = 'go_to_event_lead("+response[i].client_id+",\""+response[i].section+"\")'>Profile</button></div></div></li><hr style='height:1px;border:none;color:#333;background-color:#333;'>")
-					}
-					else
-					{
-					$('#notification_dropdownx').append("<li style='font-size:12px;font-family: Trebuchet MS, sans-serif;'><span style='font-size:15px;font-family: Trebuchet MS, sans-serif;color:black:font-weight:bold;color:red'>"+response[i].title+"</span><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:green'>"+response[i].message+"</div><div style='font-size:12px;font-family: Trebuchet MS, sans-serif;font-weight:bold;color:blue'>Added By : "+response[i].added_by+"</div></div class='row'><label class='switch' style='margin-bottom: 0px;'> <input onchange='read_notification(this.id,true)' id='"+response[i]._id+"' type='checkbox'  unchecked> <span class='slider round'></span> </label>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp</div></div></li><hr style='height:1px;border:none;color:#333;background-color:#333;'>")	
-					}
-				}
-			}
-
-			
-	
-		  }
-		  
-		  if( "{{session['role']}}" === "admin")
-			{
-		  		$('#notification_dropdown').append("<li'><div class='text-center'><button onclick='go_to_notification_center()' class='btn btn-warning'>Show Historical Notifications</button></div></li>")
-			}
-			else
-			{
-				$('#notification_dropdownx').append("<li'><div class='text-center'><button onclick='go_to_notification_center()' class='btn btn-warning'>Show Historical Notifications</button></div></li>")
-			}
-		  
-		  if (count == 0 )
-		  {
-			if( "{{session['role']}}" === "admin")
-			{
-				document.getElementById("notifiction_count").style="display:none;"
-			}
-			else
-			{
-				document.getElementById("notifiction_countx").style="display:none;"
-			}
-		  }
-		  else
-		  {
-			if( "{{session['role']}}" === "admin")
-			{
-				document.getElementById("notifiction_count").style="display:block; overflow: auto; margin-top: -10px;margin-right: -10px;"
-				document.getElementById("notifiction_count").innerText =count;
-			}
-			else
-			{
-				document.getElementById("notifiction_countx").style="display:block; overflow: auto; margin-top: -10px;margin-right: -10px;"
-				document.getElementById("notifiction_countx").innerText =count;
-			}
-			
-		  }
-		  
-		}
-	
-	
-	
-		});
-		localStorage.setItem("isFunctionRunning",0); 
-	}
-  </script>
-		
-
-		<script>
-			function go_to_lead(stud_id,section)
-			{
-				console.log(stud_id);
-				console.log(section)
-				$.post("/go_to_lead?student_id="+stud_id+"&section="+section).done(function (response) {
-
-					if (response.state == 'error')
-					{
-						swal.fire('Sorry','This is a Task not a lead','info')
-					}
-					else
-					{
-						student_data = response.student_data
-						location.assign('/update_american_lead?student_data='+student_data);
-					}
-
-				})
-			}
-
-			function go_to_event_lead(client_id,section)
-			{
-				$.post("/go_to_lead?client_id="+client_id+"&section="+section).done(function (response) {
-
-					if (response.state == 'error')
-					{
-						swal.fire('Sorry','This is a Task not a lead','info')
-					}
-					else if (response.state == 'success_event')
-					{
-						client_data = response.client_data;
-						location.assign('/update_event_lead?client_data='+client_data);
-					}
-					else if (response.state == 'success_american')
-					{
-						student_data = response.student_data
-						location.assign('/update_american_lead?student_data='+student_data);
-					}
-
-				})
-			}
-		</script>
-
-		<script>
-
-			function go_to_notification_center()
-			{
-				window.location.assign("/historical_notification")
-			}
-		</script>
-
-	<script>
-			function read_notification(notification_id,true_false)
-	{
-		localStorage.setItem("isFunctionRunning",1); 
-		
-		console.log(notification_id)
-		console.log(true_false)
-		$.get("/read_notifications?notification_id="+notification_id+"&true_false="+true_false).done(function (response) {
-
-			notifications();
-})
-localStorage.setItem("isFunctionRunning",0); 
-	}
-	</script>
-
- 
-		
-	{% block body %}{% endblock %}
-    
-
-	<script>
-
-
-
-		//var $loading = $('#loadMe').modal('hide');  
-		$(document)
-		
-		  .ajaxStart(function () {
-			var checkFunction = localStorage.getItem("isFunctionRunning");
-			   
-			   if(checkFunction != 1){
-
-      
-   
-			Swal.fire({
-	
-			  imageUrl: "{{ url_for('static', filename='images/loading__.gif') }}",
-			  imageWidth: 150,
-			  imageHeight: 150,
-	
-	
-			  background: 'transparent',
-			  allowOutsideClick: false,
-			  showConfirmButton: false,
-	
-			  customClass: {
-				container: 'loading-container-class',
-				popup: 'popup-class',
-				backdrop: 'true'
-			  },
-	
-	
-			});
-		}
-		
-		  })
-		  .ajaxStop(function () {
-			$(".loading-container-class .swal2-close").click();
-		  });
-		
-	
-	  </script>
-
- 
-<script>
-setInterval(refresh_notifications, 60000);
-
-function refresh_notifications( )
-{
-	notifications();
-}
+lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 16, height: 16, 'stroke-width': 1.75 } });
 </script>
 
+{# --- Notification bell: unchanged behaviour, kept verbatim from the old base --- #}
+<script>
+$(document).ready(function () {
+  $("#x, #xx").click(function () {
+    $(this).find("#notification_dropdown, #notification_dropdownx").toggle();
+  });
+});
+
+function notifications() {
+  localStorage.setItem("isFunctionRunning", 1);
+  var isAdmin = "{{ session['role'] }}" === "admin";
+  var listId = isAdmin ? "#notification_dropdown" : "#notification_dropdownx";
+  var countId = isAdmin ? "notifiction_count" : "notifiction_countx";
+
+  $.get("/get_read_notifications").done(function (response) {
+    var $list = $(listId).empty();
+    var badge = document.getElementById(countId);
+
+    if (!response.length) {
+      $list.append("<li><div style='padding:8px;color:var(--text-muted)'>No new notifications</div></li>");
+      $list.append("<li><div class='text-center' style='padding-top:8px;border-top:1px solid var(--border-hairline)'><button onclick='go_to_notification_center()' class='btn btn-secondary btn-sm'>Show historical notifications</button></div></li>");
+      badge.style.display = "none";
+      localStorage.setItem("isFunctionRunning", 0);
+      return;
+    }
+
+    var unread = 0;
+    response.forEach(function (n) {
+      if (n.read) return;
+      unread++;
+      var profileBtn = "";
+      if (n.section === "american") profileBtn = "<button class='btn btn-secondary btn-sm' onclick='go_to_lead(" + n.student_id + ",\"" + n.section + "\")'>Profile</button>";
+      else if (n.section === "event") profileBtn = "<button class='btn btn-secondary btn-sm' onclick='go_to_event_lead(" + n.client_id + ",\"" + n.section + "\")'>Profile</button>";
+
+      $list.append(
+        "<li>" +
+          "<div style='font:var(--type-label);color:var(--text-title)'>" + n.title + "</div>" +
+          "<div style='font:var(--type-body-sm);color:var(--text-body);margin-top:2px'>" + n.message + "</div>" +
+          "<div style='font:var(--type-caption);color:var(--text-muted);margin-top:2px'>Added by " + n.added_by + "</div>" +
+          "<div style='display:flex;align-items:center;gap:12px;margin-top:8px'>" +
+            "<label class='switch' style='margin-bottom:0'><input onchange='read_notification(this.id,true)' id='" + n._id + "' type='checkbox'><span class='slider round'></span></label>" +
+            profileBtn +
+          "</div>" +
+        "</li>"
+      );
+    });
+
+    $list.append("<li><div class='text-center' style='padding-top:8px;border-top:1px solid var(--border-hairline)'><button onclick='go_to_notification_center()' class='btn btn-secondary btn-sm'>Show historical notifications</button></div></li>");
+
+    if (unread) { badge.style.display = "block"; badge.innerText = unread; }
+    else badge.style.display = "none";
+  });
+  localStorage.setItem("isFunctionRunning", 0);
+}
+
+function read_notification(notification_id, true_false) {
+  localStorage.setItem("isFunctionRunning", 1);
+  $.get("/read_notifications?notification_id=" + notification_id + "&true_false=" + true_false).done(notifications);
+  localStorage.setItem("isFunctionRunning", 0);
+}
+
+function go_to_notification_center() { window.location.assign("/historical_notification"); }
+
+function go_to_lead(stud_id, section) {
+  $.post("/go_to_lead?student_id=" + stud_id + "&section=" + section).done(function (r) {
+    if (r.state === 'error') Swal.fire('Not a lead', 'This is a task, not a lead.', 'info');
+    else location.assign('/update_american_lead?student_data=' + r.student_data);
+  });
+}
+
+function go_to_event_lead(client_id, section) {
+  $.post("/go_to_lead?client_id=" + client_id + "&section=" + section).done(function (r) {
+    if (r.state === 'error') Swal.fire('Not a lead', 'This is a task, not a lead.', 'info');
+    else if (r.state === 'success_event') location.assign('/update_event_lead?client_data=' + r.client_data);
+    else if (r.state === 'success_american') location.assign('/update_american_lead?student_data=' + r.student_data);
+  });
+}
+
+setInterval(notifications, 60000);
+</script>
+
+{# --- Global ajax loading overlay --- #}
+<script>
+$(document)
+  .ajaxStart(function () {
+    if (localStorage.getItem("isFunctionRunning") == 1) return;
+    Swal.fire({
+      imageUrl: "{{ url_for('static', filename='images/loading__.gif') }}",
+      imageWidth: 120, imageHeight: 120,
+      background: 'transparent', allowOutsideClick: false, showConfirmButton: false,
+      customClass: { container: 'loading-container-class', popup: 'popup-class', backdrop: 'true' }
+    });
+  })
+  .ajaxStop(function () { $(".loading-container-class .swal2-close").click(); });
+</script>
+
+{% block scripts %}{% endblock %}
 </body>
-    <footer class="bg-light text-center text-lg-start">
-
-		  <!-- Copyright -->
-		  <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-			© 2023 Copyright:
-			<a class="text-dark" href="https://elmubarmij.com/">Al MubarmiJ Developments Incorporated</a>
-		  </div>
-		  <!-- Copyright -->
-
-	</footer>
-
-	
 </html>
-

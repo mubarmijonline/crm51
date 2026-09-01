@@ -1,0 +1,15 @@
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:var(--type-body);color:var(--text-body);background:var(--surface-app);-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,p{margin:0}
+a{color:var(--text-link);text-decoration:none}
+a:hover{color:var(--text-link-hover);text-decoration:underline}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+code,kbd,.mono{font-family:var(--font-mono)}
+::selection{background:var(--blue-100)}
+@keyframes ds-spin{to{transform:rotate(360deg)}}
+@keyframes ds-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes ds-pop-in{from{opacity:0;transform:translateY(4px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes ds-shimmer{from{background-position:-200px 0}to{background-position:calc(200px + 100%) 0}}
+
+@keyframes ds-sheet-up{from{transform:translateY(16px);opacity:.6}to{transform:none;opacity:1}}

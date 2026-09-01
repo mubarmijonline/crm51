@@ -1,0 +1,4 @@
+/* Webfonts. No brand font files were supplied — see readme.md "Font substitution".
+   Inter-adjacent grotesque for UI, Geist Mono for numerics, IDs and code. */
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Geist+Mono:wght@400;500;600&display=swap");
+:root{--font-sans:"IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;--font-numeric:var(--font-mono)}

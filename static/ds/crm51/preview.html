@@ -1,0 +1,95 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>crm51 — design system preview</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="../static/css/bootstrap.min.css">
+<link rel="stylesheet" href="../styles.css">
+<link rel="stylesheet" href="ds-bridge.css">
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<style>body{margin:0}main{padding:var(--pad-page);max-width:var(--content-max);margin:0 auto}.pv-label{font:var(--type-overline);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-subtle);margin:var(--space-9) 0 var(--space-5)}.pv-label:first-child{margin-top:0}</style>
+</head><body>
+
+<nav class="navbar sticky-top navbar-expand-lg">
+<a class="navbar-brand" href="#"><img src="../static/images/51_Logo.png" alt=""><span>51 American CRM</span></a>
+<button class="navbar-toggler" type="button" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+<div class="collapse navbar-collapse" id="nav">
+<ul class="navbar-nav mr-auto">
+<li class="nav-item"><a class="nav-link active" href="#"><i data-lucide="layout-dashboard"></i>Home</a></li>
+<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#"><i data-lucide="graduation-cap"></i>Education leads</a></li>
+<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#"><i data-lucide="calendar-days"></i>Event leads</a></li>
+<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#"><i data-lucide="database"></i>CRM database</a></li>
+<li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#"><i data-lucide="phone-call"></i>Recall dates</a></li>
+<li class="nav-item"><a class="nav-link" href="#"><i data-lucide="users"></i>Users</a></li>
+<li class="nav-item"><a class="nav-link" href="#"><i data-lucide="settings"></i>Admin settings</a></li>
+</ul>
+<ul class="notification-drop"><li class="item" style="margin-right:12px;position:relative"><i data-lucide="bell"></i><span class="btn__badge" style="display:block">3</span></li></ul>
+<ul class="navbar-nav"><li class="nav-item dropdown"><a class="nav-link dropdown-toggle" href="#"><i data-lucide="circle-user"></i>Ahmed Diab</a></li></ul>
+</div>
+</nav>
+
+<main>
+<p class="pv-label">Leads table — american_active_leads.html</p>
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-6);margin-bottom:var(--space-7)">
+<div style="display:flex;flex-direction:column;gap:var(--space-3)">
+<h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Education active leads</h1>
+<p style="font:var(--type-body-sm);color:var(--text-muted)">Leads assigned to you that are still open.</p>
+</div>
+<a href="#" class="btn btn-primary"><i data-lucide="plus"></i>Add lead</a>
+</div>
+<div class="card_customized" style="padding:0;overflow:hidden">
+<table id="students_table" class="dataTable display" style="width:100%">
+<thead><tr><th></th><th>ID</th><th>Name</th><th>Student mobile</th><th>Grade</th><th>Course</th><th>Source</th><th>Status</th><th>Recall date</th></tr></thead>
+<tbody>
+<tr><td><div class="btn-group"><button class="btn btn-secondary btn-sm">Profile</button><button class="btn btn-danger btn-sm">Delete</button></div></td><td class="mono">10412</td><td>Nour Hassan</td><td class="mono">+20 100 442 8891</td><td>Grade 11</td><td>SAT Math</td><td>Facebook</td><td><span class="badge badge-success">Interested</span></td><td class="mono">14 Sep 2026</td></tr>
+<tr><td><div class="btn-group"><button class="btn btn-secondary btn-sm">Profile</button><button class="btn btn-danger btn-sm">Delete</button></div></td><td class="mono">10411</td><td>Omar Khaled</td><td class="mono">+20 122 887 0031</td><td>Grade 12</td><td>ACT Science</td><td>Referral</td><td><span class="badge badge-warning">Follow up</span></td><td class="mono">09 Sep 2026</td></tr>
+<tr><td><div class="btn-group"><button class="btn btn-secondary btn-sm">Profile</button><button class="btn btn-danger btn-sm">Delete</button></div></td><td class="mono">10409</td><td>Salma Adel</td><td class="mono">+20 111 203 7754</td><td>Grade 10</td><td>IGCSE Physics</td><td>Walk-in</td><td><span class="badge badge-danger">Not interested</span></td><td class="mono">—</td></tr>
+<tr><td><div class="btn-group"><button class="btn btn-secondary btn-sm">Profile</button><button class="btn btn-danger btn-sm">Delete</button></div></td><td class="mono">10404</td><td>Youssef Tarek</td><td class="mono">+20 128 550 9912</td><td>Grade 12</td><td>SAT English</td><td>Instagram</td><td><span class="badge badge-info">New</span></td><td class="mono">02 Sep 2026</td></tr>
+</tbody>
+<tfoot><tr><th></th><th><input placeholder="Search ID"></th><th><input placeholder="Search Name"></th><th><input placeholder="Search Mobile"></th><th><input placeholder="Search Grade"></th><th><input placeholder="Search Course"></th><th><input placeholder="Search Source"></th><th><input placeholder="Search Status"></th><th><input placeholder="Search Recall"></th></tr></tfoot>
+</table>
+</div>
+
+<p class="pv-label">Home launcher — home.html</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:var(--space-6)">
+<a href="#" class="card" style="padding:var(--pad-card);display:flex;flex-direction:column;gap:var(--space-4);text-decoration:none"><span style="width:36px;height:36px;border-radius:var(--radius-card);background:var(--surface-selected);color:var(--text-brand);display:inline-flex;align-items:center;justify-content:center"><i data-lucide="user-plus"></i></span><span style="font:var(--type-section);color:var(--text-title)">Create education lead</span><span style="font:var(--type-body-sm);color:var(--text-muted)">Manually add an education lead</span></a>
+<a href="#" class="card" style="padding:var(--pad-card);display:flex;flex-direction:column;gap:var(--space-4);text-decoration:none"><span style="width:36px;height:36px;border-radius:var(--radius-card);background:var(--surface-selected);color:var(--text-brand);display:inline-flex;align-items:center;justify-content:center"><i data-lucide="search"></i></span><span style="font:var(--type-section);color:var(--text-title)">Search education leads</span><span style="font:var(--type-body-sm);color:var(--text-muted)">Find and update an education lead</span></a>
+<a href="#" class="card" style="padding:var(--pad-card);display:flex;flex-direction:column;gap:var(--space-4);text-decoration:none"><span style="width:36px;height:36px;border-radius:var(--radius-card);background:var(--surface-selected);color:var(--text-brand);display:inline-flex;align-items:center;justify-content:center"><i data-lucide="phone-call"></i></span><span style="font:var(--type-section);color:var(--text-title)">Education recall dates</span><span style="font:var(--type-body-sm);color:var(--text-muted)">Recall dates for education leads</span></a>
+<a href="#" class="card" style="padding:var(--pad-card);display:flex;flex-direction:column;gap:var(--space-4);text-decoration:none"><span style="width:36px;height:36px;border-radius:var(--radius-card);background:var(--surface-selected);color:var(--text-brand);display:inline-flex;align-items:center;justify-content:center"><i data-lucide="user-cog"></i></span><span style="font:var(--type-section);color:var(--text-title)">Users</span><span style="font:var(--type-body-sm);color:var(--text-muted)">View and edit system users</span></a>
+</div>
+
+<p class="pv-label">Lead form — create_lead_american.html</p>
+<div class="card_customized">
+<h2 style="font:var(--type-section);color:var(--text-title);margin-bottom:var(--space-7)">Student details</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--space-6) var(--space-8)">
+<div class="form-group"><label>Student name <span style="color:var(--text-danger)">*</span></label><input type="text" class="form-control" value="Nour Hassan"><small class="form-text">As written on the school record.</small></div>
+<div class="form-group"><label>Student mobile <span style="color:var(--text-danger)">*</span></label><input type="text" class="form-control" value="+20 100 442 8891"></div>
+<div class="form-group"><label>Educational system</label><select class="form-control"><option>American Diploma</option><option>IGCSE</option><option>IB</option></select></div>
+<div class="form-group"><label>Grade</label><select class="form-control"><option>Grade 11</option></select></div>
+<div class="form-group"><label>Email</label><input type="email" class="form-control is-invalid" value="nour@school"><small class="form-text" style="color:var(--text-danger)">Enter a valid email address.</small></div>
+<div class="form-group"><label>Recall date</label><input type="text" class="form-control" value="14 Sep 2026"></div>
+</div>
+<div class="alert alert-warning" style="margin-top:var(--space-6)">This lead was contacted twice with no answer. One more attempt before marking it closed.</div>
+<div style="display:flex;justify-content:flex-end;gap:var(--space-4);margin-top:var(--space-7);padding-top:var(--space-6);border-top:1px solid var(--border-hairline)">
+<button class="btn btn-secondary">Cancel</button><button class="btn btn-primary">Save lead</button>
+</div>
+</div>
+
+<p class="pv-label">Controls the bridge restyles</p>
+<div class="card_customized" style="display:flex;flex-direction:column;gap:var(--space-6)">
+<div style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:center">
+<button class="btn btn-primary">Primary</button><button class="btn btn-secondary">Secondary</button><button class="btn btn-success">Success</button><button class="btn btn-danger">Danger</button><button class="btn btn-warning">Warning</button><button class="btn btn-dark">Dark</button><button class="btn btn-primary btn-sm">Small</button><button class="btn btn-primary btn-lg">Large</button><button class="btn btn-primary" disabled>Disabled</button>
+</div>
+<div style="display:flex;gap:var(--space-4);flex-wrap:wrap;align-items:center">
+<span class="badge badge-success">Interested</span><span class="badge badge-warning">Follow up</span><span class="badge badge-danger">Not interested</span><span class="badge badge-info">New</span><span class="badge badge-secondary">Closed</span>
+<label class="switch" style="margin:0 0 0 12px"><input type="checkbox" checked><span class="slider round"></span></label>
+<label class="switch" style="margin:0"><input type="checkbox"><span class="slider round"></span></label>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--space-5)">
+<div class="alert alert-success" style="margin:0">Lead saved successfully.</div>
+<div class="alert alert-danger" style="margin:0">Could not reach the server.</div>
+<div class="alert alert-info" style="margin:0">3 recall dates are due today.</div>
+</div>
+</div>
+</main>
+
+<footer class="bg-light text-center text-lg-start"><div class="text-center p-3">© 2023 Copyright: <a class="text-dark" href="#">Al MubarmiJ Developments Incorporated</a></div></footer>
+<script>document.querySelector('.navbar-toggler').addEventListener('click',function(){document.getElementById('nav').classList.toggle('show')});lucide.createIcons({nameAttr:'data-lucide',attrs:{width:16,height:16,'stroke-width':1.75}});</script>
+</body></html>

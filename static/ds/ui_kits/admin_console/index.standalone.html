@@ -1,0 +1,80 @@
+<!-- @dsCard group="Admin Console" viewport="1440x900" name="Admin Console" subtitle="Sign-in, dashboard, customers, invoices, settings" -->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Acme Admin — UI kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="./data.js"></script>
+<style>html,body,#root{height:100%}body{margin:0;overflow:hidden}</style>
+<template id="__bundler_thumbnail" data-bg-color="#1F51C7">
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg"><rect width="1200" height="800" fill="#1F51C7"/><rect x="330" y="250" width="120" height="300" rx="14" fill="#ffffff" opacity="0.55"/><rect x="480" y="250" width="390" height="70" rx="14" fill="#ffffff" opacity="0.85"/><rect x="480" y="350" width="180" height="200" rx="14" fill="#ffffff" opacity="0.85"/><rect x="690" y="350" width="180" height="200" rx="14" fill="#ffffff" opacity="0.85"/></svg>
+</template>
+</head><body><div id="root"></div>
+<script type="text/babel" src="./SignInScreen.jsx"></script>
+<script type="text/babel" src="./DashboardScreen.jsx"></script>
+<script type="text/babel" src="./CustomersScreen.jsx"></script>
+<script type="text/babel" src="./CustomerDetailScreen.jsx"></script>
+<script type="text/babel" src="./InvoicesScreen.jsx"></script>
+<script type="text/babel" src="./SettingsScreen.jsx"></script>
+<script type="text/babel">
+const NS = window.AdminDesignSystem_b1fc08;
+const { SideNav, TopBar, SearchField, IconButton, Avatar, Menu, Button, Toast, Tooltip, Badge } = NS;
+const TITLES = { overview: 'Overview', customers: 'Customers', invoices: 'Invoices', settings: 'Settings' };
+function App() {
+  const [signedIn, setSignedIn] = React.useState(false);
+  const [view, setView] = React.useState('overview');
+  const [customer, setCustomer] = React.useState(null);
+  const [density, setDensity] = React.useState('default');
+  const [toast, setToast] = React.useState(null);
+  const notify = msg => { setToast(msg); setTimeout(() => setToast(null), 3200); };
+  const go = v => { setCustomer(null); setView(v); };
+  if (!signedIn) return <window.SignInScreen onSignIn={() => setSignedIn(true)} />;
+  return (
+    <div data-density={density === 'default' ? undefined : density} style={{ display: 'flex', height: '100%', background: 'var(--surface-app)', position: 'relative' }}>
+      <SideNav activeId={view} onSelect={go}
+        brand={<div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', minWidth: 0 }}>
+          <Avatar name="Acme Inc" square size="sm" />
+          <strong style={{ font: 'var(--type-label)', color: 'var(--text-title)' }}>Acme Admin</strong>
+        </div>}
+        sections={[
+          { items: [{ id: 'overview', label: 'Overview', icon: 'layout-dashboard' }, { id: 'customers', label: 'Customers', icon: 'users', badge: '248' }, { id: 'invoices', label: 'Invoices', icon: 'file-text', badge: '4' }] },
+          { label: 'Workspace', items: [{ id: 'settings', label: 'Settings', icon: 'settings' }] },
+        ]}
+        footer={<Menu align="start" trigger={<button style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', width: '100%', border: 0, background: 'transparent', padding: 'var(--space-2)', cursor: 'pointer', borderRadius: 'var(--radius-control)' }}>
+            <Avatar name={window.KIT.user.name} size="sm" />
+            <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minWidth: 0 }}>
+              <span style={{ font: 'var(--type-label)' }}>{window.KIT.user.name}</span>
+              <span style={{ font: 'var(--type-caption)', color: 'var(--text-muted)' }}>{window.KIT.user.role}</span>
+            </span>
+          </button>}
+          items={[{ id: 'profile', label: 'Profile', icon: 'user' }, { id: 'density', label: density === 'compact' ? 'Comfortable rows' : 'Compact rows', icon: 'rows-3' }, { divider: true }, { id: 'out', label: 'Sign out', icon: 'log-out' }]}
+          onSelect={id => { if (id === 'density') setDensity(d => d === 'compact' ? 'default' : 'compact'); if (id === 'out') setSignedIn(false); }} />} />
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <TopBar title={customer ? customer.name : TITLES[view]}
+          actions={<>
+            <Tooltip label={density === 'compact' ? 'Comfortable rows' : 'Compact rows'}>
+              <IconButton icon="rows-3" label="Row density" active={density === 'compact'} onClick={() => setDensity(d => d === 'compact' ? 'default' : 'compact')} />
+            </Tooltip>
+            <IconButton icon="bell" label="Notifications" onClick={() => notify('No new notifications')} />
+            <Button variant="primary" size="sm" iconStart="plus" onClick={() => notify('Quick create is a mock')}>Create</Button>
+          </>}>
+          <SearchField placeholder="Search customers, invoices, keys" width={380} />
+        </TopBar>
+        <main style={{ flex: 1, overflowY: 'auto', padding: 'var(--pad-page)' }}>
+          {customer ? <window.CustomerDetailScreen customer={customer} onBack={() => setCustomer(null)} onToast={notify} />
+            : view === 'overview' ? <window.DashboardScreen onOpenCustomer={setCustomer} onNavigate={go} />
+            : view === 'customers' ? <window.CustomersScreen onOpenCustomer={setCustomer} onToast={notify} />
+            : view === 'invoices' ? <window.InvoicesScreen onToast={notify} />
+            : <window.SettingsScreen onToast={notify} />}
+        </main>
+      </div>
+      {toast && <div style={{ position: 'absolute', left: 'var(--space-8)', bottom: 'var(--space-8)', zIndex: 80 }}>
+        <Toast tone="success" title={toast} onDismiss={() => setToast(null)} />
+      </div>}
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script></body></html>

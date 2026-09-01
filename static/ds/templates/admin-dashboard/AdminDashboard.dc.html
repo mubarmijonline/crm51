@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<!-- @template name="Admin dashboard" description="App shell with left rail, top bar, KPI tiles and a data table." -->
+<helmet><script src="./ds-base.js"></script><script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script><style>html,body{margin:0;height:100%}</style></helmet>
+<div style="display:flex;height:100vh;background:var(--surface-app);font-family:var(--font-sans);color:var(--text-body)">
+<x-import component-from-global-scope="AdminDesignSystem_b1fc08.SideNav" sections="{{ navSections }}" active-id="{{ activeId }}" on-select="{{ setActive }}" brand="{{ brandNode }}" hint-size="240px,100%"></x-import>
+<div style="flex:1;display:flex;flex-direction:column;min-width:0">
+<x-import component-from-global-scope="AdminDesignSystem_b1fc08.TopBar" title="{{ pageTitle }}" actions="{{ topActions }}" hint-size="100%,56px"></x-import>
+<main style="flex:1;overflow-y:auto;padding:var(--pad-page);display:flex;flex-direction:column;gap:var(--gap-section)">
+<div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-6)">
+<sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4">
+<x-import component-from-global-scope="AdminDesignSystem_b1fc08.StatCard" label="{{ k.label }}" value="{{ k.value }}" delta="{{ k.delta }}" icon="{{ k.icon }}" caption="{{ k.caption }}" chart="{{ k.chart }}" hint-size="100%,120px"></x-import>
+</sc-for>
+</div>
+<x-import component-from-global-scope="AdminDesignSystem_b1fc08.Card" title="Customers" subtitle="Ranked by monthly recurring revenue" padded="{{ false }}" actions="{{ cardActions }}" hint-size="100%,340px">
+<x-import component-from-global-scope="AdminDesignSystem_b1fc08.DataTable" columns="{{ columns }}" rows="{{ rows }}" sort="{{ sort }}" on-sort-change="{{ setSort }}" selectable="{{ true }}" selected-ids="{{ selected }}" on-selection-change="{{ setSelected }}" hint-size="100%,300px"></x-import>
+</x-import>
+</main>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { activeId: 'overview', sort: { key: 'mrr', dir: 'desc' }, selected: [] };
+  ns() { return window.AdminDesignSystem_b1fc08 || {}; }
+  renderVals() {
+    const NS = this.ns();
+    const e = React.createElement;
+    const kpiData = [
+      { label: 'MRR', value: '$48,210', delta: '+6.2%', icon: 'dollar-sign', caption: 'vs. previous 30 days', series: [22,25,24,28,27,31,30,34,36,35,39,42] },
+      { label: 'Active customers', value: '248', delta: '+12', icon: 'users', caption: '12 added this month', series: [180,190,196,205,210,214,220,228,231,238,242,248] },
+      { label: 'Failed payments', value: '9', delta: '+3', icon: 'credit-card', caption: 'Needs attention', series: [2,3,2,4,5,4,6,5,7,6,8,9] },
+      { label: 'Net churn', value: '1.8%', delta: '-0.4%', icon: 'user-minus', caption: 'Rolling 90 days', series: [3.1,2.9,2.8,2.6,2.5,2.4,2.2,2.1,2.0,1.9,1.9,1.8] },
+    ];
+    const rows = [
+      { id: 1, name: 'Acme Inc', plan: 'Enterprise', seats: 120, mrr: '$4,200', status: 'Active', tone: 'success' },
+      { id: 2, name: 'Umbrella Health', plan: 'Enterprise', seats: 210, mrr: '$6,400', status: 'Active', tone: 'success' },
+      { id: 3, name: 'Northwind Traders', plan: 'Growth', seats: 34, mrr: '$980', status: 'Past due', tone: 'warning' },
+      { id: 4, name: 'Globex Corporation', plan: 'Growth', seats: 28, mrr: '$860', status: 'Active', tone: 'success' },
+      { id: 5, name: 'Soylent Foods', plan: 'Growth', seats: 41, mrr: '$1,120', status: 'Trialing', tone: 'info' },
+    ];
+    return {
+      activeId: this.state.activeId,
+      setActive: id => this.setState({ activeId: id }),
+      pageTitle: { overview: 'Overview', customers: 'Customers', invoices: 'Invoices', settings: 'Settings' }[this.state.activeId],
+      navSections: [
+        { items: [{ id: 'overview', label: 'Overview', icon: 'layout-dashboard' }, { id: 'customers', label: 'Customers', icon: 'users', badge: '248' }, { id: 'invoices', label: 'Invoices', icon: 'file-text' }] },
+        { label: 'Workspace', items: [{ id: 'settings', label: 'Settings', icon: 'settings' }] },
+      ],
+      brandNode: NS.Avatar ? e('div', { style: { display: 'flex', alignItems: 'center', gap: 8 } },
+        e(NS.Avatar, { name: 'Acme Inc', square: true, size: 'sm' }),
+        e('strong', { style: { font: 'var(--type-label)', color: 'var(--text-title)' } }, 'Acme Admin')) : null,
+      topActions: NS.Button ? e(React.Fragment, null,
+        e(NS.IconButton, { icon: 'bell', label: 'Notifications' }),
+        e(NS.Button, { variant: 'primary', size: 'sm', iconStart: 'plus' }, 'Create')) : null,
+      cardActions: NS.Button ? e(NS.Button, { size: 'sm', iconStart: 'download' }, 'Export') : null,
+      kpis: kpiData.map(k => ({ ...k, chart: NS.Sparkline ? e(NS.Sparkline, { data: k.series, height: 36 }) : null })),
+      rows,
+      columns: [
+        { key: 'name', header: 'Customer', sortable: true },
+        { key: 'plan', header: 'Plan' },
+        { key: 'seats', header: 'Seats', numeric: true },
+        { key: 'mrr', header: 'MRR', numeric: true, sortable: true },
+        { key: 'status', header: 'Status', render: r => NS.Badge ? e(NS.Badge, { tone: r.tone, dot: true }, r.status) : r.status },
+      ],
+      sort: this.state.sort,
+      setSort: s => this.setState({ sort: s }),
+      selected: this.state.selected,
+      setSelected: ids => this.setState({ selected: ids }),
+    };
+  }
+}
+
+</script>
+</body>
+</html>

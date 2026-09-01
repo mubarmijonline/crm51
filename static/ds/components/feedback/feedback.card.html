@@ -1,0 +1,29 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Feedback" subtitle="Alerts, toasts, tooltips, progress, empty states" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--surface-card);padding:20px;display:flex;align-items:center}#root{width:100%}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:14px}.lbl{font:var(--type-overline);letter-spacing:var(--tracking-caps);text-transform:uppercase;color:var(--text-subtle)}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, Card, Badge, Tag, Avatar, Spinner, Icon, Input, Textarea, Select, Checkbox, Radio, Switch, SearchField, FormField, Alert, Toast, Dialog, Tooltip, ProgressBar, Skeleton, EmptyState, SideNav, TopBar, Tabs, Breadcrumbs, Pagination, Menu, DataTable, TableToolbar, StatCard, Sparkline, KeyValueList } = window.AdminDesignSystem_b1fc08;
+
+function Demo(){return (
+ <div className="col">
+  <Alert tone="warning" title="Payment method expires in 6 days" actions={<Button size="sm">Update card</Button>} onDismiss={()=>{}}>Renewals will fail after 30 Aug.</Alert>
+  <div className="row" style={{alignItems:'flex-start'}}>
+   <Alert tone="success" title="Sync complete" style={{flex:1}} />
+   <Alert tone="danger" title="3 webhooks failing" style={{flex:1}} />
+  </div>
+  <div className="row" style={{alignItems:'center',gap:20}}>
+   <Toast tone="success" title="Invoice sent" description="INV-2043 to billing@acme.com" onDismiss={()=>{}} />
+   <div className="col" style={{flex:1}}>
+    <ProgressBar value={68} label="Seats used" valueLabel="34 / 50" />
+    <Skeleton lines={2} />
+    <Tooltip label="Refresh data"><Button size="sm" iconStart="refresh-cw">Hover me</Button></Tooltip>
+   </div>
+  </div>
+ </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

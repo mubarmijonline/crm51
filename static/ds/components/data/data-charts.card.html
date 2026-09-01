@@ -1,0 +1,25 @@
+<!-- @dsCard group="Components" viewport="700x260" name="Charts & activity" subtitle="Bar chart, sparkline, timeline" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--surface-card);padding:20px;margin:0}#root{width:100%}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:14px}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, Card, Badge, Tag, Avatar, Spinner, Icon, Divider, Kbd, Input, Textarea, Select, Checkbox, Radio, Switch, SearchField, FormField, SegmentedControl, Combobox, DateRangeField, Slider, FileUpload, Alert, Toast, Dialog, Tooltip, ProgressBar, Skeleton, EmptyState, Drawer, Popover, CommandPalette, SideNav, TopBar, Tabs, Breadcrumbs, Pagination, Menu, Stepper, Accordion, DataTable, TableToolbar, StatCard, Sparkline, KeyValueList, BarChart, Timeline, AppShell, PageHeader, Section, Grid, SplitPanel, Toolbar, MobileHeader, TabBar, ListRow, BottomSheet, MobileStat, PhoneFrame } = window.AdminDesignSystem_b1fc08;
+
+const months=['Sep','Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug'];
+function Demo(){return (
+ <div style={{display:'grid',gridTemplateColumns:'1.6fr 1fr',gap:16}}>
+  <Card title="Revenue by month" subtitle="Last 12 months">
+   <BarChart height={130} data={months.map((m,i)=>({label:m,value:[22,25,24,28,27,31,30,34,36,35,39,42][i],muted:i<8}))} valueFormat={v=>'$'+v+'k'} />
+  </Card>
+  <Card title="Account activity">
+   <Timeline items={[{icon:'credit-card',tone:'success',text:'Payment of $4,200 received',meta:'12 min ago'},
+    {icon:'user-plus',tone:'info',text:'Trial started — Soylent Foods',meta:'1 hr ago'},
+    {icon:'triangle-alert',tone:'danger',text:'Card declined — Northwind',meta:'3 hrs ago'}]} />
+  </Card>
+ </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

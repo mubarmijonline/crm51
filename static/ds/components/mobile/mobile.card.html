@@ -1,0 +1,39 @@
+<!-- @dsCard group="Mobile" viewport="700x380" name="Mobile primitives" subtitle="Header, list rows, tab bar, bottom sheet, compact stats" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--surface-card);padding:20px;margin:0}#root{width:100%}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:14px}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, Card, Badge, Tag, Avatar, Spinner, Icon, Divider, Kbd, Input, Textarea, Select, Checkbox, Radio, Switch, SearchField, FormField, SegmentedControl, Combobox, DateRangeField, Slider, FileUpload, Alert, Toast, Dialog, Tooltip, ProgressBar, Skeleton, EmptyState, Drawer, Popover, CommandPalette, SideNav, TopBar, Tabs, Breadcrumbs, Pagination, Menu, Stepper, Accordion, DataTable, TableToolbar, StatCard, Sparkline, KeyValueList, BarChart, Timeline, AppShell, PageHeader, Section, Grid, SplitPanel, Toolbar, MobileHeader, TabBar, ListRow, BottomSheet, MobileStat, PhoneFrame } = window.AdminDesignSystem_b1fc08;
+
+function Demo(){const [sheet,setSheet]=React.useState(false);const [tab,setTab]=React.useState('customers');return (
+ <div style={{display:'grid',gridTemplateColumns:'300px 1fr',gap:20}}>
+  <div style={{position:'relative',height:340,border:'1px solid var(--border-hairline)',borderRadius:'var(--radius-card)',overflow:'hidden',display:'flex',flexDirection:'column',background:'var(--surface-app)'}}>
+   <MobileHeader large title="Customers" subtitle="248 active" actions={<IconButton icon="search" label="Search" />} />
+   <div style={{flex:1,overflowY:'auto'}}>
+    <ListRow leading={<Avatar name="Acme Inc" square />} title="Acme Inc" subtitle="Enterprise · 120 seats" meta="$4,200" metaSub={<Badge tone="success" dot>Active</Badge>} onClick={()=>setSheet(true)} />
+    <ListRow leading={<Avatar name="Northwind" square />} title="Northwind" subtitle="Growth · 34 seats" meta="$980" metaSub={<Badge tone="warning" dot>Past due</Badge>} onClick={()=>setSheet(true)} />
+    <ListRow leading={<Avatar name="Globex" square />} title="Globex" subtitle="Growth · 28 seats" meta="$860" metaSub={<Badge tone="success" dot>Active</Badge>} onClick={()=>setSheet(true)} />
+   </div>
+   <TabBar activeId={tab} onSelect={setTab} items={[{id:'overview',label:'Overview',icon:'layout-dashboard'},{id:'customers',label:'Customers',icon:'users'},{id:'invoices',label:'Invoices',icon:'file-text',badge:4},{id:'more',label:'More',icon:'ellipsis'}]} />
+   <BottomSheet open={sheet} onClose={()=>setSheet(false)} title="Acme Inc" description="Enterprise · cus_4Kd91"
+    actions={<><Button variant="primary" size="lg" fullWidth>Open customer</Button><Button size="lg" fullWidth onClick={()=>setSheet(false)}>Cancel</Button></>}>
+    <KeyValueList items={[{label:'MRR',value:'$4,200',mono:true},{label:'Owner',value:'Ahmed Diab'}]} columns={2} />
+   </BottomSheet>
+  </div>
+  <div className="col">
+   <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+    <MobileStat label="MRR" value="$48.2k" delta="+6.2%" icon="dollar-sign" />
+    <MobileStat label="Customers" value="248" delta="+12" icon="users" />
+    <MobileStat label="Failed" value="9" delta="+3" icon="credit-card" />
+    <MobileStat label="Churn" value="1.8%" delta="-0.4%" deltaTone="success" icon="user-minus" />
+   </div>
+   <Button variant="primary" size="lg" fullWidth>Full-width primary action</Button>
+   <span style={{font:'var(--type-caption)',color:'var(--text-muted)'}}>Controls grow to 40/48px and rows to 60px below 768px; primary actions go full width.</span>
+  </div>
+ </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

@@ -1,0 +1,32 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Overlays" subtitle="Drawer, popover, command palette" -->
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{background:var(--surface-card);padding:20px;margin:0}#root{width:100%}.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.col{display:flex;flex-direction:column;gap:14px}</style></head><body><div id="root"></div>
+<script type="text/babel">
+const { Button, IconButton, Card, Badge, Tag, Avatar, Spinner, Icon, Divider, Kbd, Input, Textarea, Select, Checkbox, Radio, Switch, SearchField, FormField, SegmentedControl, Combobox, DateRangeField, Slider, FileUpload, Alert, Toast, Dialog, Tooltip, ProgressBar, Skeleton, EmptyState, Drawer, Popover, CommandPalette, SideNav, TopBar, Tabs, Breadcrumbs, Pagination, Menu, Stepper, Accordion, DataTable, TableToolbar, StatCard, Sparkline, KeyValueList, BarChart, Timeline, AppShell, PageHeader, Section, Grid, SplitPanel, Toolbar, MobileHeader, TabBar, ListRow, BottomSheet, MobileStat, PhoneFrame } = window.AdminDesignSystem_b1fc08;
+
+function Demo(){const [d,setD]=React.useState(false);const [c,setC]=React.useState(false);return (
+ <div style={{position:'relative',height:320,border:'1px solid var(--border-hairline)',borderRadius:'var(--radius-card)',background:'var(--surface-app)',padding:16,overflow:'hidden'}}>
+  <div className="row">
+   <Button onClick={()=>setD(true)}>Open drawer</Button>
+   <Popover trigger={<Button iconStart="sliders-horizontal">Columns</Button>} title="Visible columns">
+    <div className="col" style={{gap:10}}>
+     <Checkbox checked label="Customer" onChange={()=>{}} /><Checkbox checked label="Plan" onChange={()=>{}} /><Checkbox label="Region" onChange={()=>{}} />
+    </div>
+   </Popover>
+   <Button iconStart="command" onClick={()=>setC(true)}>Command palette <Kbd>⌘K</Kbd></Button>
+  </div>
+  <Drawer open={d} onClose={()=>setD(false)} title="Edit customer" description="Acme Inc · cus_4Kd91" size="sm"
+   footer={<><Button onClick={()=>setD(false)}>Cancel</Button><Button variant="primary">Save</Button></>}>
+   <div className="col"><FormField label="Name"><Input defaultValue="Acme Inc" /></FormField><FormField label="Plan"><Select options={['Free','Growth','Enterprise']} defaultValue="Enterprise" /></FormField></div>
+  </Drawer>
+  <CommandPalette open={c} onClose={()=>setC(false)}
+   groups={[{label:'Go to',items:[{id:'c',label:'Customers',icon:'users',shortcut:'G C'},{id:'i',label:'Invoices',icon:'file-text',shortcut:'G I'}]},
+            {label:'Actions',items:[{id:'n',label:'New invoice',icon:'file-plus'},{id:'e',label:'Export customers',icon:'download'}]}]} />
+ </div>);}
+ReactDOM.createRoot(document.getElementById('root')).render(<Demo/>);
+</script></body></html>

@@ -1,0 +1,18 @@
+:root{
+--space-0:0px;--space-1:2px;--space-2:4px;--space-3:6px;--space-4:8px;--space-5:12px;--space-6:16px;--space-7:20px;--space-8:24px;--space-9:32px;--space-10:40px;--space-11:48px;--space-12:64px;--space-13:80px;
+/* Semantic */
+--gap-inline:var(--space-4);
+--gap-stack:var(--space-5);
+--gap-section:var(--space-8);
+--pad-card:var(--space-7);
+--pad-page:var(--space-8);
+--sidebar-width:240px;--sidebar-width-collapsed:56px;--topbar-height:56px;--content-max:1280px;
+/* Density — default (comfortable). Scope [data-density="compact"] tightens rows and controls. */
+--control-height-sm:28px;--control-height-md:34px;--control-height-lg:40px;
+--control-pad-x:12px;
+--row-height:48px;
+--cell-pad-x:16px;
+--table-font:var(--text-md);
+}
+[data-density="compact"]{--row-height:36px;--cell-pad-x:12px;--table-font:var(--text-sm);--control-height-md:30px;--control-height-lg:34px;--pad-card:var(--space-6);--pad-page:var(--space-6)}
+[data-density="spacious"]{--row-height:60px;--cell-pad-x:20px;--pad-card:var(--space-8);--pad-page:var(--space-10)}

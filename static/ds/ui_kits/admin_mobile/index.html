@@ -1,0 +1,61 @@
+<!-- @dsCard group="Mobile" viewport="900x900" name="Admin Console — mobile" subtitle="Overview, customers, record, more — 390×844" -->
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Acme Admin — mobile UI kit</title>
+<link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.js"></script>
+<script src="../../_ds_bundle.js"></script>
+<script src="../admin_console/data.js"></script>
+<style>html,body{height:100%}body{margin:0;display:flex;align-items:center;justify-content:center;background:var(--surface-app);padding:24px}</style>
+</head><body><div id="root"></div>
+<script type="text/babel" src="./MobileScreens.jsx"></script>
+<script type="text/babel">
+const NS = window.AdminDesignSystem_b1fc08;
+const { PhoneFrame, AppShell, TabBar, BottomSheet, Button, Toast, Checkbox, Radio, SegmentedControl } = NS;
+function MobileApp() {
+  const [tab, setTab] = React.useState('overview');
+  const [customer, setCustomer] = React.useState(null);
+  const [sheet, setSheet] = React.useState(null);
+  const [filter, setFilter] = React.useState('All');
+  const [toast, setToast] = React.useState(null);
+  const notify = m => { setToast(m); setTimeout(() => setToast(null), 2600); };
+  const screen = customer
+    ? <window.CustomerMobileScreen customer={customer} onBack={() => setCustomer(null)} onAction={() => setSheet('actions')} />
+    : tab === 'overview' ? <window.OverviewScreen onOpenCustomer={setCustomer} />
+    : tab === 'customers' ? <window.CustomersListScreen onOpenCustomer={setCustomer} filter={filter} onFilter={() => setSheet('filter')} />
+    : tab === 'invoices' ? <window.CustomersListScreen onOpenCustomer={setCustomer} filter="Past due" onFilter={() => setSheet('filter')} />
+    : <window.MoreScreen onToast={notify} />;
+  return (
+    <PhoneFrame>
+      <AppShell isMobile
+        mobileNav={<TabBar activeId={tab} onSelect={t => { setCustomer(null); setTab(t); }}
+          items={[{ id: 'overview', label: 'Overview', icon: 'layout-dashboard' }, { id: 'customers', label: 'Customers', icon: 'users' },
+                  { id: 'invoices', label: 'Invoices', icon: 'file-text', badge: 2 }, { id: 'more', label: 'More', icon: 'ellipsis' }]} />}>
+        {screen}
+      </AppShell>
+      <BottomSheet open={sheet === 'filter'} onClose={() => setSheet(null)} title="Filter customers" description="Status"
+        actions={<><Button variant="primary" size="lg" fullWidth onClick={() => setSheet(null)}>Apply filter</Button>
+          <Button size="lg" fullWidth onClick={() => { setFilter('All'); setSheet(null); }}>Clear</Button></>}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-6)' }}>
+          {['All', 'Active', 'Past due', 'Trialing', 'Churned'].map(s => (
+            <Radio key={s} name="status" checked={filter === s} label={s} onChange={() => setFilter(s)} />
+          ))}
+        </div>
+      </BottomSheet>
+      <BottomSheet open={sheet === 'actions'} onClose={() => setSheet(null)} title={customer ? customer.name : ''} description="Account actions"
+        actions={<Button size="lg" fullWidth onClick={() => setSheet(null)}>Cancel</Button>}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
+          <Button size="lg" fullWidth iconStart="arrow-left-right" onClick={() => { setSheet(null); notify('Plan change is a mock'); }}>Change plan</Button>
+          <Button size="lg" fullWidth iconStart="pause" onClick={() => { setSheet(null); notify('Billing paused'); }}>Pause billing</Button>
+          <Button size="lg" fullWidth variant="danger" iconStart="trash-2" onClick={() => { setSheet(null); notify('Customer deleted'); }}>Delete customer</Button>
+        </div>
+      </BottomSheet>
+      {toast && <div style={{ position: 'absolute', left: 12, right: 12, bottom: 76, zIndex: 90 }}>
+        <Toast tone="success" title={toast} onDismiss={() => setToast(null)} style={{ minWidth: 0, width: '100%' }} />
+      </div>}
+    </PhoneFrame>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<MobileApp />);
+</script></body></html>
