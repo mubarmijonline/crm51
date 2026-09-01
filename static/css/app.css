@@ -308,3 +308,162 @@ td .btn-group {
 td .btn-group > .btn + .btn {
   margin-left: 0;
 }
+
+
+/* ===========================================================================
+   Shared table — the crm-table component.
+   Tokens only. Row height follows --row-height, which the density toggle
+   re-points per wrapper.
+   =========================================================================== */
+
+.crm-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.crm-toolbar__right { display: flex; align-items: center; gap: var(--space-4); margin-inline-start: auto; }
+
+/* --- search --------------------------------------------------------------- */
+
+.crm-search { position: relative; flex: 1 1 280px; max-width: 420px; }
+
+.crm-search__input {
+  width: 100%;
+  height: var(--control-height-md);
+  padding-inline: 34px 60px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  font: var(--type-body-sm);
+  color: var(--text-body);
+  transition: var(--transition-control);
+}
+.crm-search__input::placeholder { color: var(--text-subtle); }
+.crm-search__input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+}
+/* the browser's own clear affordance would sit on top of ours */
+.crm-search__input::-webkit-search-cancel-button { display: none; }
+
+.crm-search__icon {
+  position: absolute; inset-inline-start: var(--space-4); top: 50%;
+  transform: translateY(-50%); color: var(--text-subtle);
+  display: flex; pointer-events: none;
+}
+
+.crm-search__clear {
+  position: absolute; inset-inline-end: var(--space-8); top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; padding: 0;
+  background: none; border: 0; border-radius: var(--radius-pill);
+  color: var(--text-muted); cursor: pointer;
+}
+.crm-search__clear:hover { background: var(--surface-hover); color: var(--text-body); }
+
+.crm-search__spinner {
+  position: absolute; inset-inline-end: var(--space-4); top: 50%;
+  width: 14px; height: 14px; margin-top: -7px;
+  border: 2px solid var(--border-hairline);
+  border-top-color: var(--action-primary);
+  border-radius: var(--radius-pill);
+  animation: crm-spin .6s linear infinite;
+}
+@keyframes crm-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .crm-search__spinner { animation: none; } }
+
+/* --- filter chips --------------------------------------------------------- */
+
+.crm-chips { display: flex; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-6) 0; }
+
+.crm-chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--status-info-bg);
+  border: 1px solid var(--status-info-border);
+  border-radius: var(--radius-pill);
+  color: var(--status-info-fg);
+  font: var(--weight-medium) var(--text-xs)/18px var(--font-sans);
+  cursor: pointer;
+}
+.crm-chip:hover { border-color: var(--status-danger-border); color: var(--status-danger-fg); }
+.crm-chip--clear {
+  background: transparent; border-color: var(--border-strong); color: var(--text-muted);
+}
+.crm-chip--clear:hover { color: var(--text-body); border-color: var(--border-strong); }
+
+/* --- density -------------------------------------------------------------- */
+
+.crm-density { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-control); overflow: hidden; }
+.crm-density button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: var(--control-height-sm);
+  background: var(--surface-card); border: 0; color: var(--text-muted); cursor: pointer;
+}
+.crm-density button + button { border-inline-start: 1px solid var(--border-hairline); }
+.crm-density button:hover { background: var(--surface-hover); color: var(--text-body); }
+.crm-density button.is-on { background: var(--surface-selected); color: var(--text-brand); }
+
+.crm-cols__item { display: flex; align-items: center; gap: var(--space-3); cursor: pointer; }
+.crm-cols__menu { max-height: 320px; overflow-y: auto; }
+
+/* --- rows ----------------------------------------------------------------- */
+
+/* No zebra. Dividers and a hover tint carry the structure. */
+table.dataTable tbody tr { background: var(--surface-card); }
+table.dataTable tbody tr:hover { background: var(--surface-hover); }
+table.dataTable tbody tr.selected,
+table.dataTable tbody tr.selected:hover { background: var(--surface-selected); }
+table.dataTable tbody td {
+  height: var(--row-height);
+  border-top: 1px solid var(--border-hairline);
+  vertical-align: middle;
+}
+table.dataTable.stripe tbody tr.odd,
+table.dataTable.display tbody tr.odd { background: var(--surface-card); }
+
+/* Sticky header, with a rule that reads as a shadow on scroll. */
+.dataTables_wrapper .dataTables_scrollBody { overflow-y: auto; }
+table.dataTable thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-strong);
+  font: var(--weight-semibold) var(--text-xs)/1 var(--font-sans);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.crm-hit {
+  background: var(--status-warning-bg);
+  color: var(--status-warning-fg);
+  border-radius: var(--radius-xs);
+  padding: 0 2px;
+}
+
+/* --- loading / empty / error ---------------------------------------------- */
+
+.crm-skel {
+  display: block; height: 10px; width: 70%;
+  background: var(--surface-hover);
+  border-radius: var(--radius-pill);
+  animation: crm-pulse 1.2s ease-in-out infinite;
+}
+@keyframes crm-pulse { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+@media (prefers-reduced-motion: reduce) { .crm-skel { animation: none; } }
+
+.crm-state {
+  display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
+  padding: var(--space-11) var(--space-6);
+  text-align: center;
+}
+.crm-state i, .crm-state svg { width: 22px; height: 22px; color: var(--text-subtle); }
+.crm-state__title { font: var(--type-section); color: var(--text-title); margin: 0; }
+.crm-state__body  { font: var(--type-body-sm); color: var(--text-muted); margin: 0; max-width: 42ch; }

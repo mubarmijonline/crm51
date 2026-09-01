@@ -36,31 +36,6 @@
         <th>System section</th>
       </tr>
     </thead>
-    <tfoot>
-      <tr>
-        <th></th>
-        <th>ID</th>
-        <th>Name</th>
-        <th style="width: 8%;">Student mobile</th>
-        <th style="width: 8%;">Parent mobile</th>
-        <th>Grade</th>
-        <th>Educational system</th>
-        <th>Exam trial</th>
-        <th>Subject</th>
-        <th>Course</th>
-        <th>School</th>
-        <th>Email</th>
-        <th>Source</th>
-        <th>Status</th>
-        <th>Recall date</th>
-        <th>NI notes</th>
-        <th>Deposit</th>
-        <th>Added date</th>
-        <th>Added by</th>
-        <th>Modification date</th>
-        <th>System section</th>
-      </tr>
-    </tfoot>
   </table>
 </div>
 
@@ -76,8 +51,8 @@
     not_contacted:  'secondary'
   };
 
-  // Display type only, so sorting, searching and the searchPanes facets keep
-  // indexing the raw value rather than badge markup.
+  // Display type only, so the server keeps sorting and filtering on the raw
+  // value rather than badge markup.
   function render_status(data, type) {
     if (type !== 'display' || !data) return data;
     var tone  = STATUS_TONE[data] || 'secondary';
@@ -86,90 +61,48 @@
     return '<span class="badge badge-' + tone + '">' + label + '</span>';
   }
 
-  function get_american_lead_data() {
-    $('#students_table tfoot th').each(function () {
-      var title = $(this).text();
-      $(this).html('<input type="text" placeholder="Search ' + title + '" />');
-    });
-
-    var table = $('#students_table').DataTable({
-      ajax: { url: '/get_all_american_lead_data', mimeType: 'json' },
-      deferRender: true,
-      columns: [
-        {
-          mRender: function (data, type, row) {
-            var myrole = "{{ session['role'] }}";
-            var profile =
-              '<button name="edit_student" class="btn btn-secondary btn-sm" ' +
-              'onclick="window.location.assign(\'/update_american_lead?student_data=' +
-              row.student_id + ' - ' + row.student_mobile + ' - ' + row.student_name + '\');">Profile</button>';
-            if (myrole !== 'admin') return '<div class="btn-group">' + profile + '</div>';
-            return '<div class="btn-group">' + profile +
-              '<button id="delete" type="button" class="btn btn-danger btn-sm dt-delete" ' +
-              'onclick="delete_student(' + row.student_id + ')"><i data-lucide="trash-2"></i>Delete</button></div>';
-          }
-        },
-        { data: 'student_id',           className: 'mono' },
-        { data: 'student_name' },
-        { data: 'student_mobile',       className: 'mono' },
-        { data: 'parent_mobile',        className: 'mono' },
-        { data: 'year' },
-        { data: 'educational_system' },
-        { data: 'exam_trial' },
-        { data: 'subject' },
-        { data: 'course' },
-        { data: 'school' },
-        { data: 'email' },
-        { data: 'source' },
-        { data: 'status',               render: render_status },
-        { data: 'recall_date',          className: 'mono' },
-        { data: 'not_interested_notes' },
-        { data: 'deposit',              className: 'mono' },
-        { data: 'added_date',           className: 'mono' },
-        { data: 'added_by' },
-        { data: 'modified_date',        className: 'mono' },
-        { data: 'system_section' }
-      ],
-
-      searchPanes: {
-        viewTotal: true,
-        initCollapsed: true
-      },
-
-      columnDefs: [{
-        searchPanes: { show: false },
-        targets: [10, 16]   // School and Deposit — too high-cardinality to facet
-      }],
-
-      // Inert: rendering searchBuilder needs 'Q' in dom, which this table has
-      // never had. Left off rather than switching on an unused control.
-      searchBuilder: {
-        columns: [16],
-      },
-
-      dom: 'PBlfrtip',
-      buttons: ['pdfHtml5', 'excel', 'copy'],
-      scrollX: true,
-      // Was paging:false. This view is every education lead on record - 2,786
-      // rows today - all rendered on load.
-      paging: true,
-      pageLength: 25,
-      lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
-
-      drawCallback: function () {
-        lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14, 'stroke-width': 1.75 } });
-      }
-    });
-
-    table.columns().every(function () {
-      var that = this;
-      $('input', this.footer()).on('keyup change', function () {
-        if (that.search() !== this.value) {
-          that.search(this.value).draw();
+  var table = crmTable('#students_table', {
+    key: 'american_leads',
+    url: '/api/american_leads',
+    placeholder: 'Search name, mobile, email, course, school\u2026',
+    order: [[1, 'desc']],
+    columns: [
+      {
+        data: null, orderable: false, searchable: false,
+        render: function (data, type, row) {
+          var myrole = "{{ session['role'] }}";
+          var profile =
+            '<button name="edit_student" class="btn btn-secondary btn-sm" ' +
+            'onclick="window.location.assign(\'/update_american_lead?student_data=' +
+            row.student_id + ' - ' + row.student_mobile + ' - ' + row.student_name + '\');">Profile</button>';
+          if (myrole !== 'admin') return '<div class="btn-group">' + profile + '</div>';
+          return '<div class="btn-group">' + profile +
+            '<button type="button" class="btn btn-danger btn-sm dt-delete" ' +
+            'onclick="delete_student(' + row.student_id + ')"><i data-lucide="trash-2"></i>Delete</button></div>';
         }
-      });
-    });
-  }
+      },
+      { data: 'student_id',           className: 'mono' },
+      { data: 'student_name' },
+      { data: 'student_mobile',       className: 'mono' },
+      { data: 'parent_mobile',        className: 'mono' },
+      { data: 'year' },
+      { data: 'educational_system' },
+      { data: 'exam_trial' },
+      { data: 'subject' },
+      { data: 'course' },
+      { data: 'school' },
+      { data: 'email' },
+      { data: 'source' },
+      { data: 'status',               render: render_status },
+      { data: 'recall_date',          className: 'mono' },
+      { data: 'not_interested_notes' },
+      { data: 'deposit',              className: 'mono' },
+      { data: 'added_date',           className: 'mono' },
+      { data: 'added_by' },
+      { data: 'modified_date',        className: 'mono' },
+      { data: 'system_section' }
+    ]
+  });
 
   function delete_student(id) {
     Swal.fire({
@@ -181,31 +114,18 @@
       cancelButtonText: 'Cancel'
     }).then(function (result) {
       if (!result.isConfirmed) return;
-
       $.post("/delete_student", { student_id: id }).done(function (response) {
-        var state = response.state;
-
-        if (state == "success") {
-          Swal.fire({ icon: 'success', title: 'Lead deleted', showConfirmButton: false, showCancelButton: false });
-          $('#students_table').DataTable().ajax.reload();
-        }
-        else if (state == "no_access") {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Not authorised',
-            text: 'Your account cannot delete leads.',
-            showConfirmButton: false, showCancelButton: false
-          });
-        }
-        else {
+        if (response.state == "success") {
+          Swal.fire({ icon: 'success', title: 'Lead deleted', showConfirmButton: false });
+          table.ajax.reload(null, false);
+        } else if (response.state == "no_access") {
+          Swal.fire({ icon: 'warning', title: 'Not authorised',
+                      text: 'Your account cannot delete leads.', showConfirmButton: false });
+        } else {
           Swal.fire('Something went wrong', 'The lead was not deleted. Try again in a few moments.', 'error');
         }
       });
     });
   }
-
-  $(document).ready(function () {
-    get_american_lead_data();
-  });
 </script>
 {% endblock %}

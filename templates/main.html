@@ -73,6 +73,8 @@
 <script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
 <script src="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{# The one table component: server-side search, URL state, real states. #}
+<script src="{{ url_for('static', filename='js/crm-table.js') }}"></script>
 {# Google Charts backs the 10 ColumnCharts on profile and event_profile.
    The old base loaded this; dropping it left google.charts undefined at
    call time and every one of those charts dead. #}

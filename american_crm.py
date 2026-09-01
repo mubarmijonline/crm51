@@ -1968,6 +1968,172 @@ def get_all_american_lead_data():
     conn.close()
     return ("{ \"data\" :" + (json.dumps(json_data , default=str)) + " } ")
 
+# =============================================================================
+# Server-side DataTables endpoint.
+#
+# The existing /get_all_* endpoints SELECT * with no LIMIT and hand the whole
+# table to the browser, which then filters it in JavaScript. On american_leads
+# that is 2,786 rows before the user can type. This does the work in SQL.
+#
+# Every value is parameterised. Identifiers - the sort column - are checked
+# against an allowlist, because an identifier cannot be bound as a parameter.
+# =============================================================================
+
+# column name -> (searchable, sortable). Nothing outside this map can reach SQL.
+AMERICAN_LEAD_COLUMNS = {
+    'student_id':           (True,  True),
+    'student_name':         (True,  True),
+    'student_mobile':       (True,  True),
+    'parent_mobile':        (True,  True),
+    'year':                 (True,  True),
+    'educational_system':   (True,  True),
+    'exam_trial':           (True,  True),
+    'subject':              (True,  True),
+    'course':               (True,  True),
+    'school':               (True,  True),
+    'email':                (True,  True),
+    'source':               (True,  True),
+    'status':               (True,  True),
+    'recall_date':          (False, True),
+    'not_interested_notes': (True,  True),
+    'deposit':              (False, True),
+    'added_date':           (False, True),
+    'added_by':             (True,  True),
+    'modified_date':        (False, True),
+    'system_section':       (True,  True),
+}
+
+# Columns holding a phone number. Searched digits-only so "0109 382-6640",
+# "1093826640" and "201093826640" all find the same lead.
+PHONE_COLUMNS = ('student_mobile', 'parent_mobile')
+
+# MySQL has no regex-replace before 8.0.17 in every deployment, so strip the
+# usual separators explicitly.
+def _digits_only_sql(col):
+    expr = col
+    for ch in (' ', '-', '(', ')', '+', '.'):
+        expr = "REPLACE(%s, '%s', '')" % (expr, ch)
+    return expr
+
+
+def _phone_variants(term):
+    """A phone typed with or without its trunk 0 / country code should match."""
+    digits = ''.join(c for c in term if c.isdigit())
+    if not digits:
+        return []
+    variants = {digits}
+    if digits.startswith('00'):
+        variants.add(digits[2:])
+    if digits.startswith('0'):
+        variants.add(digits.lstrip('0'))
+    if digits.startswith('20'):
+        variants.add(digits[2:])
+    else:
+        variants.add('20' + digits.lstrip('0'))
+    return [v for v in variants if len(v) >= 3]
+
+
+def _escape_like(term):
+    """% and _ are LIKE wildcards. Without escaping, a user typing "100%"
+    injects a wildcard into the pattern - not a SQL injection, but it changes
+    what the search means and can force an expensive scan."""
+    return (term.replace('\\', '\\\\')
+                .replace('%', '\\%')
+                .replace('_', '\\_'))
+
+
+def _build_search(term, columns, phone_columns):
+    """One search term -> (sql_fragment, params). OR across every column."""
+    parts, params = [], []
+    like = '%' + _escape_like(term) + '%'
+
+    for col, (searchable, _) in columns.items():
+        if not searchable:
+            continue
+        parts.append("`%s` LIKE %%s" % col)
+        params.append(like)
+
+    for col in phone_columns:
+        for variant in _phone_variants(term):
+            parts.append("%s LIKE %%s" % _digits_only_sql('`%s`' % col))
+            params.append('%' + variant + '%')
+
+    if not parts:
+        return None, []
+    return '(' + ' OR '.join(parts) + ')', params
+
+
+def _datatables_query(table, columns, phone_columns, request):
+    """Shared server-side handler. Returns the DataTables response dict."""
+    draw   = int(request.values.get('draw', 1))
+    start  = max(0, int(request.values.get('start', 0)))
+    length = int(request.values.get('length', 25))
+    if length < 0:
+        length = 1000            # "All" in the length menu, still capped
+    length = min(length, 1000)
+
+    # --- WHERE: every term must match somewhere (AND of ORs) ---
+    search = (request.values.get('search[value]') or '').strip()
+    where_parts, params = [], []
+    for term in search.split():
+        frag, frag_params = _build_search(term, columns, phone_columns)
+        if frag:
+            where_parts.append(frag)
+            params.extend(frag_params)
+    where_sql = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
+
+    # --- ORDER BY: identifiers come from the allowlist, never from input ---
+    order_parts = []
+    i = 0
+    while True:
+        col_idx = request.values.get('order[%d][column]' % i)
+        if col_idx is None:
+            break
+        name = request.values.get('columns[%s][data]' % col_idx)
+        direction = 'DESC' if request.values.get('order[%d][dir]' % i) == 'desc' else 'ASC'
+        if name in columns and columns[name][1]:
+            order_parts.append('`%s` %s' % (name, direction))
+        i += 1
+    order_sql = ' ORDER BY ' + ', '.join(order_parts) if order_parts else ''
+
+    conn, cur = connection()
+    try:
+        cur.execute('SELECT COUNT(*) FROM `%s`' % table)
+        total = cur.fetchone()[0]
+
+        if where_sql:
+            cur.execute('SELECT COUNT(*) FROM `%s`%s' % (table, where_sql), tuple(params))
+            filtered = cur.fetchone()[0]
+        else:
+            filtered = total
+
+        select_cols = ', '.join('`%s`' % c for c in columns)
+        cur.execute(
+            'SELECT %s FROM `%s`%s%s LIMIT %%s OFFSET %%s'
+            % (select_cols, table, where_sql, order_sql),
+            tuple(params) + (length, start))
+        headers = [d[0] for d in cur.description]
+        rows = [dict(zip(headers, r)) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+    return {'draw': draw, 'recordsTotal': total,
+            'recordsFiltered': filtered, 'data': rows}
+
+
+@app.route('/api/american_leads', methods=["GET", "POST"])
+def api_american_leads():
+    # Same visibility as /get_all_american_lead_data, which returns every lead
+    # to every role. Not tightened here: that would be a permission change.
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    payload = _datatables_query('american_leads', AMERICAN_LEAD_COLUMNS,
+                                PHONE_COLUMNS, request)
+    return app.response_class(json.dumps(payload, default=str),
+                              mimetype='application/json')
+
+
 @app.route('/american_active_leads', methods=["GET","POST"])
 def american_active_leads():
     return render_template("american_active_leads.html")
