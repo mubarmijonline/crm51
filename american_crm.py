@@ -2134,6 +2134,36 @@ def api_american_leads():
                               mimetype='application/json')
 
 
+EVENT_LEAD_COLUMNS = {
+    'client_id':             (True,  True),
+    'client_name':           (True,  True),
+    'client_mobile':         (True,  True),
+    'client_email':          (True,  True),
+    'status':                (True,  True),
+    'client_payment_status': (True,  True),
+    'client_deposit_flag':   (False, True),
+    'client_deposit':        (False, True),
+    'done':                  (False, True),
+    'added_by':              (True,  True),
+    'added_date':            (False, True),
+    'modified_by':           (True,  True),
+    'modified_date':         (False, True),
+}
+
+EVENT_PHONE_COLUMNS = ('client_mobile',)
+
+
+@app.route('/api/event_leads', methods=["GET", "POST"])
+def api_event_leads():
+    # Same visibility as /get_all_event_lead_data.
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    payload = _datatables_query('event_leads', EVENT_LEAD_COLUMNS,
+                                EVENT_PHONE_COLUMNS, request)
+    return app.response_class(json.dumps(payload, default=str),
+                              mimetype='application/json')
+
+
 @app.route('/american_active_leads', methods=["GET","POST"])
 def american_active_leads():
     return render_template("american_active_leads.html")

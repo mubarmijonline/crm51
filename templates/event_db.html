@@ -29,24 +29,6 @@
         <th>Modified date</th>
       </tr>
     </thead>
-    <tfoot>
-      <tr>
-        <th></th>
-        <th>ID</th>
-        <th>Name</th>
-        <th style="width: 8%;">Client mobile</th>
-        <th>Email</th>
-        <th>Status</th>
-        <th>Payment status</th>
-        <th>Deposit (Y/N)</th>
-        <th>Deposit amount</th>
-        <th>Done (Y/N)</th>
-        <th>Added by</th>
-        <th>Added date</th>
-        <th>Modified by</th>
-        <th>Modified date</th>
-      </tr>
-    </tfoot>
   </table>
 </div>
 
@@ -56,11 +38,8 @@
 {% block scripts %}
 <script>
   var STATUS_TONE = {
-    enrol:          'success',
-    not_interested: 'danger',
-    pending:        'warning',
-    not_contacted:  'secondary',
-    completed:      'success'
+    enrol:'success', not_interested:'danger', pending:'warning',
+    not_contacted:'secondary', completed:'success'
   };
 
   function render_status(data, type) {
@@ -71,116 +50,62 @@
     return '<span class="badge badge-' + tone + '">' + label + '</span>';
   }
 
-  function get_event_lead_data() {
-    $('#events_table tfoot th').each(function () {
-      var title = $(this).text();
-      $(this).html('<input type="text" placeholder="Search ' + title + '" />');
-    });
-
-    var table = $('#events_table').DataTable({
-      ajax: { url: '/get_all_event_lead_data', mimeType: 'json' },
-      deferRender: true,
-      columns: [
-        {
-          mRender: function (data, type, row) {
-            var myrole = "{{ session['role'] }}";
-            var profile =
-              '<button name="edit_client" class="btn btn-secondary btn-sm" ' +
-              'onclick="window.location.assign(\'/update_event_lead?client_data=' +
-              row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name + '\');">Profile</button>';
-            if (myrole !== 'admin') return '<div class="btn-group">' + profile + '</div>';
-            return '<div class="btn-group">' + profile +
-              '<button id="delete" type="button" class="btn btn-danger btn-sm dt-delete" ' +
-              'onclick="delete_event(' + row.client_id + ')"><i data-lucide="trash-2"></i>Delete</button></div>';
-          }
-        },
-        { data: 'client_id',             className: 'mono' },
-        { data: 'client_name' },
-        { data: 'client_mobile',         className: 'mono' },
-        { data: 'client_email' },
-        { data: 'status',                render: render_status },
-        { data: 'client_payment_status', render: render_status },
-        { data: 'client_deposit_flag' },
-        { data: 'client_deposit',        className: 'mono' },
-        { data: 'done' },
-        { data: 'added_by' },
-        { data: 'added_date',            className: 'mono' },
-        { data: 'modified_by' },
-        { data: 'modified_date',         className: 'mono' }
-      ],
-
-      searchPanes: {
-        viewTotal: true,
-        initCollapsed: true
-      },
-
-      columnDefs: [{
-        searchPanes: { show: false },
-        targets: [3]   // Client mobile — one distinct value per lead, useless as a facet
-      }],
-
-      // Inert: needs 'Q' in dom, which this table has never had.
-      searchBuilder: {
-        columns: [5],
-      },
-
-      dom: 'PBlfrtip',
-      scrollX: true,
-      // Was paging:false, rendering every event lead on record.
-      paging: true,
-      pageLength: 25,
-      lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
-
-      drawCallback: function () {
-        lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14, 'stroke-width': 1.75 } });
-      }
-    });
-
-    table.columns().every(function () {
-      var that = this;
-      $('input', this.footer()).on('keyup change', function () {
-        if (that.search() !== this.value) {
-          that.search(this.value).draw();
+  var table = crmTable('#events_table', {
+    key: 'event_leads',
+    url: '/api/event_leads',
+    placeholder: 'Search name, mobile, email, status\u2026',
+    order: [[1, 'desc']],
+    columns: [
+      {
+        data: null, orderable: false, searchable: false,
+        render: function (data, type, row) {
+          var myrole = "{{ session['role'] }}";
+          var profile =
+            '<button name="edit_client" class="btn btn-secondary btn-sm" ' +
+            'onclick="window.location.assign(\'/update_event_lead?client_data=' +
+            row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name + '\');">Profile</button>';
+          if (myrole !== 'admin') return '<div class="btn-group">' + profile + '</div>';
+          return '<div class="btn-group">' + profile +
+            '<button type="button" class="btn btn-danger btn-sm dt-delete" ' +
+            'onclick="delete_event(' + row.client_id + ')"><i data-lucide="trash-2"></i>Delete</button></div>';
         }
-      });
-    });
-  }
+      },
+      { data: 'client_id',             className: 'mono' },
+      { data: 'client_name' },
+      { data: 'client_mobile',         className: 'mono' },
+      { data: 'client_email' },
+      { data: 'status',                render: render_status },
+      { data: 'client_payment_status', render: render_status },
+      { data: 'client_deposit_flag' },
+      { data: 'client_deposit',        className: 'mono' },
+      { data: 'done' },
+      { data: 'added_by' },
+      { data: 'added_date',            className: 'mono' },
+      { data: 'modified_by' },
+      { data: 'modified_date',         className: 'mono' }
+    ]
+  });
 
   function delete_event(id) {
     Swal.fire({
       title: 'Delete this event lead?',
       text: 'The lead and its event assignations are removed immediately. This cannot be undone.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Delete lead',
-      cancelButtonText: 'Cancel'
+      icon: 'warning', showCancelButton: true,
+      confirmButtonText: 'Delete lead', cancelButtonText: 'Cancel'
     }).then(function (result) {
       if (!result.isConfirmed) return;
-
       $.post("/delete_event", { client_id: id }).done(function (response) {
-        var state = response.state;
-
-        if (state == "success") {
-          Swal.fire({ icon: 'success', title: 'Lead deleted', showConfirmButton: false, showCancelButton: false });
-          $('#events_table').DataTable().ajax.reload();
-        }
-        else if (state == "no_access") {
-          Swal.fire({
-            icon: 'warning',
-            title: 'Not authorised',
-            text: 'Your account cannot delete leads.',
-            showConfirmButton: false, showCancelButton: false
-          });
-        }
-        else {
+        if (response.state == "success") {
+          Swal.fire({ icon: 'success', title: 'Lead deleted', showConfirmButton: false });
+          table.ajax.reload(null, false);
+        } else if (response.state == "no_access") {
+          Swal.fire({ icon: 'warning', title: 'Not authorised',
+                      text: 'Your account cannot delete leads.', showConfirmButton: false });
+        } else {
           Swal.fire('Something went wrong', 'The lead was not deleted. Try again in a few moments.', 'error');
         }
       });
     });
   }
-
-  $(document).ready(function () {
-    get_event_lead_data();
-  });
 </script>
 {% endblock %}

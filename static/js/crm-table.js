@@ -166,6 +166,22 @@
         lengthMenu: 'Rows: _MENU_'
       },
       drawCallback: function () {
+        // Carry each column's header onto its cells, so the mobile card view
+        // can label them without a second set of markup.
+        var api = this.api();
+        // ':visible' matters: a hidden column removes its <td>, so indexing the
+        // full header list would shift every label by one.
+        var labels = api.columns(':visible').header().toArray().map(function (th) {
+          return $(th).text().trim();
+        });
+        $(this).find('tbody tr').each(function () {
+          $(this).children('td').each(function (i) {
+            var label = labels[i] || '';
+            if (label) this.setAttribute('data-label', label);
+            else this.classList.add('crm-cell-actions');
+          });
+        });
+
         if (window.lucide) {
           lucide.createIcons({ nameAttr: 'data-lucide',
             attrs: { width: 14, height: 14, 'stroke-width': 1.75 } });

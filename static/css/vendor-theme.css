@@ -1,0 +1,315 @@
+/* ---------------------------------------------------------------------------
+   vendor-theme.css — forces the light-only vendor stack onto our tokens.
+
+   Loads LAST. Bootstrap alone ships 607 hardcoded colour declarations,
+   starting with body{color:#212529;background-color:#fff}, and never learned
+   about themes. DataTables, select2, the datepicker and SweetAlert add ~180
+   more. Without this, dark mode paints a dark ground under near-black text.
+
+   Everything here is token-driven, so it is correct in BOTH themes - this is
+   not a dark-mode patch bolted on, it is the coverage the bridge was missing.
+   --------------------------------------------------------------------------- */
+
+/* --- the base Bootstrap sets and never revisits --------------------------- */
+
+body {
+  color: var(--text-body);
+  background-color: var(--surface-app);
+}
+
+hr { border-top-color: var(--border-hairline); }
+
+a { color: var(--text-link); }
+a:hover { color: var(--text-link-hover); }
+
+code, pre, kbd, samp { color: var(--text-body); }
+
+::placeholder { color: var(--text-subtle) !important; }
+
+/* --- Bootstrap components the bridge never covered ------------------------ */
+
+.modal-content {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  color: var(--text-body);
+}
+.modal-header,
+.modal-footer { border-color: var(--border-hairline); }
+.modal-title  { color: var(--text-title); }
+.modal-backdrop.show { background: var(--scrim); opacity: 1; }
+
+.close, .close:hover {
+  color: var(--text-muted);
+  text-shadow: none;
+  opacity: 1;
+}
+.close:hover { color: var(--text-body); }
+
+.list-group-item {
+  background-color: var(--surface-card);
+  border-color: var(--border-hairline);
+  color: var(--text-body);
+}
+.list-group-item-action:hover,
+.list-group-item-action:focus { background-color: var(--surface-hover); color: var(--text-body); }
+.list-group-item.active {
+  background-color: var(--surface-selected);
+  border-color: var(--border-hairline);
+  color: var(--text-brand);
+}
+
+.page-link {
+  background-color: var(--surface-card);
+  border-color: var(--border-hairline);
+  color: var(--text-body);
+}
+.page-link:hover { background-color: var(--surface-hover); border-color: var(--border-hairline); color: var(--text-body); }
+.page-item.active .page-link {
+  background-color: var(--action-primary);
+  border-color: var(--action-primary);
+  color: var(--action-primary-fg);
+}
+.page-item.disabled .page-link { background-color: var(--surface-app); color: var(--text-disabled); }
+
+.custom-select {
+  background-color: var(--surface-card);
+  border-color: var(--border-strong);
+  color: var(--text-body);
+}
+
+.nav-tabs { border-bottom-color: var(--border-hairline); }
+.nav-tabs .nav-link { color: var(--text-muted); border-color: transparent; }
+.nav-tabs .nav-link:hover { border-color: transparent; color: var(--text-body); }
+.nav-tabs .nav-link.active {
+  background-color: transparent;
+  border-color: transparent transparent var(--action-primary);
+  border-bottom-width: 2px;
+  color: var(--text-brand);
+}
+
+.breadcrumb { background-color: var(--surface-app); color: var(--text-muted); }
+
+.popover, .tooltip-inner {
+  background-color: var(--surface-card);
+  border-color: var(--border-hairline);
+  color: var(--text-body);
+  box-shadow: var(--elevation-popover);
+}
+.popover-header { background-color: var(--surface-sunken); border-bottom-color: var(--border-hairline); color: var(--text-title); }
+.popover-body   { color: var(--text-body); }
+
+.dropdown-menu {
+  background-color: var(--surface-card);
+  border-color: var(--border-hairline);
+  color: var(--text-body);
+  box-shadow: var(--elevation-popover);
+}
+.dropdown-item { color: var(--text-body); }
+.dropdown-item:hover, .dropdown-item:focus { background-color: var(--surface-hover); color: var(--text-body); }
+.dropdown-divider { border-top-color: var(--border-hairline); }
+.dropdown-header  { color: var(--text-muted); }
+
+/* Bootstrap's utility backgrounds are literal white/grey. */
+.bg-white, .bg-light { background-color: var(--surface-card) !important; }
+.bg-dark  { background-color: var(--surface-inverse) !important; }
+.text-dark  { color: var(--text-body) !important; }
+.text-white { color: var(--action-primary-fg) !important; }
+.text-black { color: var(--text-body) !important; }
+.border, .border-top, .border-bottom, .border-left, .border-right { border-color: var(--border-hairline) !important; }
+
+.table, .table td, .table th { color: var(--text-body); border-color: var(--border-hairline); }
+.table thead th { border-bottom-color: var(--border-strong); color: var(--text-muted); }
+.table-striped tbody tr:nth-of-type(odd) { background-color: var(--surface-sunken); }
+.table-hover tbody tr:hover { background-color: var(--surface-hover); color: var(--text-body); }
+
+/* --- DataTables ----------------------------------------------------------- */
+
+.dataTables_wrapper,
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_processing,
+.dataTables_wrapper .dataTables_paginate { color: var(--text-muted) !important; }
+
+table.dataTable { color: var(--text-body); border-color: var(--border-hairline); }
+table.dataTable tbody td { color: var(--text-body); }
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  color: var(--text-body);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  color: var(--text-body) !important;
+  border-radius: var(--radius-control);
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+  background: var(--action-primary) !important;
+  border-color: var(--action-primary) !important;
+  color: var(--action-primary-fg) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--border-hairline) !important;
+  color: var(--text-body) !important;
+}
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+  background: transparent !important;
+  color: var(--text-disabled) !important;
+  border-color: transparent !important;
+}
+
+table.dataTable thead .sorting:before, table.dataTable thead .sorting:after,
+table.dataTable thead .sorting_asc:before, table.dataTable thead .sorting_asc:after,
+table.dataTable thead .sorting_desc:before, table.dataTable thead .sorting_desc:after {
+  color: var(--text-subtle);
+}
+
+/* searchPanes / searchBuilder / buttons */
+div.dtsp-panesContainer, div.dtsp-searchPanes, div.dtsp-searchPane,
+div.dtsp-searchPane div.dataTables_wrapper {
+  background: var(--surface-card) !important;
+  color: var(--text-body) !important;
+}
+div.dtsp-searchPane div.dataTables_wrapper table { border-color: var(--border-hairline) !important; }
+div.dtsp-titleRow, div.dtsp-title { color: var(--text-muted) !important; }
+
+div.dtsb-searchBuilder, div.dtsb-group, div.dtsb-criteria {
+  background: var(--surface-card) !important;
+  color: var(--text-body) !important;
+}
+div.dtsb-searchBuilder select, div.dtsb-searchBuilder input {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-body) !important;
+}
+
+/* --- datepicker ----------------------------------------------------------- */
+
+.datepicker, .datepicker-dropdown {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--elevation-popover) !important;
+  color: var(--text-body) !important;
+}
+.datepicker table tr td, .datepicker table tr th { color: var(--text-body) !important; }
+.datepicker table tr td.day:hover, .datepicker table tr td.focused { background: var(--surface-hover) !important; }
+.datepicker table tr td.old, .datepicker table tr td.new,
+.datepicker table tr td.disabled, .datepicker table tr td.disabled:hover { color: var(--text-disabled) !important; }
+.datepicker table tr td.today, .datepicker table tr td.today:hover {
+  background: var(--status-warning-bg) !important;
+  color: var(--status-warning-fg) !important;
+}
+.datepicker .datepicker-switch:hover, .datepicker .prev:hover, .datepicker .next:hover {
+  background: var(--surface-hover) !important;
+}
+.datepicker-dropdown:before { border-bottom-color: var(--border-hairline) !important; }
+.datepicker-dropdown:after  { border-bottom-color: var(--surface-card) !important; }
+
+/* --- SweetAlert ----------------------------------------------------------- */
+
+.swal2-popup {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  color: var(--text-body) !important;
+}
+.swal2-title { color: var(--text-title) !important; }
+.swal2-html-container, .swal2-content { color: var(--text-body) !important; }
+.swal2-input, .swal2-textarea, .swal2-select {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-control) !important;
+  color: var(--text-body) !important;
+  box-shadow: none !important;
+}
+.swal2-validation-message {
+  background: var(--status-danger-bg) !important;
+  color: var(--status-danger-fg) !important;
+}
+.swal2-container.swal2-backdrop-show { background: var(--scrim) !important; }
+.swal2-close { color: var(--text-muted) !important; }
+.swal2-close:hover { color: var(--text-body) !important; }
+
+/* --- DateTimePicker-2 ----------------------------------------------------- */
+
+.DateTimePicker, .DateTimePicker-wrapper {
+  background: var(--surface-card) !important;
+  color: var(--text-body) !important;
+  border-color: var(--border-hairline) !important;
+}
+
+/* --- the last resort ------------------------------------------------------
+   Templates still carry ~500 literal colours in style="" attributes, which
+   beat any stylesheet. These cover the handful that would otherwise leave text
+   invisible on a dark ground. Scoped to dark so light is untouched. Removing
+   them from the templates is the real fix and happens per page. */
+
+[data-theme="dark"] [style*="color: cadetblue"],
+[data-theme="dark"] [style*="color:cadetblue"] { color: var(--info) !important; }
+
+[data-theme="dark"] [style*="color: gray"],
+[data-theme="dark"] [style*="color:gray"],
+[data-theme="dark"] [style*="color: grey"],
+[data-theme="dark"] [style*="color:grey"],
+[data-theme="dark"] [style*="color: #333"],
+[data-theme="dark"] [style*="color:#333"],
+[data-theme="dark"] [style*="color: black"],
+[data-theme="dark"] [style*="color:black"] { color: var(--text-body) !important; }
+
+[data-theme="dark"] [style*="color: tomato"],
+[data-theme="dark"] [style*="color:tomato"] { color: var(--text-brand) !important; }
+
+[data-theme="dark"] [style*="color: darkcyan"],
+[data-theme="dark"] [style*="color:darkcyan"] { color: var(--info) !important; }
+
+[data-theme="dark"] [style*="background-color: white"],
+[data-theme="dark"] [style*="background-color:white"],
+[data-theme="dark"] [style*="background-color: #fff"],
+[data-theme="dark"] [style*="background-color:#fff"],
+[data-theme="dark"] [style*="background: white"],
+[data-theme="dark"] [style*="background:white"] {
+  background-color: var(--surface-card) !important;
+  color: var(--text-body) !important;
+}
+
+[data-theme="dark"] [style*="background-color: antiquewhite"],
+[data-theme="dark"] [style*="background-color:antiquewhite"] {
+  background-color: var(--surface-sunken) !important;
+  color: var(--text-body) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) [style*="color: cadetblue"],
+  :root:not([data-theme="light"]) [style*="color:cadetblue"],
+  :root:not([data-theme="light"]) [style*="color: darkcyan"],
+  :root:not([data-theme="light"]) [style*="color:darkcyan"] { color: var(--info) !important; }
+
+  :root:not([data-theme="light"]) [style*="color: gray"],
+  :root:not([data-theme="light"]) [style*="color:gray"],
+  :root:not([data-theme="light"]) [style*="color: grey"],
+  :root:not([data-theme="light"]) [style*="color:grey"],
+  :root:not([data-theme="light"]) [style*="color: #333"],
+  :root:not([data-theme="light"]) [style*="color:#333"],
+  :root:not([data-theme="light"]) [style*="color: black"],
+  :root:not([data-theme="light"]) [style*="color:black"] { color: var(--text-body) !important; }
+
+  :root:not([data-theme="light"]) [style*="color: tomato"],
+  :root:not([data-theme="light"]) [style*="color:tomato"] { color: var(--text-brand) !important; }
+
+  :root:not([data-theme="light"]) [style*="background-color: white"],
+  :root:not([data-theme="light"]) [style*="background-color:white"],
+  :root:not([data-theme="light"]) [style*="background: white"],
+  :root:not([data-theme="light"]) [style*="background:white"],
+  :root:not([data-theme="light"]) [style*="background-color: antiquewhite"] {
+    background-color: var(--surface-card) !important;
+    color: var(--text-body) !important;
+  }
+}

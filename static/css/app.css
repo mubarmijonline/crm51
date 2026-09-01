@@ -467,3 +467,94 @@ table.dataTable thead th {
 .crm-state i, .crm-state svg { width: 22px; height: 22px; color: var(--text-subtle); }
 .crm-state__title { font: var(--type-section); color: var(--text-title); margin: 0; }
 .crm-state__body  { font: var(--type-body-sm); color: var(--text-muted); margin: 0; max-width: 42ch; }
+
+
+/* ===========================================================================
+   Tables on small screens.
+
+   A 21-column table cannot become readable on a phone by scrolling sideways.
+   Below 768px each row collapses into a card: the label comes from the column
+   header via a data attribute, so there is no second markup path to maintain.
+   =========================================================================== */
+
+@media (max-width: 767px) {
+
+  /* the toolbar stacks; search takes the full width and stays reachable */
+  .crm-toolbar { flex-direction: column; align-items: stretch; gap: var(--space-4); }
+  .crm-search  { max-width: none; flex: 1 1 auto; }
+  .crm-toolbar__right { margin-inline-start: 0; justify-content: space-between; }
+  .crm-search__input { height: var(--control-height-lg); }   /* 44px touch target */
+
+  .dataTables_wrapper .dataTables_scrollHead,
+  .dataTables_wrapper .dataTables_scrollFoot { display: none; }
+  .dataTables_wrapper .dataTables_scrollBody { overflow: visible !important; }
+
+  table.dataTable,
+  table.dataTable thead,
+  table.dataTable tbody,
+  table.dataTable tr,
+  table.dataTable td { display: block; width: auto !important; }
+
+  table.dataTable thead { position: absolute; left: -9999px; }   /* still read by AT */
+
+  table.dataTable tbody tr {
+    margin-bottom: var(--space-5);
+    padding: var(--space-5);
+    background: var(--surface-card);
+    border: 1px solid var(--border-hairline);
+    border-radius: var(--radius-card);
+  }
+
+  table.dataTable tbody td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-5);
+    height: auto;
+    min-height: 0;
+    padding: var(--space-3) 0;
+    border: 0;
+    border-bottom: 1px solid var(--border-hairline);
+    text-align: end;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  table.dataTable tbody td:last-child { border-bottom: 0; padding-bottom: 0; }
+
+  /* The header text, carried onto the cell by crm-table.js. */
+  table.dataTable tbody td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 0 42%;
+    text-align: start;
+    font: var(--weight-semibold) var(--text-xs)/1.4 var(--font-sans);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* An empty cell would otherwise render as a bare label. */
+  table.dataTable tbody td:empty { display: none; }
+
+  /* Row actions get their own full-width strip at the foot of the card. */
+  table.dataTable tbody td.crm-cell-actions {
+    justify-content: flex-start;
+    padding-top: var(--space-5);
+    margin-top: var(--space-3);
+    border-top: 1px solid var(--border-hairline);
+  }
+  table.dataTable tbody td.crm-cell-actions::before { content: none; }
+  table.dataTable tbody td.crm-cell-actions .btn { flex: 1 1 auto; justify-content: center; }
+
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_paginate { text-align: center; float: none; }
+
+  .crm-state { padding: var(--space-9) var(--space-5); }
+}
+
+/* Wide screens: the table scrolls inside its card, never the page. */
+@media (min-width: 768px) {
+  .dataTables_wrapper { overflow-x: auto; }
+  table.dataTable tbody td { white-space: nowrap; }
+  table.dataTable tbody td.crm-wrap { white-space: normal; min-width: 220px; }
+}

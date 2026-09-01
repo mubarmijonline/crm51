@@ -31,6 +31,9 @@
 {# App-level overrides. Last, so they win over the bridge. #}
 <link rel="stylesheet" href="{{ url_for('static', filename='select2/select2.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+{# Forces the light-only vendor stack (Bootstrap, DataTables, select2,
+   datepicker, SweetAlert) onto our tokens. Must load last. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor-theme.css') }}">
 
 {# --- Vendor CSS still in use --- #}
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}">
