@@ -23,6 +23,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='ds/styles.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ds-bridge.css') }}">
+{# App-level overrides. Last, so they win over the bridge. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='select2/select2.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 
 {# --- Vendor CSS still in use --- #}
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}">
@@ -56,6 +59,10 @@
 <script src="{{ url_for('static', filename='vendor/datatables/vfs_fonts.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/datatables/buttons.print.min.js') }}"></script>
+{# select2 backs every multi-select in the lead and course forms. The old
+   base loaded it from cdnjs; dropping it left those pages calling
+   .select2() on an undefined plugin. Vendored copy is 4.1.0. #}
+<script src="{{ url_for('static', filename='select2/select2.js') }}"></script>
 <script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 <script src="{{ url_for('static', filename='datepicker/js/bootstrap-datepicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
@@ -190,7 +197,7 @@ $(document).ajaxComplete(function (e, xhr) {
   </div>
 </nav>
 
-<main style="padding:var(--pad-page);max-width:var(--content-max);margin:0 auto">
+<main>
 {% block body %}{% endblock %}
 </main>
 
@@ -205,8 +212,24 @@ lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 16, height: 16, 's
 {# --- Notification bell: unchanged behaviour, kept verbatim from the old base --- #}
 <script>
 $(document).ready(function () {
-  $("#x, #xx").click(function () {
-    $(this).find("#notification_dropdown, #notification_dropdownx").toggle();
+  // Open state is a class on .item; app.css hides the panel by default and
+  // positions it absolutely. Toggling the inner <ul> directly, as this used
+  // to, left the panel rendered inline and permanently open.
+  $("#x, #xx").on("click", function (e) {
+    e.stopPropagation();
+    $(this).toggleClass("is-open");
+  });
+
+  // Click anywhere else, or press Escape, to dismiss.
+  $(document).on("click", function () {
+    $(".notification-drop .item").removeClass("is-open");
+  });
+  $(document).on("keydown", function (e) {
+    if (e.key === "Escape") $(".notification-drop .item").removeClass("is-open");
+  });
+  // Clicks inside the panel must not close it.
+  $(".notification-drop .item > div").on("click", function (e) {
+    e.stopPropagation();
   });
 });
 

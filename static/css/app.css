@@ -1,0 +1,341 @@
+/* ---------------------------------------------------------------------------
+   app.css — crm51 overrides on top of the design system bridge.
+
+   Load order: bootstrap.min.css -> ds/styles.css -> ds-bridge.css -> app.css
+   This file is ours. ds-bridge.css comes from the design system and may be
+   re-copied wholesale, so anything specific to this app belongs here instead.
+   Tokens only: no raw colours, no raw sizes.
+   --------------------------------------------------------------------------- */
+
+
+/* --- Page shell ----------------------------------------------------------- */
+
+/* Full width. The design system caps content at --content-max, which is right
+   for a reading surface but wrong for this app: every screen here is a wide
+   data table or a two-column form, and the cap left most of a 1080p monitor
+   empty. Page padding stays so text never touches the viewport edge. */
+html, body {
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--surface-app);
+}
+
+main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: none !important;   /* overrides the inline --content-max cap */
+  margin: 0 !important;
+  padding: var(--pad-page) !important;
+}
+
+/* Footer sat directly under short pages, leaving a band of empty white below
+   it. flex:1 on main above pins it to the bottom instead. */
+footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-hairline);
+  background: var(--surface-card) !important;
+}
+
+footer, footer a {
+  font: var(--type-caption) !important;
+  color: var(--text-muted) !important;
+}
+
+
+/* --- Notification bell ---------------------------------------------------- */
+
+/* The bridge styles this dropdown's surface but never positions it: the old
+   base carried display:none / position:absolute / top:100% / z-index inline,
+   and those rules were lost. Without them the panel renders inline, always
+   open, overlapping the navbar. */
+.notification-drop .item > div,
+.notification-drop .item ul {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1050;              /* above the sticky navbar */
+}
+
+.notification-drop .item > div {
+  display: none;
+  min-width: 320px;
+}
+
+/* When open, the inner list fills the panel rather than positioning itself. */
+.notification-drop .item > div ul {
+  display: block;
+  position: static;
+  width: 100% !important;
+  max-width: none;
+}
+
+.notification-drop .item.is-open > div {
+  display: block;
+}
+
+.notification-drop .item {
+  position: relative;
+}
+
+/* Unread count sits on the bell rather than beside it. */
+.notification-drop .btn__badge {
+  position: absolute;
+  top: -2px;
+  right: -6px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--status-danger-fg);
+  color: var(--gray-0);
+  font: var(--weight-semibold) var(--text-xs)/16px var(--font-sans);
+  text-align: center;
+}
+
+
+/* --- Native selects ------------------------------------------------------- */
+
+/* Bootstrap's .form-control covers <select>, but plain <select> elements
+   outside a form-group were falling back to the browser default. */
+select:not(.form-control) {
+  height: var(--control-height-md);
+  padding: 0 var(--control-pad-x);
+  font: var(--type-body);
+  color: var(--text-body);
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  transition: var(--transition-control);
+}
+
+select:not(.form-control):focus {
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+/* A <select multiple> without select2 must grow, not sit at one control's
+   height with its options clipped. */
+select[multiple],
+select[size]:not([size="1"]) {
+  height: auto !important;
+  min-height: calc(var(--control-height-md) * 2);
+  padding: var(--space-2) !important;
+}
+
+select[multiple] option {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-sm);
+  font: var(--type-body-sm);
+}
+
+select[multiple] option:checked {
+  background: var(--surface-selected) linear-gradient(0deg, var(--surface-selected) 0%, var(--surface-selected) 100%);
+  color: var(--text-brand);
+}
+
+
+/* --- select2 -------------------------------------------------------------- */
+
+/* The bridge gives .select2-selection--multiple a fixed --control-height-md,
+   which clips the pills as soon as a second value is chosen, and it styles no
+   pills at all. Both are fixed here. */
+
+.select2-container {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+/* Single select: match .form-control exactly. */
+.select2-container--default .select2-selection--single {
+  height: var(--control-height-md) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-control) !important;
+  background: var(--surface-card) !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+  color: var(--text-subtle) !important;
+}
+
+/* Multi select: height is driven by content. */
+.select2-container--default .select2-selection--multiple {
+  height: auto !important;
+  min-height: var(--control-height-md) !important;
+  padding: var(--space-2) var(--space-3) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-control) !important;
+  background: var(--surface-card) !important;
+  transition: var(--transition-control);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 !important;
+  margin: 0;
+  line-height: normal !important;
+}
+
+/* The pills. */
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 !important;
+  padding: var(--space-1) var(--space-3) !important;
+  background: var(--status-info-bg) !important;
+  border: 1px solid var(--status-info-border) !important;
+  border-radius: var(--radius-badge) !important;
+  color: var(--status-info-fg) !important;
+  font: var(--weight-medium) var(--text-xs)/18px var(--font-sans) !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  order: 2;                       /* × after the label, not before it */
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  color: var(--status-info-fg) !important;
+  font-size: var(--text-md) !important;
+  line-height: 1;
+  opacity: .65;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+  opacity: 1;
+  background: none !important;
+  color: var(--status-danger-fg) !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-search--inline .select2-search__field {
+  height: auto !important;
+  margin: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  font: var(--type-body-sm) !important;
+  color: var(--text-body);
+}
+
+/* Focus ring on the container, matching .form-control:focus. */
+.select2-container--default.select2-container--focus .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--multiple,
+.select2-container--default.select2-container--open .select2-selection--single {
+  border-color: var(--border-focus) !important;
+  box-shadow: var(--focus-ring) !important;
+}
+
+/* Dropdown panel and its options. */
+.select2-dropdown {
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--elevation-popover) !important;
+  background: var(--surface-card) !important;
+  overflow: hidden;
+}
+
+.select2-container--default .select2-results__option {
+  padding: var(--space-4) var(--space-5) !important;
+  font: var(--type-body-sm) !important;
+  color: var(--text-body) !important;
+}
+
+.select2-container--default .select2-results__option[aria-selected="true"] {
+  background: var(--surface-selected) !important;
+  color: var(--text-brand) !important;
+  font-weight: var(--weight-medium);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background: var(--action-ghost-hover) !important;
+  color: var(--text-body) !important;
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected="true"] {
+  background: var(--surface-selected) !important;
+  color: var(--text-brand) !important;
+}
+
+.select2-results__options {
+  max-height: 280px !important;
+}
+
+.select2-search--dropdown {
+  padding: var(--space-4) !important;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-control) !important;
+  font: var(--type-body-sm) !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: var(--focus-ring) !important;
+  outline: none;
+}
+
+/* Clear-all (×) on an allowClear single select. */
+.select2-container--default .select2-selection__clear {
+  color: var(--text-muted) !important;
+  font-size: var(--text-lg);
+  margin-right: var(--space-3) !important;
+}
+
+.select2-container--default .select2-selection__clear:hover {
+  color: var(--status-danger-fg) !important;
+}
+
+
+/* --- Tables --------------------------------------------------------------- */
+
+/* Full-width pages make horizontal table scroll the exception rather than the
+   rule, but wide tables must still scroll inside their card, never push the
+   page sideways. */
+.dataTables_wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.card_customized > .dataTables_wrapper {
+  padding: var(--pad-card);
+}
+
+
+/* --- Buttons carrying an icon --------------------------------------------- */
+
+.btn > i[data-lucide],
+.btn > svg.lucide {
+  vertical-align: -2px;
+  margin-right: var(--space-2);
+}
+
+.btn-group > .btn + .btn {
+  margin-left: var(--space-2);
+}
+
+/* DataTables action cells hold two buttons; let them wrap on narrow screens
+   instead of forcing the column wider. */
+td .btn-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+td .btn-group > .btn + .btn {
+  margin-left: 0;
+}
