@@ -26,6 +26,8 @@
 {# 51 Campus identity: redefines the design-system token values. THE single
    source of colour, radius and type in this app. #}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens-51.css') }}">
+{# The application frame: sidebar, top bar, page header. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
 {# App-level overrides. Last, so they win over the bridge. #}
 <link rel="stylesheet" href="{{ url_for('static', filename='select2/select2.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
@@ -84,133 +86,137 @@ $(document).ajaxComplete(function (e, xhr) {
   if (xhr.statusText === "parsererror") window.location.replace("/logout");
 });
 </script>
+<script>
+/* Applied before paint so a collapsed sidebar does not flash open on load. */
+try {
+  if (localStorage.getItem('crm51.sidebar.collapsed') === '1') {
+    document.write('<style>.app-sidebar{width:64px}.app-main{margin-inline-start:64px}</style>');
+  }
+} catch (e) {}
+</script>
 </head>
 
 <body onload="notifications()">
 
 {% set role = session['role'] %}
-<nav id="main_nav_bar" class="navbar sticky-top navbar-expand-lg">
-  <a class="navbar-brand" href="/home">
-    <img src="{{ url_for('static', filename='images/51_Logo.png') }}" alt="">
-    <span>51 American CRM</span>
-  </a>
+{% set here = request.path %}
 
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+{# --- nav model. One place. Every link the old navbar carried is here. ------ #}
+{% set nav = [
+  ('',           [('/home', 'layout-dashboard', 'Home', false)]),
+  ('Education',  [('/create_lead_american',           'user-plus',   'Create lead',      false),
+                  ('/update_american_lead',           'search',      'Search & update',  false),
+                  ('/american_active_leads',          'users',       'My active leads',  false),
+                  ('/recall_date_table',              'phone-call',  'Recall dates',     false),
+                  ('/american_db',                    'database',    'Database',         false),
+                  ('/american_detailed_course_report','bar-chart-3', 'Detailed report',  false)]),
+  ('Events',     [('/create_lead_event',       'calendar-plus', 'Create lead',     false),
+                  ('/update_event_lead',       'search',        'Search & update', false),
+                  ('/event_active_leads',      'users',         'My active leads', false),
+                  ('/recall_date_table_event', 'phone-call',    'Recall dates',    false),
+                  ('/event_db',                'database',      'Database',        false)]),
+  ('Admin',      [('/users',          'user-cog',  'Users & profiles', true),
+                  ('/admin_settings', 'settings',  'Admin settings',   true),
+                  ('/user_add_task',  'bell-plus', 'Notify user',      false)])
+] %}
 
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item">
-        <a class="nav-link" href="/home"><i data-lucide="layout-dashboard"></i>Home</a>
-      </li>
+<div class="app-shell" id="app_shell">
 
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="graduation-cap"></i>Education leads
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="/create_lead_american">Create lead</a>
-          <a class="dropdown-item" href="/update_american_lead">Search &amp; update lead</a>
-          <a class="dropdown-item" href="/american_active_leads">My active leads</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="/american_detailed_course_report">Detailed report</a>
+  <aside class="app-sidebar" id="app_sidebar">
+    <a class="app-sidebar__brand" href="/home">
+      <img src="{{ url_for('static', filename='images/51_Logo.png') }}" alt="">
+      <span>51 American CRM</span>
+    </a>
+
+    <nav class="app-sidebar__nav" aria-label="Main">
+      {% for group, items in nav %}
+        {% set visible = items | rejectattr(3) | list if role != 'admin' else items %}
+        {% if visible %}
+          {% if group %}<div class="app-sidebar__group">{{ group }}</div>{% endif %}
+          {% for href, icon, label, admin_only in visible %}
+            <a class="app-sidebar__link{% if here == href %} is-active{% endif %}"
+               href="{{ href }}"{% if here == href %} aria-current="page"{% endif %}>
+              <i data-lucide="{{ icon }}"></i><span>{{ label }}</span>
+            </a>
+          {% endfor %}
+        {% endif %}
+      {% endfor %}
+
+      <div class="app-sidebar__group">My profile</div>
+      <a class="app-sidebar__link{% if here == '/profile' %} is-active{% endif %}"
+         href="/profile?username_profile={{ session['name'] }}">
+        <i data-lucide="user"></i><span>Courses profile</span>
+      </a>
+      <a class="app-sidebar__link{% if here == '/event_profile' %} is-active{% endif %}"
+         href="/event_profile?username_profile={{ session['name'] }}">
+        <i data-lucide="user"></i><span>Events profile</span>
+      </a>
+    </nav>
+
+    <div class="app-sidebar__foot">
+      <button type="button" class="app-sidebar__toggle" id="sidebar_toggle"
+              aria-label="Collapse sidebar" aria-expanded="true">
+        <i data-lucide="panel-left-close"></i><span>Collapse</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="app-main">
+
+    <header class="app-topbar">
+      <button type="button" class="app-topbar__burger" id="sidebar_burger" aria-label="Open navigation">
+        <i data-lucide="menu"></i>
+      </button>
+
+      <div class="app-topbar__crumbs" aria-label="Breadcrumb">
+        {% block breadcrumb %}
+          <a href="/home">Home</a>
+        {% endblock %}
+      </div>
+
+      <div class="app-topbar__search">
+        <span class="search-icon"><i data-lucide="search"></i></span>
+        <input type="search" id="global_search" autocomplete="off"
+               placeholder="Search leads, courses, users" aria-label="Global search">
+        <kbd>Ctrl K</kbd>
+      </div>
+
+      <div class="app-topbar__right">
+        {# Bell ids are unchanged - notifications() writes into them by name. #}
+        <ul class="notification-drop">
+          <li class="item" id="{% if role == 'admin' %}x{% else %}xx{% endif %}">
+            <i data-lucide="bell"></i>
+            <span style="display:none" class="btn__badge pulse-button" id="notifiction_count{% if role != 'admin' %}x{% endif %}"></span>
+            <div id="content{% if role != 'admin' %}x{% endif %}" style="overflow:auto">
+              <ul id="notification_dropdown{% if role != 'admin' %}x{% endif %}" style="max-height:500px;width:350px;overflow:auto"></ul>
+            </div>
+          </li>
+        </ul>
+
+        <div class="dropdown app-topbar__user">
+          <a class="dropdown-toggle" href="#" id="navbarDropdown" role="button"
+             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i data-lucide="circle-user"></i>{{ session['name'] }}
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <a class="dropdown-item" href="/account_settings">Account settings</a>
+            <a class="dropdown-item" href="/historical_notification">Notification centre</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="/logout">Log out</a>
+          </div>
         </div>
-      </li>
+      </div>
+    </header>
 
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="calendar-days"></i>Event leads
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="/create_lead_event">Create lead</a>
-          <a class="dropdown-item" href="/update_event_lead">Search &amp; update lead</a>
-          <a class="dropdown-item" href="/event_active_leads">My active leads</a>
-        </div>
-      </li>
-
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="database"></i>CRM database
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="/american_db">Courses</a>
-          <a class="dropdown-item" href="/event_db">Events</a>
-        </div>
-      </li>
-
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="phone-call"></i>{% if role == 'admin' %}Recall dates{% else %}My recall dates{% endif %}
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="/recall_date_table">Courses</a>
-          <a class="dropdown-item" href="/recall_date_table_event">Events</a>
-        </div>
-      </li>
-
-      {% if role == 'admin' %}
-      <li class="nav-item">
-        <a class="nav-link" href="/users"><i data-lucide="users"></i>Users &amp; profiles</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="user"></i>Profile
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="/profile?username_profile={{ session['name'] }}">Courses profile</a>
-          <a class="dropdown-item" href="/event_profile?username_profile={{ session['name'] }}">Events profile</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/admin_settings"><i data-lucide="settings"></i>Admin settings</a>
-      </li>
-      {% else %}
-      <li class="nav-item">
-        <a class="nav-link" href="/user_add_task"><i data-lucide="bell-plus"></i>Notify user</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="/profile?username_profile={{ session['name'] }}"><i data-lucide="user"></i>My profile</a>
-      </li>
-      {% endif %}
-    </ul>
-
-    {# Notification bell. The ids below are what notifications() writes into —
-       admin uses the unsuffixed ids, everyone else the "x" ids. #}
-    <ul class="notification-drop">
-      <li class="item" id="{% if role == 'admin' %}x{% else %}xx{% endif %}" style="margin-right:12px">
-        <i data-lucide="bell"></i>
-        <span style="display:none" class="btn__badge pulse-button" id="notifiction_count{% if role != 'admin' %}x{% endif %}"></span>
-        <div id="content{% if role != 'admin' %}x{% endif %}" style="overflow:auto">
-          <ul id="notification_dropdown{% if role != 'admin' %}x{% endif %}" style="max-height:500px;width:350px;overflow:auto"></ul>
-        </div>
-      </li>
-    </ul>
-
-    <ul class="navbar-nav">
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <i data-lucide="circle-user"></i>{{ session['name'] }}
-        </a>
-        <div class="dropdown-menu dropdown-menu-right">
-          <a class="dropdown-item" href="/account_settings">Account settings</a>
-          <a class="dropdown-item" href="/historical_notification">Notification centre</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="/logout">Log out</a>
-        </div>
-      </li>
-    </ul>
-  </div>
-</nav>
-
-<main>
+    <main>
 {% block body %}{% endblock %}
-</main>
+    </main>
 
-<footer class="bg-light text-center text-lg-start">
+<footer class="text-center">
   <div class="text-center p-3">© 2023 Copyright: <a class="text-dark" href="https://elmubarmij.com/">Al MubarmiJ Developments Incorporated</a></div>
 </footer>
+  </div>
+</div>
 
 <script>
 lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 16, height: 16, 'stroke-width': 1.75 } });
@@ -326,6 +332,76 @@ $(document)
     });
   })
   .ajaxStop(function () { $(".loading-container-class .swal2-close").click(); });
+</script>
+
+
+{# --- shell behaviour ----------------------------------------------------- #}
+<script>
+(function () {
+  var shell   = document.getElementById('app_shell');
+  var sidebar = document.getElementById('app_sidebar');
+  var toggle  = document.getElementById('sidebar_toggle');
+  var burger  = document.getElementById('sidebar_burger');
+  var KEY     = 'crm51.sidebar.collapsed';
+
+  function readPref() {
+    try { return localStorage.getItem(KEY) === '1'; } catch (e) { return false; }
+  }
+  function writePref(v) {
+    try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {}
+  }
+  function apply(collapsed) {
+    sidebar.classList.toggle('is-collapsed', collapsed);
+    shell.classList.toggle('is-collapsed', collapsed);
+    if (toggle) {
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
+      var icon = toggle.querySelector('i[data-lucide], svg');
+      if (icon && icon.tagName.toLowerCase() === 'i') {
+        icon.setAttribute('data-lucide', collapsed ? 'panel-left-open' : 'panel-left-close');
+      }
+    }
+  }
+
+  // Applied before paint by the inline script in <head>, so there is no flash.
+  apply(readPref());
+
+  if (toggle) toggle.addEventListener('click', function () {
+    var next = !sidebar.classList.contains('is-collapsed');
+    apply(next); writePref(next);
+    if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 16, height: 16, 'stroke-width': 1.75 } });
+  });
+
+  /* --- mobile drawer --- */
+  function closeDrawer() {
+    sidebar.classList.remove('is-open');
+    var s = document.querySelector('.app-scrim');
+    if (s) s.remove();
+  }
+  if (burger) burger.addEventListener('click', function (e) {
+    e.stopPropagation();
+    sidebar.classList.add('is-open');
+    var scrim = document.createElement('div');
+    scrim.className = 'app-scrim';
+    scrim.addEventListener('click', closeDrawer);
+    document.body.appendChild(scrim);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeDrawer();
+  });
+
+  /* --- Ctrl/Cmd+K focuses global search --- */
+  var search = document.getElementById('global_search');
+  document.addEventListener('keydown', function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      if (search) { search.focus(); search.select(); }
+    }
+  });
+  // Show the right modifier for the platform.
+  var kbd = document.querySelector('.app-topbar__search kbd');
+  if (kbd && /Mac|iPod|iPhone|iPad/.test(navigator.platform)) kbd.textContent = '⌘ K';
+})();
 </script>
 
 {% block scripts %}{% endblock %}

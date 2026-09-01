@@ -35,6 +35,11 @@
   --danger:       #C0161E;  --danger-tint:  #FDECEC;
   --info:         #1F6FB2;  --info-tint:    #E9F2FA;
 
+  /* Translucent layers. Kept here so shell.css holds no colour of its own. */
+  --sidebar-hover:  rgba(255, 255, 255, .06);
+  --sidebar-active: rgba(224, 18, 27, .16);   /* --red at 16% on --ink */
+  --scrim:          rgba(18, 18, 18, .48);
+
   /* Chart series. Red carries series 1 only, so it stays meaningful. */
   --viz-1: var(--red);
   --viz-2: #1F6FB2;

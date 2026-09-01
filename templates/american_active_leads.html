@@ -1,21 +1,17 @@
 {% extends 'main.html' %}
 {% block title %}Education active leads — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
 {# The page header used to sit INSIDE <table>, before <thead>, along with three
    <br> and an <hr>. Browsers hoist that markup out of the table, which is why
    the spacing was unpredictable. It belongs here, above the card. #}
-<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-6);margin-bottom:var(--space-7)">
-  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-    <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Education active leads</h1>
-    <p style="font:var(--type-body-sm);color:var(--text-muted)">Leads assigned to you that are still open.</p>
-  </div>
+{% call page_header('Education active leads', 'Leads assigned to you that are still open.') %}
   <a href="{{ url_for('create_lead_american') }}" class="btn btn-primary">
     <i data-lucide="plus"></i>Add lead
   </a>
-</div>
-
+{% endcall %}
 <div class="card_customized" style="padding:0">
   <table id="students_table" class="display" style="width:100%">
     <thead>

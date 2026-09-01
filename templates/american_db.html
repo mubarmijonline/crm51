@@ -1,18 +1,14 @@
 {% extends 'main.html' %}
 {% block title %}Education CRM database — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
-<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-6);margin-bottom:var(--space-7)">
-  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-    <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Education CRM database</h1>
-    <p style="font:var(--type-body-sm);color:var(--text-muted)">Every education lead on record, open or closed.</p>
-  </div>
+{% call page_header('Education CRM database', 'Every education lead on record, open or closed.') %}
   <a href="{{ url_for('create_lead_american') }}" class="btn btn-primary">
     <i data-lucide="plus"></i>Add lead
   </a>
-</div>
-
+{% endcall %}
 <div class="card_customized" style="padding:0">
   <table id="students_table" class="display" style="width:100%">
     <thead>

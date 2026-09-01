@@ -1,0 +1,376 @@
+/* ---------------------------------------------------------------------------
+   shell.css — the application frame: sidebar, top bar, page header.
+
+   Load order: bootstrap -> ds/styles.css -> ds-bridge.css -> tokens-51.css
+               -> shell.css -> app.css
+
+   Tokens only. Every value here comes from tokens-51.css.
+   --------------------------------------------------------------------------- */
+
+/* --- frame ---------------------------------------------------------------- */
+
+body {
+  display: block;                 /* the shell positions its own children */
+  min-height: 100vh;
+  background: var(--surface-app);
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+
+/* --- sidebar -------------------------------------------------------------- */
+
+.app-sidebar {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  width: 248px;
+  background: var(--ink);
+  color: var(--paper);
+  transition: width var(--duration-base) var(--ease-standard);
+  overflow: hidden;
+}
+
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 56px;
+  flex: none;
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid var(--border-inverse);
+  color: var(--paper);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-sidebar__brand:hover { color: var(--paper); text-decoration: none; }
+.app-sidebar__brand img   { width: 26px; height: 26px; object-fit: contain; flex: none; }
+.app-sidebar__brand span  { font: var(--weight-semibold) var(--text-md)/1 var(--font-sans); }
+
+.app-sidebar__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: var(--space-5) 0 var(--space-6);
+}
+
+/* Quiet group labels. Not shouty, just orienting. */
+.app-sidebar__group {
+  padding: var(--space-6) var(--space-5) var(--space-3);
+  font: var(--weight-semibold) var(--text-xs)/1 var(--font-sans);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.app-sidebar__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-height: 38px;
+  padding: var(--space-3) var(--space-5);
+  color: var(--gray-400);
+  font: var(--type-body-sm);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+
+.app-sidebar__link:hover {
+  background: var(--sidebar-hover);
+  color: var(--paper);
+  text-decoration: none;
+}
+
+.app-sidebar__link svg,
+.app-sidebar__link i[data-lucide] { flex: none; width: 16px; height: 16px; }
+
+/* Active: a 3px red bar plus a low-opacity red wash on the dark ground. */
+.app-sidebar__link.is-active {
+  background: var(--sidebar-active);
+  color: var(--paper);
+  font-weight: var(--weight-medium);
+}
+
+.app-sidebar__link.is-active::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  background: var(--red);
+}
+
+.app-sidebar__foot {
+  flex: none;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-inverse);
+}
+
+.app-sidebar__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  padding: var(--space-3);
+  background: none;
+  border: 0;
+  border-radius: var(--radius-control);
+  color: var(--gray-400);
+  font: var(--type-body-sm);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.app-sidebar__toggle:hover { background: var(--sidebar-hover); color: var(--paper); }
+
+
+/* Collapsed: 64px, icons only. Labels are hidden but stay in the DOM for
+   screen readers. */
+.app-sidebar.is-collapsed { width: 64px; }
+.app-sidebar.is-collapsed .app-sidebar__brand span,
+.app-sidebar.is-collapsed .app-sidebar__link span,
+.app-sidebar.is-collapsed .app-sidebar__toggle span { display: none; }
+.app-sidebar.is-collapsed .app-sidebar__group {
+  height: 1px; padding: 0; margin: var(--space-5) var(--space-5) 0;
+  overflow: hidden; color: transparent; background: var(--border-inverse);
+}
+.app-sidebar.is-collapsed .app-sidebar__link,
+.app-sidebar.is-collapsed .app-sidebar__brand,
+.app-sidebar.is-collapsed .app-sidebar__toggle { justify-content: center; padding-inline: 0; }
+
+
+/* --- main column ---------------------------------------------------------- */
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;                       /* lets wide tables scroll, not push */
+  min-height: 100vh;
+  margin-inline-start: 248px;
+  transition: margin var(--duration-base) var(--ease-standard);
+}
+
+.app-shell.is-collapsed .app-main { margin-inline-start: 64px; }
+
+
+/* --- top bar -------------------------------------------------------------- */
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  height: 56px;
+  flex: none;
+  padding: 0 var(--space-7);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-topbar__crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.app-topbar__crumbs a { color: var(--text-muted); text-decoration: none; }
+.app-topbar__crumbs a:hover { color: var(--text-body); text-decoration: underline; }
+.app-topbar__crumbs .sep { color: var(--gray-400); }
+.app-topbar__crumbs .current { color: var(--text-body); font-weight: var(--weight-medium); }
+
+/* Global search sits centre and takes the slack. */
+.app-topbar__search {
+  position: relative;
+  flex: 1 1 auto;
+  max-width: 460px;
+  margin-inline: auto;
+}
+
+.app-topbar__search input {
+  width: 100%;
+  height: 34px;
+  padding-inline: 34px var(--space-8);
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  font: var(--type-body-sm);
+  color: var(--text-body);
+  transition: var(--transition-control);
+}
+
+.app-topbar__search input::placeholder { color: var(--text-subtle); }
+
+.app-topbar__search input:focus {
+  outline: none;
+  background: var(--paper);
+  border-color: var(--border-focus);
+  box-shadow: var(--focus-ring);
+}
+
+.app-topbar__search .search-icon {
+  position: absolute;
+  inset-inline-start: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+  display: flex;
+}
+
+.app-topbar__search kbd {
+  position: absolute;
+  inset-inline-end: var(--space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 2px var(--space-3);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  font: var(--weight-medium) var(--text-xs)/1.4 var(--font-mono);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.app-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-inline-start: auto;
+  flex: none;
+}
+
+.app-topbar__user .dropdown-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-control);
+  color: var(--text-body);
+  font: var(--type-body-sm);
+  text-decoration: none;
+}
+
+.app-topbar__user .dropdown-toggle:hover { background: var(--surface); text-decoration: none; }
+
+/* Drawer toggle, mobile only. */
+.app-topbar__burger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  flex: none;
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  color: var(--text-body);
+  cursor: pointer;
+}
+
+
+/* --- content -------------------------------------------------------------- */
+
+main {
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 1600px;                /* caps so rows stay readable on wide screens */
+  margin-inline: auto;
+  padding: var(--space-9) var(--space-8);
+}
+
+footer {
+  flex: none;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+footer, footer a {
+  font: var(--type-caption) !important;
+  color: var(--text-muted) !important;
+}
+
+
+/* --- page header (one component, every page) ------------------------------ */
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-8);
+}
+
+.page-header__text { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; }
+
+.page-header__title {
+  margin: 0;
+  font: var(--weight-semibold) 24px/1.25 var(--font-sans);
+  letter-spacing: -0.01em;
+  color: var(--text-title);
+}
+
+.page-header__subtitle { font: var(--type-body-sm); color: var(--text-muted); margin: 0; }
+
+.page-header__actions { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+
+
+/* --- responsive ----------------------------------------------------------- */
+
+@media (max-width: 991px) {
+  .app-topbar__search { max-width: 240px; }
+}
+
+@media (max-width: 767px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-standard);
+    width: 248px;
+  }
+  .app-sidebar.is-open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .app-sidebar.is-collapsed { width: 248px; }
+  .app-sidebar.is-collapsed .app-sidebar__link span,
+  .app-sidebar.is-collapsed .app-sidebar__brand span,
+  .app-sidebar.is-collapsed .app-sidebar__toggle span { display: inline; }
+
+  .app-main,
+  .app-shell.is-collapsed .app-main { margin-inline-start: 0; }
+
+  .app-topbar__burger { display: inline-flex; }
+  .app-topbar__crumbs { display: none; }
+  .app-topbar__search { margin-inline: 0; }
+
+  main { padding: var(--space-7) var(--space-5); }
+
+  .app-scrim {
+    position: fixed; inset: 0; z-index: 1035;
+    background: var(--scrim);
+  }
+}
+
+/* Focus is always visible, and always the red ring. */
+.app-sidebar__link:focus-visible,
+.app-sidebar__toggle:focus-visible,
+.app-topbar__burger:focus-visible,
+.app-topbar__user .dropdown-toggle:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: -2px;
+}

@@ -1,6 +1,7 @@
 {% extends 'main.html' %}
 {% block title %}Home — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
 {# Launcher tiles. Role is decided here, in Jinja, rather than by rendering
@@ -18,10 +19,7 @@
   ('users',                   'user-cog',      'Users',                  'View and edit system users',          true)
 ] %}
 
-<div style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-8)">
-  <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Home</h1>
-  <p style="font:var(--type-body-sm);color:var(--text-muted)">Signed in as {{ session['name'] }}. Choose where to work.</p>
-</div>
+{{ page_header('Home', 'Signed in as ' ~ session['name'] ~ '. Choose where to work.') }}
 
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--space-6)">
   {% for endpoint, icon, title, description, admin_only in tiles %}

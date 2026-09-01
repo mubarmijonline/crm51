@@ -1,6 +1,7 @@
 {% extends 'main.html' %}
 {% block title %}Create education lead — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
 {# Layout was a <table cellpadding="10"> of <tr>/<td> pairs, with every label
@@ -9,17 +10,13 @@
    id, name, required, readonly, oninput and onchange is unchanged - the Flask
    route and the scripts below read them. #}
 
-<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-6);flex-wrap:wrap;margin-bottom:var(--space-7)">
-  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
-    <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Create education lead</h1>
-    <p style="font:var(--type-body-sm);color:var(--text-muted)">Add a lead by hand. Fields marked with an asterisk are required.</p>
-  </div>
+{% call page_header('Create education lead', 'Add a lead by hand. Fields marked with an asterisk are required.') %}
   <div style="display:flex;gap:var(--space-3);flex-wrap:wrap">
     <button type="button" title="Add subject to list" class="btn btn-secondary btn-sm"
             data-toggle="modal" data-target="#add_subject_modal"><i data-lucide="plus"></i>Add subject</button>
     <button type="button" title="Add exam trial to list" class="btn btn-secondary btn-sm"
             data-toggle="modal" data-target="#add_exam_trial_modal"><i data-lucide="plus"></i>Add exam trial</button>
-  </div>
+{% endcall %}
 </div>
 
 <form id="create_crm_form" name="create_crm_form">

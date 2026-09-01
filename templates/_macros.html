@@ -1,0 +1,65 @@
+{# ============================================================================
+   Shared Jinja macros. Import at the top of a page:
+
+     {% from "_macros.html" import page_header %}
+
+   These exist so no page invents its own heading, button row, or field
+   markup. If something here nearly fits, extend it rather than forking it.
+   ========================================================================= #}
+
+
+{# --- page_header -----------------------------------------------------------
+   Every page uses this. Title, optional subtitle, and a right-aligned action
+   cluster in which exactly one button carries the solid red fill.
+
+     {% call page_header('Education active leads',
+                         'Leads assigned to you that are still open.') %}
+       <a href="..." class="btn btn-primary"><i data-lucide="plus"></i>Add lead</a>
+     {% endcall %}
+
+   Call it without a body when the page has no actions:
+     {{ page_header('Home', 'Choose where to work.') }}
+--------------------------------------------------------------------------- #}
+{% macro page_header(title, subtitle=none) %}
+<div class="page-header">
+  <div class="page-header__text">
+    <h1 class="page-header__title">{{ title }}</h1>
+    {% if subtitle %}<p class="page-header__subtitle">{{ subtitle }}</p>{% endif %}
+  </div>
+  {% if caller %}
+  <div class="page-header__actions">{{ caller() }}</div>
+  {% endif %}
+</div>
+{% endmacro %}
+
+
+{# --- section ---------------------------------------------------------------
+   A titled card. Used to group related fields in a form, or to wrap a table.
+
+     {% call section('Student details', 'As written on the school record.') %}
+       ...fields...
+     {% endcall %}
+--------------------------------------------------------------------------- #}
+{% macro section(title=none, description=none, flush=false) %}
+<div class="card_customized"{% if flush %} style="padding:0"{% endif %}>
+  {% if title %}
+  <div style="margin-bottom:var(--space-7)">
+    <h2 style="font:var(--type-section);color:var(--text-title);margin:0">{{ title }}</h2>
+    {% if description %}
+    <p style="font:var(--type-body-sm);color:var(--text-muted);margin:var(--space-2) 0 0">{{ description }}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+  {{ caller() }}
+</div>
+{% endmacro %}
+
+
+{# --- form_grid -------------------------------------------------------------
+   The single field layout: auto-fitting columns, never a <table>.
+--------------------------------------------------------------------------- #}
+{% macro form_grid(min='240px') %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax({{ min }},1fr));gap:var(--space-6) var(--space-8)">
+  {{ caller() }}
+</div>
+{% endmacro %}

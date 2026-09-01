@@ -1,6 +1,7 @@
 {% extends 'main.html' %}
 {% block title %}Create event lead — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
 {# Was a <table cellpadding="10"> of tr/td with inline Trebuchet/cadetblue
@@ -8,10 +9,7 @@
    required, disabled, oninput and onchange is unchanged - check_status(),
    deposit_change() and the Flask route read them by name. #}
 
-<div style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-7)">
-  <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Create event lead</h1>
-  <p style="font:var(--type-body-sm);color:var(--text-muted)">Add an event lead by hand. Fields marked with an asterisk are required.</p>
-</div>
+{{ page_header('Create event lead', 'Add an event lead by hand. Fields marked with an asterisk are required.') }}
 
 <form id="create_crm_form" name="create_crm_form">
 

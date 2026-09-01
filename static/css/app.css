@@ -10,41 +10,10 @@
 
 /* --- Page shell ----------------------------------------------------------- */
 
-/* Full width. The design system caps content at --content-max, which is right
-   for a reading surface but wrong for this app: every screen here is a wide
-   data table or a two-column form, and the cap left most of a 1080p monitor
-   empty. Page padding stays so text never touches the viewport edge. */
-html, body {
-  min-height: 100%;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background: var(--surface-app);
-}
-
-main {
-  flex: 1 0 auto;
-  width: 100%;
-  max-width: none !important;   /* overrides the inline --content-max cap */
-  margin: 0 !important;
-  padding: var(--pad-page) !important;
-}
-
-/* Footer sat directly under short pages, leaving a band of empty white below
-   it. flex:1 on main above pins it to the bottom instead. */
-footer {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border-hairline);
-  background: var(--surface-card) !important;
-}
-
-footer, footer a {
-  font: var(--type-caption) !important;
-  color: var(--text-muted) !important;
-}
+/* Layout now lives in shell.css, which owns the sidebar, top bar, content
+   column and footer. The rules that were here - body flex, main max-width:none,
+   footer - conflicted with it and, loading later, would have won. Notably
+   "main { max-width: none !important }" would have defeated the 1600px cap. */
 
 
 /* --- Notification bell ---------------------------------------------------- */

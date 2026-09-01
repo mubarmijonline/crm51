@@ -1,14 +1,12 @@
 {% extends 'main.html' %}
 {% block title %}Event recall dates — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
 {# Heading, date picker and its init script all used to sit INSIDE <table>
    before <thead>, with six <br>, an <hr> and a stray </center>. #}
-<div style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-7)">
-  <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Event recall dates</h1>
-  <p style="font:var(--type-body-sm);color:var(--text-muted)">Event leads due for a call back on the selected date.</p>
-</div>
+{{ page_header('Event recall dates', 'Event leads due for a call back on the selected date.') }}
 
 <div class="card_customized" style="margin-bottom:var(--space-7)">
   <div class="form-group" style="max-width:260px;margin-bottom:0">

@@ -1,16 +1,14 @@
 {% extends 'main.html' %}
 {% block title %}Education recall dates — 51 American CRM{% endblock %}
 
+{% from "_macros.html" import page_header %}
 {% block body %}
 
 {# The heading, the date picker and its init script all used to sit INSIDE
    <table>, before <thead>, together with six <br>, an <hr> and a stray
    </center> with no opening tag. Browsers hoist that out of the table, which
    is what made the layout unpredictable. #}
-<div style="display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-7)">
-  <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Education recall dates</h1>
-  <p style="font:var(--type-body-sm);color:var(--text-muted)">Leads due for a call back on the selected date.</p>
-</div>
+{{ page_header('Education recall dates', 'Leads due for a call back on the selected date.') }}
 
 <div class="card_customized" style="margin-bottom:var(--space-7)">
   <div class="form-group" style="max-width:260px;margin-bottom:0">
