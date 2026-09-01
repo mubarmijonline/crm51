@@ -1,0 +1,322 @@
+{% extends 'main.html' %}
+{% block body %}
+
+<head>
+
+    <title>51 American CRM Admin | Edit Users</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no" />
+
+	<link rel="icon" href="/static/images/padel-racket-icon.jpg">
+
+
+
+<style>
+    .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+
+</head>
+
+
+<body>
+    
+    <div class="text-center">
+        <hr>
+            <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Add Notification to user</u></h1>
+        <hr>
+
+        <hr>
+    </div>
+
+    <table id="users_table" class="display" style="width:100%">
+
+        <thead>
+
+            <tr>
+                <th>UserID</th>
+                <th>Username</th>
+                <th></th>
+            </tr>
+
+        </thead>
+
+        <tfoot>
+
+            <tr>
+                <th>UserID</th>
+                <th>Username</th>
+                <th></th>
+
+            </tr>
+        </tfoot>
+    </table>
+
+
+
+    <script>
+
+        function get_users_table() {
+
+            //var table1 = $('#users_table').DataTable();
+            //table1.destroy();
+            console.log("Start");
+
+            var table = $('#users_table').DataTable({
+                ajax: { url: '/users?get_notify_user', mimeType: 'json' },
+                deferRender: true,
+                columns: [
+                    { data: 'user_id'},
+                    { data: 'username'},
+
+                    {
+                        
+                        mRender: function (data, type, row) {
+                            
+                            
+                                return '<div class="btn-group"> <button name="to_do" class="btn btn-danger" onclick="add_to_do_swal('+row.user_id+',\''+row.username+'\')">Add_Notification</button> </div>'
+                            
+
+                            
+                        },
+                    }
+
+                ],
+
+
+                rowId: 'extn',
+                select: true,
+                paging: false,
+                dom: 'Bfrtip',
+                scrollX: true,
+                select: false,
+                "order": [[0, "desc"]],
+                buttons: [
+                    'copy', 'excel',
+                    {
+                        text: 'Reload table',
+                        exportOptions: {
+                            columns: [0, 1, 2]
+                        },
+                        action: function () {
+                            table.ajax.reload();
+                        }
+                    }
+                ]
+
+            });
+
+        }
+
+    </script>
+
+
+
+<script>
+  async function add_to_do_swal(id,username)
+  {
+  const { value: text } = await Swal.fire({
+input: 'textarea',
+inputLabel: 'Assign Task',
+inputPlaceholder: 'Type task here...',
+inputAttributes: {
+  'aria-label': 'Type task here'
+},
+showCancelButton: true
+})
+
+if (text) {
+to_do = text
+$.post('/add_to_do',{user_id:id,username:username,to_do:to_do}).done(function (response) {
+  state = response.state
+  if (state == 'success')
+  {
+      Swal.fire("","Task Added Successfully",'success')
+
+  }
+  else
+  {
+      Swal.fire("Sorry",'Something went wrong','error')
+  }
+
+})
+
+}
+else
+{
+  Swal.fire("Nothing Changed")
+}
+}
+</script>
+
+
+
+
+
+
+
+
+<!-- Add User Modal -->
+<div class="modal fade" id="add_user_modal" tabindex="-1" role="dialog" aria-labelledby="add_user_modal_Title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="userAddModalLongTitle">Add User</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <!-- MODAL BODY -->
+  
+  
+            <div class="user" id="add_user_div">
+                
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" class="form-control" id="user_name" placeholder="Username" name="user_name" required>
+                </div>
+
+                <div class="form-group">
+                    <label>User Type</label>
+                    <select type="text" class="form-control" id="user_type" name="user_type">
+                        <option value="" disabled selected>Choose User Type</option>
+                        <option value="admin">Admin</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" class="form-control" id="password" placeholder="Type Password" name="password" minlength="8" onkeyup="checkPasslen()">
+                </div>
+  
+              <button class="btn btn-success btn-user btn-block" id="add-user-submit-btn" name="add-user-submit-btn" disabled onmouseover="checkPasslen();checkTypeIsSelected();" onclick="add_user()">Add User</button>
+  
+            </div>
+  
+  
+            <!-- MODAL BODY -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Add User Modal -->
+
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="change_pass_modal" tabindex="-1" role="dialog" aria-labelledby="change_pass_modal_Title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Change Password</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <!-- MODAL BODY -->
+  
+  
+            <div class="user">
+  
+              <div class="form-group">
+                <input type="text" class="form-control"  name="id" id="id" value="" disabled required>
+              </div>
+  
+            </div>
+  
+            <div class="user" id="password_div">
+                
+              <div class="form-group">
+                <input type="password" class="form-control" id="password-field" placeholder="Password" name="password-field" onchange="onPassChange()" required>
+                </div>
+                <div class="form-group">
+                  <input type="password" class="form-control" id="password-checker" placeholder="Retype Password" name="password-checker" onchange="onPassChange()">
+              </div>
+  
+              <button class="btn btn-success btn-user btn-block" id="submit-btn" name="submit-btn" disabled onmouseover="onPassChange()" onclick="change_pass()">Change Password</button>
+  
+            </div>
+  
+  
+            <!-- MODAL BODY -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Change Password Modal -->
+  
+
+</body>
+
+<script>
+  $( document ).ready(function() {
+    get_users_table();
+  })
+</script>
+
+{% endblock %}

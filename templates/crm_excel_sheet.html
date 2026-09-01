@@ -1,0 +1,311 @@
+{% extends 'main.html' %}
+{% block body %}
+<head>
+<!--     <link href="static/thedatepicker-master/dist/the-datepicker.css" rel="stylesheet" />
+    <script src="static/thedatepicker-master/dist/the-datepicker.js"></script> -->
+    <script src="{{ url_for('static', filename='datepicker/js/bootstrap-datepicker.js') }}"></script>
+
+    <link href="{{ url_for('static', filename='datepicker/css/bootstrap-datepicker.css') }}" rel="stylesheet" type="text/css">
+
+    <link href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"
+type="text/css">
+<link href="{{ url_for('static', filename='vendor/datatables/select.dataTables.min.css') }}" rel="stylesheet"
+type="text/css">
+<link href="{{ url_for('static', filename='vendor/datatables/buttons.dataTables.min.css') }}" rel="stylesheet"
+type="text/css">
+
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.select.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.buttons.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/buttons.flash.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/jszip.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/vfs_fonts.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
+
+</head>
+
+<body>
+    <div class="text-center" style="font-weight: bolder;color: black;font-size: 25px"><h1>CRM Excel Sheet</h1></div>
+    <br>
+
+    <button data-toggle="modal" data-target="#uploadModal" name="upload_sheet" id="upload_sheet" class="btn btn-info">Upload Sheet</button>
+
+    <hr>
+
+    <div style=" margin: 5em;">
+
+      <table id="crm_excel_sheets_table">
+        <thead>
+          <tr>
+          <th>File</th>
+          <th>Action</th>
+          </tr>
+        </thead>
+
+      </table>
+
+  </div>
+
+    <!-- Upload Modal -->
+
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalTitle" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+	  <div class="modal-content">
+		<div class="modal-header">
+		  <h5 class="modal-title" id="uploadModalLongTitle">Upload Excel Files</h5>
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		</div>
+		<div class="modal-body">
+  
+		  <form id="upload_files_form" method="POST" enctype="multipart/form-data" >
+
+        <div>
+          <label for="date">Date: </label>
+          <input class="datepicker" id="date" name="date" style="border: none;" readonlys required>
+        </div>
+        <br>
+
+			<input type="file" id="uploadFile" class="btn btn-secondary" name="files[]" multiple="false" autocomplete="off" required accept=".xls,.xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+			<!-- <input type="submit" class="btn btn-success" id="upload_files" name="upload_files" value="Upload"> -->
+			<button id="upload-file-btn" class="btn btn-success" type="button" disabled="true" >Upload</button>
+    </form>
+
+    <br>
+    <div class="progress">
+    <div class="progress-bar progress-bar-striped bg-info"></div>
+  </div>
+
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+  </div>
+  </div>
+</div>
+</div>
+
+    <script>
+      $('#date').datepicker({
+          todayBtn: "linked",
+          weekStart: 0,
+          autoclose: true,
+          todayHighlight: true,
+          format: "yyyy-mm-dd",
+          viewMode: "days", 
+          changeDate:"get_diff_month()",
+          minViewMode: "days",
+          gotoCurrent: true
+      });
+      var date = new Date();
+  //date.setMonth(date.getMonth(), 1);
+  //date.setDate(date.getDay());
+
+  $('#date').datepicker("setDate", date);
+
+  </script>
+
+  <script>
+	var MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+   
+   $(document).ready(function() {
+	   $('#uploadFile').change(function() {
+		$('#upload-file-btn').attr('disabled', true);
+		 fileSize = 0;
+
+		 //if (this.files.length > 1 ) { // handle more than 1 file
+		//	   this.setCustomValidity("Only 1 File !");
+		//	   this.reportValidity();
+		//	   $('#upload-file-btn').attr('disabled', true);
+		 //  }
+       if ( this.files.length == 0 ) // handle no files chosen
+       {
+        this.setCustomValidity("Must choose an xls file !");
+			   this.reportValidity();
+			   $('#upload-file-btn').attr('disabled', true);
+       }
+		   else{
+
+		 for(i=0; i<this.files.length; i++){
+		   fileSize = this.files[i].size + fileSize;
+		  }
+		  if (fileSize > MAX_FILE_SIZE) {
+			   this.setCustomValidity("File must not exceed 5 MB!");
+			   this.reportValidity();
+			   $('#upload-file-btn').attr('disabled', true);
+		   } else {
+          datePickerValue = $('#date').val();
+          if(datePickerValue == "")
+          {
+            this.setCustomValidity("Must Choose date!");
+			      this.reportValidity();
+			      $('#upload-file-btn').attr('disabled', true);
+          }
+          else{
+            this.setCustomValidity("");
+			      $('#upload-file-btn').attr('disabled', false);
+          }
+  
+		   }
+		}
+	   });
+   });
+  </script>
+  
+  
+  <script type="text/javascript">
+  
+$(function()
+{
+  $('#upload-file-btn').hover(function(){
+    if(datePickerValue == "")
+          {
+            this.setCustomValidity("Must Choose date!");
+			      this.reportValidity();
+			      $('#upload-file-btn').attr('disabled', true);
+          }
+  });
+});
+
+  $(function() {
+	  $('#upload-file-btn').click(function() {
+
+		  var form_data = new FormData($('#upload_files_form')[0]);
+		  $.ajax({
+  
+		xhr: function() {
+				  var xhr = new window.XMLHttpRequest();
+				  xhr.upload.addEventListener("progress", function(evt) {
+					  if (evt.lengthComputable) {
+						  var percentComplete = parseInt( ((evt.loaded / evt.total) * 100) );
+						  $(".progress-bar").width(percentComplete + '%');
+						  $(".progress-bar").html(percentComplete+'%');
+					  }
+				  }, false);
+				  return xhr;
+			  },
+  
+			  type: 'POST',
+			  url: '/crm_excel_sheet?upload',
+			  data: form_data,
+			  contentType: false,
+			  cache: false,
+			  processData: false,
+			  success: function(data) {
+          
+          
+          state = data.state
+          reason = data.reason
+          console.log(state,reason)
+				  if (state == "success"){
+					Swal.fire(
+							'Bulk Creation of leads done successfully',
+							reason,
+							'success');
+              $('#crm_excel_sheets_table').DataTable().ajax.reload();
+				  }
+          else if (state == "error")
+          {
+            console.log("error")
+            swal.fire(
+            'Sorry',
+            reason,
+            'error'
+            )
+          }
+				  else{
+					Swal.fire(
+							'Failed to Upload!',
+							'Something went wrong',
+							'error');
+				  }
+
+				$('#upload_files_form').trigger("reset");
+				$("#uploadModal .close").click();
+				$(".progress-bar").width( 0 + '%');
+				$(".progress-bar").html( 0+'%');
+        $('#upload-file-btn').attr('disabled', true);
+
+				  console.log(data);
+
+        },
+		  });
+	  });
+  });
+  
+  </script>
+  
+  <!-- End of Upload Modal -->
+
+  <script>
+
+$(document).ready(function () {
+
+        var table = $('#crm_excel_sheets_table').DataTable({
+					ajax: { url: '/crm_excel_sheet_getFiles'},
+					deferRender: true,
+					columns: [
+					  { data: 'file' },
+            { defaultContent: '<div class="btn-group"> <button id="download" type="button" class="btn btn-primary btn-xs dt-edit" style="margin-right:16px;"><span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>Download</button> <button id="delete" type="button" class="btn btn-danger btn-xs dt-delete"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Delete</button></div>' }
+					],
+					targets: -1,
+					rowId: 'extn',
+					select: true,
+					searching: false,
+					paging: false,
+					info: false,
+					fixedHeader: true,
+					"order": [[0, "desc"]],
+				  });
+
+          $('#crm_excel_sheets_table tbody').on('click', 'button', function () {
+
+var action = this.id;
+var data = table.row($(this).parents('tr')).data();
+console.log(data)
+
+if (action == 'download')
+{
+  const a = document.createElement('a')
+  url = 'static/crm_excel_files/'+data.file
+  a.href = url
+  a.download = url.split('/').pop()
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
+if (action == 'delete')
+Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+          }).then((result) => {
+            if (result.isConfirmed) {
+              $.post("/crm_excel_sheet?delete", { filename : data.file }).done(function (response) {
+                
+                table.ajax.reload()
+                Swal.fire(
+                  'Deleted!',
+                  'Your file has been deleted.',
+                  'success')
+
+      });
+
+    }
+
+  })
+
+});
+
+				});
+
+
+</script>
+      
+</body> 
+{% endblock %}

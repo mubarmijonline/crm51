@@ -1,0 +1,94 @@
+{% extends 'main.html' %}
+{% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.bootstrap4.css" integrity="sha512-WJ1jnnij6g+LY1YfSmPDGxY0j2Cq/I6PPA7/s4QJ/5sRca5ypbHhFF+Nam0TGfvpacrw9F0OGeZa0ROdNAsaEQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<body onload="get_linked_accounts();">
+  <script src="{{url_for('static', filename='js/ps_calc_js/change_pass.js')}}"></script>
+  <script src="{{url_for('static', filename='js/ps_calc_js/settings.js')}}"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.js" integrity="sha512-pF+DNRwavWMukUv/LyzDyDMn8U2uvqYQdJN0Zvilr6DDo/56xPDZdDoyPDYZRSL4aOKO/FGKXTpzDyQJ8je8Qw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
+
+    <div class="text-center">
+        <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Account Settings</u></h1>
+        <br>
+    </div>
+
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Setting</th>
+            <th scope="col">Value</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr>
+            <th scope="row">Change Password</th>
+            <td>
+            <div class="form-group">
+            <button class="btn btn-info btn-md" data-toggle="modal" data-target="#change_pass_modal">Change Your Password</button>
+            </div>
+
+            </div>
+
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+
+</div>
+
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="change_pass_modal" tabindex="-1" role="dialog" aria-labelledby="change_pass_modal_Title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Change Password</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+          <!-- MODAL BODY -->
+
+
+          <div class="user">
+
+            <div class="form-group">
+              <input type="text" class="form-control"  name="id" id="id" value="{{ session['id'] }}" hidden disabled required>
+            </div>
+
+          </div>
+
+          <div class="user" id="password_div">
+              
+            <div class="form-group">
+              <input type="password" class="form-control" id="password-field" placeholder="Password" name="password-field" onchange="onPassChange()" required>
+              </div>
+              <div class="form-group">
+                <input type="password" class="form-control" id="password-checker" placeholder="Retype Password" name="password-checker" onchange="onPassChange()">
+            </div>
+
+            <button class="btn btn-success btn-user btn-block" id="submit-btn" name="submit-btn" disabled onmouseover="onPassChange()" onclick="change_pass()">Change Password</button>
+
+          </div>
+
+
+          <!-- MODAL BODY -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Change Password Modal -->
+
+</body>
+{% endblock %}

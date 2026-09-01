@@ -1,0 +1,270 @@
+{% extends 'main.html' %}
+{% block body %}
+
+<head>
+<!--   <script src="https://code.jquery.com/jquery-3.7.0.js" ></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js" ></script>
+
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" type="text/css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css" type="text/css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css" type="text/css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/searchbuilder/1.5.0/css/searchBuilder.dataTables.min.css" type="text/css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.1/css/dataTables.dateTime.min.css" type="text/css">
+ -->
+
+ <script src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js" ></script>
+ <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js" ></script>
+ <script src="https://cdn.datatables.net/searchbuilder/1.5.0/js/dataTables.searchBuilder.min.js" ></script>
+ <script src="https://cdn.datatables.net/datetime/1.5.1/js/dataTables.dateTime.min.js" ></script>
+
+ <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css" type="text/css">
+ <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css" type="text/css">
+ <link rel="stylesheet" href="https://cdn.datatables.net/searchbuilder/1.5.0/css/searchBuilder.dataTables.min.css" type="text/css">
+ <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.1/css/dataTables.dateTime.min.css" type="text/css">
+
+</head>
+
+<body>
+    
+
+  <div  style="margin-left: 2%;margin-right: 2%;">
+  <div class="card_customized">
+    <table id="events_table" class="display" style="width:100%">
+
+      <br>
+      <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Event Active Leads</u></h1>
+
+       <div>
+      <div style="float:right"><a  href="https://crm.mubarmijonline.com/create_lead_event">&nbsp;&nbsp;<span>Add Event Lead</span><i class="fa-solid fa-plus fa-3x" title="Add Events"></i></a></div>
+    </div> 
+      <br> 
+      <br> 
+      <br>  
+      <hr>
+        <thead>
+
+          <tr>
+            <th></th>
+            <th>ID</th>
+            <th>Name</th>
+            <th style="width: 8%;">Client Mobile</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Payment Status</th>
+            <th>Deposit(Y/N)</th>
+            <th>Deposit Amount</th>
+            <th>Done(Y/N)</th>
+            <th>Added By</th>
+            <th>Added Date</th>
+            <th>Modified By</th>
+            <th>Modified Date</th>
+            
+          </tr>
+
+        </thead>
+
+        <tfoot>
+
+          <tr>
+            <th></th>
+            <th>ID</th>
+            <th>Name</th>
+            <th style="width: 8%;">Client Mobile</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Payment Status</th>
+            <th>Deposit(Y/N)</th>
+            <th>Deposit Amount</th>
+            <th>Done(Y/N)</th>
+            <th>Added By</th>
+            <th>Added Date</th>
+            <th>Modified By</th>
+            <th>Modified Date</th>
+            
+          </tr>
+        </tfoot>
+
+    </table>
+
+  </div>
+</div>
+
+    <script>
+
+        function get_event_lead_data() {
+
+          $('#events_table tfoot th').each(function() {
+                var title = $(this).text();
+                $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+            });
+
+            var table = $('#events_table').DataTable({
+                ajax: { url: '/get_active_event_lead_data', mimeType: 'json' },
+                deferRender: true,
+                columns: [
+                {
+                        mRender: function (data, type, row) {
+                            myrole = "{{session['role']}}"
+                            if (myrole == 'admin')
+                            {
+                              return '<div class="btn-group"> <button  name="edit_student" class="btn btn-primary" onclick="window.location.assign(\'/update_event_lead?client_data='+row.client_id+' - '+row.client_mobile+' - '+row.client_name+'\');">Profile</button> <button  id="delete" type="button" class="btn btn-danger btn-xs dt-delete" onclick="delete_event('+row.client_id+')"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Delete</button></div>'
+                            }
+                            else
+                            {
+                              return '<div class="btn-group"> <button name="edit_student" class="btn btn-primary" onclick="window.location.assign(\'/update_event_lead?client_data='+row.client_id+' - '+row.client_mobile+' - '+row.client_name+'\');">Profile</button></div>'
+                            }
+
+
+                        },
+                    },
+                      { data: 'client_id'},
+                      { data: 'client_name'},
+                      { data: 'client_mobile'},
+                      { data: 'client_email'},
+                      { data: 'status'},
+                      { data: 'client_payment_status'},
+                      { data: 'client_deposit_flag'},
+                      { data: 'client_deposit'},
+                      { data: 'done'},
+                      { data: 'added_by'},
+                      { data: 'added_date'},
+                      { data: 'modified_by'},
+                      { data: 'modified_date'},
+
+                ],
+
+                searchPanes: {
+                viewTotal: true,
+                initCollapsed: true
+                },
+
+                    columnDefs: [
+                {
+                    searchPanes: {
+                        show: false
+                    },
+                    targets: [3]  // Hide Email and Added Date Filters
+                }],
+                
+                searchBuilder: {
+                  columns: [5],
+                },
+
+                dom: 'PBfrtip', //PQlfrtip
+                scrollX: true,
+                paging: false
+
+/*                 buttons: [
+                    'copy', 'excel', 'pdf',
+                    {
+                        text: 'Reload table',
+                        exportOptions: {
+                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11 , 12, 13, 14 ,15 ,16, 17, 18 , 19]
+                        },
+                        action: function () {
+                            table.ajax.reload();
+                        }
+                    }
+                ] */
+
+            });
+
+            table.columns().every( function() {
+        var that = this;
+  
+        $('input', this.footer()).on('keyup change', function() {
+            if (that.search() !== this.value) {
+                that
+                    .search(this.value)
+                    .draw();
+            }
+        });
+
+      });
+
+    }
+
+    </script>
+
+
+
+
+
+
+
+  <script>
+
+
+function delete_event(id)
+{
+
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      $.post("/delete_event", { client_id:id  }).done(function (response) {
+        state = response.state;
+
+        //setTimeout(() => {  window.location.replace("/logout"); }, 3000);
+
+        if (state == "success") {
+        
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Lead has been deleted.',
+            showConfirmButton: false,
+            showCancelButton: false
+          });
+          $('#events_table').DataTable().ajax.reload();
+
+      }
+      else if (state == "no_access") {
+        
+        Swal.fire({
+          icon: 'warning',
+          title: 'Sorry',
+          text: 'Not Authorized!',
+          showConfirmButton: false,
+          showCancelButton: false
+        });
+        
+
+    }
+
+
+
+        else {
+          Swal.fire(
+            'Hmmm',
+            'Something went wrong, try again in a few moments',
+            'error');
+        }
+
+      });
+    }
+  });
+
+}
+  </script>
+
+
+<script>
+  $( document ).ready(function() {
+    get_event_lead_data();
+  })
+</script>
+
+
+
+</body>
+
+{% endblock %}

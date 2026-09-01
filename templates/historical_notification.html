@@ -1,0 +1,553 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+
+<head>
+
+</head>
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+
+
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+
+
+
+  ::selection {
+    color: #fff;
+    background: #664AFF;
+  }
+
+  .containerss {
+    max-width: 600px;
+    width: 500px;
+    margin: 30px auto;
+  }
+
+  .containerss .searchInput {
+    background: #fff;
+    width: 100%;
+    border-radius: 5px;
+    position: relative;
+    box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .searchInput input {
+    height: 55px;
+    width: 100%;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding: 0 60px 0 20px;
+    font-size: 18px;
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .searchInput.active input {
+    border-radius: 5px 5px 0 0;
+  }
+
+  .searchInput .resultBox {
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .searchInput.active .resultBox {
+    padding: 10px 8px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .resultBox li {
+    list-style: none;
+    padding: 8px 12px;
+    display: none;
+    width: 100%;
+    cursor: default;
+    border-radius: 3px;
+  }
+
+  .searchInput.active .resultBox li {
+    display: block;
+  }
+
+  .resultBox li:hover {
+    background: #efefef;
+  }
+
+  .searchInput .icon {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 55px;
+    width: 55px;
+    text-align: center;
+    line-height: 55px;
+    font-size: 20px;
+    color: maroon;
+    cursor: pointer;
+  }
+
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked+.slider {
+    background-color: #2196F3;
+  }
+
+  input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+
+  input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+</style>
+
+<body>
+
+
+  <br>
+
+
+
+
+
+
+
+
+  <div class="card_customized" style="margin-left: 10%;margin-right: 5%">
+    <center>
+      <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Notification & To-Do List
+          Center</u>
+      </h3>
+    </center>
+    <table id="notification_center_table" style="width: 100%;">
+      <thead>
+
+        <tr>
+          <th style="display:none">ID</th>
+          <th>Title</th>
+          <th style="width: 400px;">Notification</th>
+          <th>Lead ID</th>
+          <th>Mobile</th>
+          <th>Done</th>
+          <th>Section</th>
+          <th>Added_by</th>
+          <th>Assigned To</th>
+          <th>Added_date</th>
+          <th></th>
+        </tr>
+
+      </thead>
+      <tfoot>
+
+        <tr>
+          <th style="display:none">ID</th>
+          <th>Title</th>
+          <th style="width: 400px;">Notification</th>
+          <th>Lead ID</th>
+          <th>Mobile</th>
+          <th>Done</th>
+          <th>Section</th>
+          <th>Added_by</th>
+          <th>Assigned To</th>
+          <th>Added_date</th>
+          <th></th>
+        </tr>
+
+      </tfoot>
+    </table>
+
+  </div>
+
+
+  <div class="modal fade" id="course_status_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel"
+    aria-hidden="true">
+
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class='text-center'>
+            <h5 id="exampleModalLabel">Replies </h5>
+
+          </div>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input id="notification_id" hidden>
+          <table width="100%">
+            <col style="width:80%">
+            <col style="width:20%">
+
+            <tr>
+              <th>
+                
+                <textarea class="form-control" col="100" rows="1" id="reply" name="reply" value=""
+                  style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: navy; width: 100%;font-size:14px"
+                  required></textarea>
+              </th>
+
+              <th>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <span onclick="send_reply()"><i class="fa-solid fa-paper-plane" style="color: blueviolet;"> Send</i></span>
+              </th>
+            </tr>
+          </table>
+
+
+          <hr>
+          <table id="course_status_table" border="0.2" style="width: 100%;">
+
+            <col style="width:75%">
+            <col style="width:15%">
+            <col style="width:10%">
+            
+            <thead>
+
+              <tr>
+                <th style="display:none">ID</th>
+                <th style="display:none">Notification ID</th>
+                <th style="width:70%">Replies</th>
+                <th>Added Date</th>
+                <th>Added By</th>
+              </tr>
+
+            </thead>
+
+          </table>
+        </div>
+        <hr>
+        
+      </div>
+    </div>
+
+
+
+  </div>
+
+
+
+
+
+  <script>
+
+    function get_course_status_table() {
+
+      //$('#notification_center_table').DataTable().destroy();
+      notification_id = document.getElementById('notification_id').value;
+      $('#course_status_table').DataTable().clear().destroy();
+      
+      var table = $('#course_status_table').DataTable({
+        ajax: { url: '/get_reply?notification_id='+notification_id, mimeType: 'json' },
+        deferRender: true,
+        columns: [
+          { data: '_id', "visible": false },
+          { data: 'notification_id', "visible": false },
+          {
+            mRender: function (data, type, row) {
+              myreply = row.reply
+              const matches = myreply.match(/\r\n|\n\r|\n|\r/g);
+              const count = matches ? matches.length + 1 : 1;
+              return '<textarea id="mytextarea' + row._id + '" rows="' + count + '" class="form-control" width="100%" height="auto" readonly style="boarder:none;background-color:white;position: relative;border: 1px solid #888;background: #fff;" contenteditable>' + row.reply + '</textarea>'
+            },
+          },
+          { data: 'added_date' },
+          { data: 'added_by' },
+        ],
+
+
+        rowId: 'extn',
+        //select: true,
+        paging: false,
+        dom: 'Bfrtip',
+        scrollX: true,
+        select: false,
+        "order": [[0, "desc"]],
+        buttons: [
+
+          {
+            text: 'Refresh',
+
+            action: function () {
+              table.ajax.reload();
+            }
+          }
+        ]
+
+      });
+      document.getElementById('course_status_table').style='width: 100%;';
+
+
+    }
+
+  </script>
+
+
+
+
+  <script>
+
+    function get_notes() {
+
+      //$('#notification_center_table').DataTable().destroy();
+
+      $('#notification_center_table').DataTable().clear().destroy();
+
+      var table = $('#notification_center_table').DataTable({
+        ajax: { url: '/get_all_notifications', mimeType: 'json' },
+        deferRender: true,
+        columns: [
+          { data: '_id', "visible": false },
+          { data: 'title' },
+          {
+            mRender: function (data, type, row) {
+
+              return row.message
+            },
+          },
+          { data: 'student_id' },
+          { data: 'student_mobile' },
+          {
+
+            mRender: function (data, type, row) {
+              if (row.read == true) {
+                return "<label class='switch' style='margin-bottom: 0px;'> <input onchange='read_my_notification(\"" + row._id + "\",false)'   type='checkbox'  checked> <span class='slider round'></span> </label>"
+              }
+              else {
+                return "<label class='switch' style='margin-bottom: 0px;'> <input onchange='read_my_notification(\"" + row._id + "\",true)'  type='checkbox'  unchecked> <span class='slider round'></span> </label>"
+              }
+            },
+          },
+          {
+
+            mRender: function (data, type, row) {
+              if (row.section == 'american') {
+                return "Course"
+              }
+              else if (row.section == 'To Do List') {
+                return "To Do List"
+              }
+              else {
+                return "Event"
+              }
+            },
+          },
+          {
+
+            mRender: function (data, type, row) {
+              if (row.added_by == "{{session['name']}}") {
+                return "You"
+              }
+
+              else {
+                return row.added_by
+              }
+            },
+          },
+          {
+
+            mRender: function (data, type, row) {
+              if (row.username == "{{session['name']}}") {
+                return "You"
+              }
+
+              else {
+                return row.username
+              }
+            },
+          },
+          { data: 'added_date' },
+          {
+
+            mRender: function (data, type, row) {
+              if (row.section == 'To Do List') {
+                return "<i class='fa-solid fa-message' style='height:200%' data-target='#course_status_modal' data-toggle='modal' onclick='get_course_status_func(\"" + row._id + "\")'></i>"
+              }
+
+              else {
+                return ""
+              }
+            },
+          },
+        ],
+
+
+        rowId: 'extn',
+        //select: true,
+        paging: false,
+        dom: 'Bfrtip',
+        scrollX: true,
+        select: false,
+        "order": [[0, "desc"]],
+        buttons: [
+
+          {
+            text: 'Refresh',
+
+            action: function () {
+              table.ajax.reload();
+            }
+          }
+        ]
+
+      });
+      document.getElementById('notification_center_table').style = 'width: 100%;';
+
+
+    }
+
+  </script>
+
+  <script>
+    function get_course_status_func(notification_id) {
+      document.getElementById('notification_id').value = ''
+      document.getElementById('reply').value = ''
+      document.getElementById('notification_id').value = notification_id
+      get_course_status_table()
+    }
+  </script>
+
+  <script>
+    function send_reply() {
+
+      notification_id = document.getElementById('notification_id').value;
+      reply = document.getElementById('reply').value;
+
+      if (reply != '' && notification_id != '') {
+        $.post("/add_reply", { notification_id: notification_id, reply: reply }).done(function (response) {
+
+          state = response.state
+          if (state == 'success') {
+            //var table = $('#notification_center_table').DataTable();
+            //table.ajax.reload();
+            //notifications();
+            console.log("SUCCESS")
+            document.getElementById("reply").value = ''
+            var table1 = $('#course_status_table').DataTable()
+            table1.ajax.reload()
+          }
+          else {
+            swal.fire("Sorry", "Try Again", "info")
+          }
+        })
+
+
+      }
+
+
+
+
+
+    }
+
+
+
+
+  </script>
+
+
+  <script>
+    function read_my_notification(id, true_false) {
+
+
+
+      $.get("/read_notifications?notification_id=" + id + "&true_false=" + true_false).done(function (response) {
+
+        state = response.state
+        if (state == 'done') {
+          var table = $('#notification_center_table').DataTable();
+          table.ajax.reload();
+          notifications();
+        }
+        else {
+          swal.fire("Sorry", "Try Again", "info")
+        }
+      })
+
+
+
+    }
+
+
+
+
+  </script>
+
+
+
+
+
+  <script>
+    $(document).ready(function () {
+
+
+      get_notes()
+
+    })
+  </script>
+
+
+
+</body>
+
+{% endblock %}

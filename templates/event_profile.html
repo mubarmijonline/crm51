@@ -1,0 +1,687 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+
+
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+
+
+
+  ::selection {
+    color: #fff;
+    background: #664AFF;
+  }
+
+  .containerss {
+    max-width: 600px;
+    width:500px;
+    margin: 30px auto;
+  }
+
+  .containerss .searchInput {
+    background: #fff;
+    width: 100%;
+    border-radius: 5px;
+    position: relative;
+    box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .searchInput input {
+    height: 55px;
+    width: 100%;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding: 0 60px 0 20px;
+    font-size: 18px;
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .searchInput.active input {
+    border-radius: 5px 5px 0 0;
+  }
+
+  .searchInput .resultBox {
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .searchInput.active .resultBox {
+    padding: 10px 8px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .resultBox li {
+    list-style: none;
+    padding: 8px 12px;
+    display: none;
+    width: 100%;
+    cursor: default;
+    border-radius: 3px;
+  }
+
+  .searchInput.active .resultBox li {
+    display: block;
+  }
+
+  .resultBox li:hover {
+    background: #efefef;
+  }
+
+  .searchInput .icon {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 55px;
+    width: 55px;
+    text-align: center;
+    line-height: 55px;
+    font-size: 20px;
+    color: maroon;
+    cursor: pointer;
+  }
+
+
+  .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+
+<body onload="get_edu()">
+
+
+  <br>
+
+
+
+  
+    <div class="card_customized" style="margin-left: 3%;margin-right: 3%">
+
+      <center><h3 style="font-family: 'Trebuchet MS', sans-serif;color:tomato" >My Event Profile</h3></center>
+
+        <hr>
+        <br>
+        <br>
+        <div class="form-group">
+          <label for="exampleFormControlInput1"
+            style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;"> Username
+            </label>
+            <br>
+
+            <input class="form-control" maxlength="16"  readonly value="{{username_profile}}"
+            style="font-weight:bold;color:gray;background-color: white;border:none" required
+            >
+        </div>
+        <hr>
+        <br>
+        <div class="row">
+
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                          <div class="text-xs font-weight-bold text-info mb-1" style="font-size:16px;font-family: 'Trebuchet MS', sans-serif;">Total Assigned Lead
+                            </div>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-auto">
+                                    <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><input dir="ltr" class="form-control" 
+  style="font-family: 'Trebuchet MS', sans-serif;border: none; background-color:transparent; pointer-events:none; color:#DD5353;font-weight: bold;font-size:15px"
+  value="{{total_assigned_lead}}"></div>
+                                </div>
+  
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fa fa-sort-numeric-asc fa-2x" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+          <div class="card border-left-info shadow h-100 py-2">
+              <div class="card-body">
+                  <div class="row no-gutters align-items-center">
+                      <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info mb-1" style="font-size:16px;font-family: 'Trebuchet MS', sans-serif;">Total Pending Assigned Lead 
+                          </div>
+                          <div class="row no-gutters align-items-center">
+                              <div class="col-auto">
+                                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><input dir="ltr" class="form-control" 
+style="font-family: 'Trebuchet MS', sans-serif;border: none; background-color:transparent; pointer-events:none; color:#DD5353;font-weight: bold;font-size:15px"
+value="{{total_assigned_lead_unfinished}}"></div>
+                              </div>
+
+                          </div>
+                      </div>
+                      <div class="col-auto">
+                          <i class="fa fa-sort-numeric-asc fa-2x" aria-hidden="true"></i>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                      <div class="text-xs font-weight-bold text-info mb-1" style="font-size:16px;font-family: 'Trebuchet MS', sans-serif;">Total Not Interested Leads
+                        </div>
+                        <div class="row no-gutters align-items-center">
+                            <div class="col-auto">
+                              <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><input dir="ltr" class="form-control" 
+                                style="font-family: 'Trebuchet MS', sans-serif;border: none; background-color:transparent; pointer-events:none; color:#DD5353;font-weight: bold;font-size:15px"
+                                value="{{total_assigned_lead_finished}}"></div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fa fa-sort-numeric-asc fa-2x" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-left-info shadow h-100 py-2">
+          <div class="card-body">
+              <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-info mb-1" style="font-size:16px;font-family: 'Trebuchet MS', sans-serif;">Total Enrol Assigned Leads
+                      </div>
+                      <div class="row no-gutters align-items-center">
+                          <div class="col-auto">
+                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><input dir="ltr" class="form-control" 
+                              style="font-family: 'Trebuchet MS', sans-serif;border: none; background-color:transparent; pointer-events:none; color:#DD5353;font-weight: bold;font-size:15px"
+                              value="{{total_assigned_lead_finished_enrol}}"></div>
+                          </div>
+
+                      </div>
+                  </div>
+                  <div class="col-auto">
+                      <i class="fa fa-sort-numeric-asc fa-2x" aria-hidden="true"></i>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </div>
+      </div>  
+      
+      <hr>
+      <div class="card_customized" hidden>
+
+        <div class="card-body" id="course_analysis_section1" style="display: show;">
+          <div class="chart-area">
+              <div id="course_analysis1" style="width:auto; height:100%;"></div>
+          </div>
+        </div>
+
+        <div class="card-body" id="course_analysis_section2" style="display: show;">
+          <div class="chart-area">
+              <div id="course_analysis2" style="width:auto; height:100%;"></div>
+          </div>
+        </div>
+        <div class="card-body" id="course_analysis_section3" style="display: show;">
+          <div class="chart-area">
+              <div id="course_analysis3" style="width:auto; height:100%;"></div>
+          </div>
+        </div>
+
+        <div class="card-body" id="course_analysis_section" style="display: show;">
+          <div class="chart-area">
+              <div id="course_analysis" style="width:auto; height:100%;"></div>
+          </div>
+        </div>
+
+
+
+        
+
+      <div class="card-body" id="educational_chart_section" style="display: show;">
+        <div class="chart-area">
+            <div id="educational_chart" style="width:auto; height:100%;"></div>
+        </div>
+      </div>
+        
+    </div>
+
+    
+    <script>
+      function get_course_analysis1() {
+    
+        username_profile = "{{username_profile}}"
+    
+        
+        google.charts.load('visualization', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawLineChart);
+          function drawLineChart() {
+            $.ajax({
+                url: "/course_analysis1?username_profile="+username_profile,
+                dataType: "json",
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    var arrSales = [['Course','Count of Courses']];    // Define an array and assign columns for the chart.
+    
+                    // Loop through each data and populate the array.
+                    $.each(data, function (index, value) {
+                        arrSales.push([value.status,value.course_count]);
+                    });
+    
+                    // Set chart Options.
+                    var options = {
+                        title: 'Categorization of Courses Status',
+                        curveType: 'function',
+                        
+                        legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
+                    };
+    
+                    // Create DataTable and add the array to it.
+                    var figures = google.visualization.arrayToDataTable(arrSales)
+    
+                    // Define the chart type (LineChart) and the container (a DIV in our case).
+                    var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis1'));
+                    chart.draw(figures, options);      // Draw the chart with Options.
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert('Got an Error, A');
+                }
+            });
+        }
+    }
+    
+    </script>
+
+
+    <script>
+      function get_course_analysis() {
+    
+        username_profile = "{{username_profile}}"
+    
+        
+        google.charts.load('visualization', { packages: ['corechart'] });
+        google.charts.setOnLoadCallback(drawLineChart);
+          function drawLineChart() {
+            $.ajax({
+                url: "/course_analysis?username_profile="+username_profile,
+                dataType: "json",
+                type: "GET",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    var arrSales = [['Course','Count of Enrolled Courses']];    // Define an array and assign columns for the chart.
+    
+                    // Loop through each data and populate the array.
+                    $.each(data, function (index, value) {
+                        arrSales.push([value.course,value.course_count]);
+                    });
+    
+                    // Set chart Options.
+                    var options = {
+                        title: 'Categorization of Enrolled Courses',
+                        curveType: 'function',
+                        
+                        legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
+                    };
+    
+                    // Create DataTable and add the array to it.
+                    var figures = google.visualization.arrayToDataTable(arrSales)
+    
+                    // Define the chart type (LineChart) and the container (a DIV in our case).
+                    var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis'));
+                    chart.draw(figures, options);      // Draw the chart with Options.
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    alert('Got an Error, A');
+                }
+            });
+        }
+    }
+    
+    </script>
+
+<script>
+  function get_course_analysis2() {
+
+    username_profile = "{{username_profile}}"
+
+    
+    google.charts.load('visualization', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawLineChart);
+      function drawLineChart() {
+        $.ajax({
+            url: "/course_analysis2?username_profile="+username_profile,
+            dataType: "json",
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                var arrSales = [['Course','Count of Pending Courses']];    // Define an array and assign columns for the chart.
+
+                // Loop through each data and populate the array.
+                $.each(data, function (index, value) {
+                    arrSales.push([value.course,value.course_count]);
+                });
+
+                // Set chart Options.
+                var options = {
+                    title: 'Categorization of Pending Courses',
+                    curveType: 'function',
+                    
+                    legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
+                };
+
+                // Create DataTable and add the array to it.
+                var figures = google.visualization.arrayToDataTable(arrSales)
+
+                // Define the chart type (LineChart) and the container (a DIV in our case).
+                var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis2'));
+                chart.draw(figures, options);      // Draw the chart with Options.
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert('Got an Error, A');
+            }
+        });
+    }
+}
+
+</script>
+
+<script>
+  function get_course_analysis3() {
+
+    username_profile = "{{username_profile}}"
+
+    
+    google.charts.load('visualization', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawLineChart);
+      function drawLineChart() {
+        $.ajax({
+            url: "/course_analysis3?username_profile="+username_profile,
+            dataType: "json",
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                var arrSales = [['Course','Count of Not Interested Courses']];    // Define an array and assign columns for the chart.
+
+                // Loop through each data and populate the array.
+                $.each(data, function (index, value) {
+                    arrSales.push([value.course,value.course_count]);
+                });
+
+                // Set chart Options.
+                var options = {
+                    title: 'Categorization of Not Interested Courses',
+                    curveType: 'function',
+                    
+                    legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
+                };
+
+                // Create DataTable and add the array to it.
+                var figures = google.visualization.arrayToDataTable(arrSales)
+
+                // Define the chart type (LineChart) and the container (a DIV in our case).
+                var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis3'));
+                chart.draw(figures, options);      // Draw the chart with Options.
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert('Got an Error, A');
+            }
+        });
+    }
+}
+
+</script>
+
+<script>
+  function get_edu() {
+
+    username_profile = "{{username_profile}}"
+
+    
+    google.charts.load('visualization', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(drawLineChart);
+      function drawLineChart() {
+        $.ajax({
+            url: "/edu_count?username_profile="+username_profile,
+            dataType: "json",
+            type: "GET",
+            contentType: "application/json; charset=utf-8",
+            success: function (data) {
+                var arrSales = [['Educational System','Number of Assigned Lead']];    // Define an array and assign columns for the chart.
+
+                // Loop through each data and populate the array.
+                $.each(data, function (index, value) {
+                    arrSales.push([value.educational_system,value.educational_system_count]);
+                });
+
+                // Set chart Options.
+                var options = {
+                    title: 'Educational Sytems VS Total Assigned leads',
+                    curveType: 'function',
+                    
+                    legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
+                };
+
+                // Create DataTable and add the array to it.
+                var figures = google.visualization.arrayToDataTable(arrSales)
+
+                // Define the chart type (LineChart) and the container (a DIV in our case).
+                var chart = new google.visualization.ColumnChart(document.getElementById('educational_chart'));
+                chart.draw(figures, options);      // Draw the chart with Options.
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert('Got an Error, A');
+            }
+        });
+    }
+}
+
+</script>
+
+
+  </div>
+
+ 
+
+  
+ 
+
+ 
+
+
+
+
+
+
+
+
+  <script>
+    function get_data(selected_value) {
+      console.log(selected_value)
+      if(selected_value === "")
+    {
+      return;
+    }
+
+      url = '/profile?username_profile=' + selected_value
+      $.post(url).done(function (response) {
+
+        console.log(typeof(response))
+        console.log(response)
+        //profile_data = JSON.parse(response[0])
+        section = $('#profile_data')
+        section.empty()
+        
+        for (let i = 0; i < response.length; i++) {
+  
+          section.append('<tr><td><labelstyle="font-family:"TrebuchetMS",sans-serif;color:blue">TotalAssignedLeads</label></td><td><divstyle="font-family:"TrebuchetMS",sans-serif;color:black"id="total_lead"name="total_lead">'+Object.values(response[i])+'</div></td></tr>')
+
+        } 
+        
+
+
+
+
+
+      })
+    }
+
+    function reset_form() {
+      document.getElementById('update_section').style = 'display: none;';
+      document.getElementById('student_id').value = ""
+      document.getElementById('student_mobile').value = ""
+      document.getElementById('student_name').value = ""
+      document.getElementById('parent_mobile').value = ""
+      document.getElementById('gender').value = ""
+      document.getElementById('grade').value = ""
+      document.getElementById('school').value = ""
+      document.getElementById('semester').value = ""
+      document.getElementById('educational_system').value = ""
+      document.getElementById('email').value = ""
+      document.getElementById('source').value = ""
+      document.getElementById('status').value = ""
+      document.getElementById('english').value = ""
+      document.getElementById('application').value = ""
+      document.getElementById('college').value = ""
+      document.getElementById('deposit').value = ""
+    }
+  </script>
+
+
+<script>
+  function get_assignation(username_from_query,user_role)
+  {
+    
+    let dropdown = $('#assigned_to');
+    
+
+    dropdown.empty();
+
+    dropdown.append('<option selected="true" disabled value="">Choose Assignation</option>');
+
+    dropdown.prop('selectedIndex', 0);
+    
+    const url = '/users?get_select_users';
+
+    // Populate dropdown with list of provinces
+    $.getJSON(url, function (data) {
+      $.each(data, function (key, entry) {
+
+        
+          console.log(entry.username,username_from_query)
+          if (entry.username == username_from_query)
+        {
+          dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+        }
+        else 
+        {
+          if ( user_role == 'admin')
+          {
+          dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+          else
+          {
+            dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+        }
+        
+      })
+     
+
+    });
+
+  }
+</script>
+
+<script>
+  $( document ).ready(function() {
+ 
+   get_edu();
+/*    get_course_analysis();
+   get_course_analysis1();
+   get_course_analysis2();
+   get_course_analysis3(); */
+  })
+ </script>
+
+
+</body>
+
+{% endblock %}

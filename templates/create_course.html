@@ -1,0 +1,584 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+  .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+
+<body onload="get_assignation()">
+
+
+  <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Create Lead</u></h1>
+  </center>
+  <br>
+  <div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
+    <center>
+      <br>
+      <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Creating Coursecd ..\ Form</u></h3>
+    </center>
+    <form id="create_crm_form" name="create_crm_form">
+      <table cellpadding="10">
+        <tr>
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Student
+                Mobile</label>
+              <br>
+              <input class="form-control" maxlength="16" id="student_mobile" name="student_mobile"
+                style="font-weight:bold;color:gray" required
+                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+            </div>
+          </td>
+
+
+
+
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Name</label>
+              <input id="student_name" class="form-control" name="student_name" maxlength="100"
+                style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+            </div>
+
+
+
+
+
+          </td>
+
+
+        </tr>
+
+        <tr>
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Parent
+                Mobile</label>
+              <br>
+              <input class="form-control" maxlength="16" id="parent_mobile" name="parent_mobile"
+                style="font-weight:bold;color:gray"
+                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+            </div>
+          </td>
+
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Gender</label>
+              <select id="gender" name="gender" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;width: 3000px;max-width: 300px;">
+                <option value="" disabled selected>Choose gender</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Year</label>
+              <select id="grade" name="grade" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" required>
+                <option value="" disabled selected>Choose Year</option>
+                <option>10</option>
+                <option>11</option>
+                <option>12</option>
+              </select>
+
+            </div>
+          </td>
+
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">School</label>
+              <input id="school" class="form-control" name="school" maxlength="100"
+                style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+            </div>
+
+
+          </td>
+        </tr>
+
+        <hr>
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Educational
+                System</label>
+              <select id="educational_system" name="educational_system" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" required>
+
+                <option value="" disabled="disabled" selected>Select Educational System</option>
+                <option>IGCSE, GCSE</option>
+                <option>American Diploma</option>
+                <option>International Baccalaureate (IB)</option>
+                <option>Thanwyia Amma</option>
+                <option>Candian Certificate</option>
+                <option>French Baccalaureate</option>
+                <option>Transfer</option>
+                <option>The German Secondary School Certificate - Abitur</option>
+
+              </select>
+
+            </div>
+
+          </td>
+
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
+              <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text" class="form-control"
+                id="email" type="email" name="email" maxlength="70">
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Source</label>
+              <input style="font-weight:bold;color:gray;width: 50;" type="text" class="form-control" id="source"
+                name="source">
+            </div>
+
+          </td>
+
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Semester</label>
+              <select id="semester" name="semester" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;width: 600px;max-width: 600px;">
+                <option value="" disabled selected>Choose semester</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+              </select>
+
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
+              <select required id="status" name="status" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_status()">
+                <option selected>Not Contacted</option>
+                <option>Wrong Number</option>
+                <option>N/A</option>
+                <option>Interested</option>
+                <option>Not Interested</option>
+              </select>
+            </div>
+          </td>
+          <script>
+            function check_status() {
+              val = document.getElementById('status').value
+              if (val == 'Interested') {
+                document.getElementById('recall_date_section').disabled = false;
+                document.getElementById('recall_date_section').hidden = false;
+              }
+              else {
+                val = ""
+                document.getElementById('recall_date_section').disabled = true;
+                document.getElementById('recall_date_section').hidden = true;
+              }
+            }
+          </script>
+
+          <td>
+            <div class="form-group" id="recall_date_section" disabled hidden>
+
+              <label for="recall_date"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
+                Date</label>
+              <input
+                style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
+                type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
+
+            </div>
+            <script>
+              $('#recall_date').datepicker({
+                todayBtn: "linked",
+                weekStart: 0,
+                autoclose: true,
+                todayHighlight: true,
+                format: "yyyy-mm-dd",
+
+
+
+              });
+
+            </script>
+          </td>
+
+        </tr>
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">English</label>
+              <select id="english" name="english" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">
+                <option value="" disabled selected></option>
+                <option value=1>YES</option>
+                <option value=0>NO</option>
+              </select>
+
+            </div>
+          </td>
+
+
+          <td>
+
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Once English
+                </label>
+                <br>
+
+              <label class="switch" style="margin-bottom: 0px;"> <input type="checkbox" name="once_english_flag" id="once_english_flag"  unchecked> <span class="slider round"></span> </label>
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Application</label>
+              <select id="application" name="application" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;"
+                onchange="check_application(this.value)">
+                <option value="" disabled selected></option>
+                <option value=1>YES</option>
+                <option value=0>NO</option>
+              </select>
+
+            </div>
+            <script>
+              function check_application() {
+                appval = document.getElementById('application').value
+                if (appval == 1) {
+                  document.getElementById('college_section').disabled = false;
+                  document.getElementById('college_section').hidden = false;
+                }
+                else {
+                  document.getElementById('college_section').disabled = true;
+                  document.getElementById('college_section').hidden = true;
+                }
+              }
+
+            </script>
+          </td>
+
+          <td>
+            <div class="form-group" id="college_section" disabled hidden>
+
+              <label for="college[]"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Select
+                College</label>
+              <br>
+              <select id="college" name="college[]" class="form-control" multiple="multiple"
+                style="width: 600px;max-width: 600px;">
+                <option>Hertfordshire</option>
+                <option>Eslsca</option>
+                <option>University of prince Edward Island</option>
+                <option>Toronto Metropolitan University</option>
+                <option value="The Knowledge Hub">The Knowledge Hub (Coventry & Nova)</option>
+                <option>European Universities in Egypt</option>
+
+              </select>
+            </div>
+            <script>
+              $('#college').select2({ placeholder: 'College Select', closeOnSelect: false, allowClear: true });
+            </script>
+          </td>
+        </tr>
+
+
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
+              <select id="deposit" name="deposit" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">
+                <option value="" disabled selected></option>
+                <option value=1>YES</option>
+                <option value=0>NO</option>
+              </select>
+
+            </div>
+          </td>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
+                to</label>
+              <select id="assigned_to" name="assigned_to" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" required>
+              </select>
+            </div>
+
+          </td>
+        </tr>
+        <tr>
+
+          <td>
+            <div class="form-group">
+              <label for="notes"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                Notes</label>
+              <br>
+              <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray
+            
+            ;" required></textarea>
+            </div>
+          </td>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Paid Semester</label>
+              <select id="paid_semester" name="paid_semester" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" required>
+                
+                <option value="1">YES</option>
+                <option value="0" selected>NO</option>
+              </select>
+
+            </div>
+          </td>
+        </tr>
+
+      </table>
+      <hr>
+
+
+      <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary">Save</button></div>
+
+      <br>
+    </form>
+
+    <br>
+    <br>
+    <br>
+  </div>
+
+
+
+  <script>
+    function get_assignation() {
+
+      let dropdown = $('#assigned_to');
+
+
+      dropdown.empty();
+
+      dropdown.append('<option selected="true" disabled value="">Choose Assignation</option>');
+
+      dropdown.prop('selectedIndex', 0);
+
+      const url = '/users?get_select_users';
+
+        username_from_query = "{{session['name']}}"
+        user_role = "{{session['role']}}"
+      // Populate dropdown with list of provinces
+      $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+
+          
+          console.log(entry.username,username_from_query)
+          if (entry.username == username_from_query)
+        {
+          dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+        }
+        else 
+        {
+          if ( user_role == 'admin')
+          {
+          dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+          else
+          {
+            dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+        }
+
+        })
+
+
+      });
+
+    }
+  </script>
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+    $("form#create_crm_form").submit(function (e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+
+
+      $.ajax({
+        url: "/create_lead?add_lead",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          var state = data.state
+          var reason = data.reason
+          console.log(state)
+
+
+
+
+          if (state == 'error') {
+            Swal.fire(
+              'Sorry',
+              reason,
+              'error')
+
+
+
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }
+
+          else if (state == 'success') {
+            Swal.fire(
+              'Good Job',
+              'Lead Added Successfully',
+              'success')
+            document.getElementById('create_crm_form').reset();
+            $("#college").val([]);
+            $('#college').select2({ placeholder: 'Multiple College Select', closeOnSelect: false, allowClear: true });
+            document.getElementById('college_section').disabled = true;
+            document.getElementById('college_section').hidden = true;
+            get_assignation()
+
+
+
+
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }
+          else {
+            Swal.fire(
+              'Sorry',
+              'Something went wrong',
+              'error')
+
+            //$("#add_client_close").click();
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+
+    });
+  </script>
+
+
+
+
+
+
+
+
+
+</body>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+# 51crm (51crm.mubarmijonline.com)
+#
+# Install:
+#   sudo ln -sf /projects/51_apps/51_american_crm_nginx_clone/deploy/51crm.service /etc/systemd/system/51crm.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now 51crm
+
+[Unit]
+Description=Gunicorn instance serving 51crm.mubarmijonline.com
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=ahmeddiab
+Group=www-data
+WorkingDirectory=/projects/51_apps/51_american_crm_nginx_clone
+Environment="PATH=/projects/51_apps/51_american_crm_nginx_clone/51_american_crm_venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PYTHONUNBUFFERED=1"
+EnvironmentFile=/projects/51_apps/51_american_crm_nginx_clone/.env
+
+# gunicorn wants to write a control socket; under systemd there is no
+# XDG_RUNTIME_DIR and $HOME is read-only (ProtectHome below), so its default
+# path fails at every start. RuntimeDirectory gives it a writable, auto-cleaned
+# directory under /run instead.
+RuntimeDirectory=51crm
+RuntimeDirectoryMode=0750
+Environment="GUNICORN_CTL=/run/51crm/gunicorn.ctl"
+
+ExecStart=/projects/51_apps/51_american_crm_nginx_clone/51_american_crm_venv/bin/gunicorn --config deploy/gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGTERM
+Restart=always
+RestartSec=3
+
+# New files must stay group-readable so nginx can serve uploads and static.
+UMask=0027
+
+# The app only ever writes inside its own directory.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=read-only
+ReadWritePaths=/projects/51_apps/51_american_crm_nginx_clone
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+
+[Install]
+WantedBy=multi-user.target

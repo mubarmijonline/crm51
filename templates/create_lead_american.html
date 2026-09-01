@@ -1,0 +1,1122 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+  .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+
+<body >
+
+
+  <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Create Education Lead</u></h1>
+  </center>
+  <br>
+  <div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
+                      <div class="row">
+      <button type="button" title="Add Subject to list" class="btn btn-warning" style="height: 40%;" data-toggle="modal"
+        data-target="#add_subject_modal"><i class="fa-solid fa-plus"> quick add subject</i></button>
+    
+  
+  
+    <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+      <button type="button" title="Add Exam Trials to list" class="btn btn-info" style="height: 40%;" data-toggle="modal"
+        data-target="#add_exam_trial_modal"><i class="fa-solid fa-plus"> quick add exam trial</i></button>
+    </div>
+  
+    <center>
+      <br>
+      <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Creating Lead Form</u></h3>
+    </center>
+    <form id="create_crm_form" name="create_crm_form">
+      <table cellpadding="10">
+        <tr>
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Student
+                Mobile</label>
+              <br>
+              <input class="form-control" maxlength="16" id="student_mobile" name="student_mobile"
+                style="font-weight:bold;color:gray" required
+                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+            </div>
+          </td>
+
+
+
+
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Name</label>
+              <input id="student_name" class="form-control" name="student_name" maxlength="100"
+                style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+            </div>
+
+
+
+
+
+          </td>
+
+
+        </tr>
+
+        <tr>
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Parent
+                Mobile</label>
+              <br>
+              <input class="form-control" maxlength="16" id="parent_mobile" name="parent_mobile"
+                style="font-weight:bold;color:gray"
+                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+            </div>
+          </td>
+
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Gender</label>
+              <select id="gender" name="gender" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;width: 3000px;max-width: 300px;">
+                <option value="" disabled selected>Choose gender</option>
+                <option>Male</option>
+                <option>Female</option>
+              </select>
+
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Year</label>
+                <input type="text" class="form-control" name="year" id="year">
+
+            </div>
+          </td>
+
+          <td>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">School</label>
+              <input id="school" class="form-control" name="school" maxlength="100"
+                style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" >
+            </div>
+
+
+          </td>
+        </tr>
+
+        <hr>
+        <tr>
+          <td>
+                  <div class="form-group">
+
+                    <!-- educational system -->
+
+                      <label for="educational_system"
+                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Educational System</label>
+                      <select required type="text" class="form-control" maxlength="50" id="educational_system"
+                        placeholder="Choose Educational System" name="educational_system" id="educational_system"></select>
+                    
+                    </div>
+
+                    <script>
+                      function edu_system_data(){
+                      let dropdown = $('#educational_system');
+                      
+                      dropdown.empty();
+                      
+                    
+                      dropdown.append($('<option selected disabled value="">Choose Educational System</option>'))
+                      const url = '/get_educational_system_data';
+                    
+                      // Populate dropdown with list of provinces
+                      $.getJSON(url, function (data) {
+                        $.each(data, function (key, entry) {
+                          dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.educational_system));
+                          
+                        });
+                        dropdown.select2();
+                        
+                      });
+                      
+                    }
+                    </script>
+
+          </td>
+
+          <td>
+
+                    <div>
+                      <button type="button" title="Add Educational System to list" class="btn btn-success" style="height: 40%;" data-toggle="modal"
+                        data-target="#add_educational_modal"><i class="fa-solid fa-plus">Quick add edu system</i></button>
+                    </div>
+
+          </td>
+
+        </tr>
+
+        
+        <tr>
+          <td>
+                  <div class="form-group">
+
+                    <!-- educational system -->
+
+                      <label for="exam_trial"
+                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
+                      <select id="course" name="course[]" class="form-control" multiple="multiple"
+                      style="width: 600px;max-width: 600px;" required>
+    
+                    </select>
+                    
+                    </div>
+
+
+          </td>
+          <td>
+          <div>
+          <button type="button" title="Add Course to list" class="btn btn-danger" style="height: 40%;" data-toggle="modal"
+            data-target="#add_course_modal"><i class="fa-solid fa-plus"> quick add courses </i></button>
+        </div>
+          </td>
+
+
+
+        </tr>
+
+
+        <tr>          
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
+              <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text" class="form-control"
+                id="email" type="email" name="email" maxlength="70">
+            </div>
+          </td>
+
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Source</label>
+              <input style="font-weight:bold;color:gray;width: 50;" type="text" class="form-control" id="source"
+                name="source">
+            </div>
+          </td>
+        </tr>
+
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
+              <select required id="status" name="status" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_status()">
+                <option value=""  disabled>Select Status</option>
+                <option value="enrol" disabled>Enrol</option>
+                <option value="pending" selected>Pending</option>
+                <option value="not_interested" disabled>Not Interested</option>
+              </select>
+            </div>
+          </td>
+          <script>
+            function check_status() {
+              val = document.getElementById('status').value
+              if (val == 'enrol') {
+                document.getElementById('recall_date_section').disabled = false;
+                document.getElementById('recall_date_section').hidden = false;
+                document.getElementById('not_interested_notes').disabled = true;
+                document.getElementById('not_interested_notes').hidden = true;
+              }
+              else if (val == 'pending') {
+                document.getElementById('recall_date_section').disabled = false;
+                document.getElementById('recall_date_section').hidden = false;
+                document.getElementById('not_interested_notes').disabled = true;
+                document.getElementById('not_interested_notes').hidden = true;
+              }
+              else if (val == 'not_interested') {
+                document.getElementById('not_interested_notes').disabled = false;
+                document.getElementById('not_interested_notes').hidden = false;
+                document.getElementById('recall_date_section').disabled = true;
+                document.getElementById('recall_date_section').hidden = true;
+              }
+            }
+          </script>
+
+          <td>
+            <div class="form-group" id="recall_date_section" >
+
+              <label for="recall_date"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
+                Date</label>
+              <input
+                style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
+                type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
+
+            </div>
+            <script>
+              $('#recall_date').datepicker({
+                todayBtn: "linked",
+                weekStart: 0,
+                autoclose: true,
+                todayHighlight: true,
+                format: "yyyy-mm-dd",
+
+              });
+
+            </script>
+
+          <div class="form-group" id="not_interested_notes" disabled hidden>
+
+            <label for="recall_date"
+              style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Reason</label>
+            <input
+              style="text-align:center;color:gray;font-size:15px;background-color: white; height:calc(1.5em + .75rem + 2px);"
+              type="text" class="form-control" readonly id="not_interested_notes" name="not_interested_notes" required>
+
+          </div>
+
+          </td>
+
+        </tr>
+
+        <!-- Trail -->
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="trial"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Trial</label>
+              <select required id="trial" name="trial" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_trial()">
+                <option value="no" selected >No</option>
+                <option value="yes">Yes</option>
+              </select>
+            </div>
+          </td>
+          
+          <td>
+            <div class="form-group" id="sat_scores" disabled hidden>
+              <label for="trial"
+              style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Sat Scores</label>
+              <input type="text" class="form-control" id="math" name="math" placeholder="Maths Score" default="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              <input type="text" class="form-control" id="english" name="english" placeholder="English Score" default="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              <input type="text" class="form-control" id="other" name="other" placeholder="Other Score" default="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+            </div>
+          </td>
+
+        </tr>
+
+        <script>
+          function check_trial() {
+            val = document.getElementById('trial').value
+            if (val == 'yes') {
+              document.getElementById('sat_scores').disabled = false;
+              document.getElementById('sat_scores').hidden = false;
+            }
+            else if (val == 'no') {
+              document.getElementById('sat_scores').disabled = true;
+              document.getElementById('sat_scores').hidden = true;
+            }
+          }
+        </script>
+
+        <!-- Trail -->
+
+        <tr>
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
+              <select id="deposit" name="deposit" class="form-control"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">
+                <option value="" disabled selected></option>
+                <option value=1>YES</option>
+                <option value=0>NO</option>
+              </select>
+
+            </div>
+          </td>
+          
+          <td>
+            <div class="form-group">
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
+                to</label>
+                <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple"
+                  style="width: 600px;max-width: 600px;">
+
+                </select>
+              </div>
+
+          </td>
+
+        </tr>
+        <tr>
+
+          <td>
+            <div class="form-group">
+              <label for="notes"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                Notes</label>
+              <br>
+              <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray
+            
+            ;" required></textarea>
+            </div>
+          </td>
+
+        </tr>
+
+      </table>
+      <hr>
+
+
+      <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary">Save</button></div>
+
+      <br>
+    </form>
+
+    <br>
+    <br>
+    <br>
+  </div>
+
+
+
+  <script>
+    function get_assignation() {
+
+      let dropdown = $('#assigned_to');
+
+      dropdown.empty()
+      const url = '/users?get_select_users';
+
+        username_from_query = "{{session['name']}}"
+        user_role = "{{session['role']}}"
+        user_list=[]
+      // Populate dropdown with list of provinces
+      $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+
+          
+         
+
+        if (user_role == 'admin')
+        {
+          if (username_from_query == entry.username)
+          {
+          dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+            user_list.push(entry.username)
+          }
+          else
+          {
+            dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+        }
+        else 
+        {
+          if ( username_from_query == entry.username)
+          {
+            user_list.push(entry.username)
+          dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+          else
+          {
+            dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
+          }
+        }
+
+        })
+        console.log(user_list)
+
+
+        if (user_role == 'admin')
+        {
+          $("#assigned_to").val(user_list);
+          $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: true });
+        }
+        else
+        {
+          $("#assigned_to").val(user_list);
+          $('#create_crm_form #assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: false,disabled:"readonly" });
+        }
+
+
+      });
+
+
+
+    }
+  </script>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  <script>
+    $("form#create_crm_form").submit(function (e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+
+
+      $.ajax({
+        url: "/create_lead_american?add_lead",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          var state = data.state
+          var reason = data.reason
+          console.log(state)
+
+
+
+
+          if (state == 'error') {
+            Swal.fire(
+              'Sorry',
+              reason,
+              'error')
+
+
+
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }
+          else if (state == 'course_holded')
+
+            {
+              swal.fire('Sorry','One the Courses is now holded','error')
+              get_course_data();
+
+            }
+
+          else if (state == 'success') {
+            Swal.fire(
+              'Good Job',
+              'Lead Added Successfully',
+              'success')
+            document.getElementById('create_crm_form').reset();
+
+            get_course_data();
+            edu_system_data();
+            get_assignation();
+            notifications();
+
+
+          }
+          else {
+            Swal.fire(
+              'Sorry',
+              'Something went wrong',
+              'error')
+
+            //$("#add_client_close").click();
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+
+    });
+  </script>
+
+
+<!-- Start of educational system Modal -->
+
+<div class="modal fade" id="add_educational_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+  <form action="/add_educational_system" name="add_educational_system" id="add_educational_system" method="POST">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class='text-center'>
+              <h5 id="exampleModalLabel">Add Educational System</h5>
+            </div>
+          </div>
+        <div class="modal-body">
+        <span id="error" style="color:red;font-weight:500;"></span>
+
+      <span>
+        <div style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px; padding: 1rem;">Educational System Name</div>
+        <input maxlength="40" required id="educational_system_name" name="educational_system_name" class="form-control" style="font-weight: bold;color: darkcyan; width: 60%"></span>
+        
+            
+      <hr>
+      <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn'>Add Educational System</button>
+      <button type="button" id="close" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      </div>
+      </div>
+    </form>
+</div>
+
+<div class="modal fade" id="add_subject_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+  <form action="/add_subject" name="add_subject" id="add_subject" method="POST">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class='text-center'>
+              <h5 id="exampleModalLabel">Add Subject</h5>
+            </div>
+          </div>
+        <div class="modal-body">
+        <span id="error" style="color:red;font-weight:500;"></span>
+
+      <span>
+        <div style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px; padding: 1rem;">Subject Name</div>
+        <input maxlength="60" required id="subject_name" name="subject_name" class="form-control" style="font-weight: bold;color: darkcyan; width: 60%"></span>
+        
+            
+      <hr>
+      <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn'>Add Subject</button>
+      <button type="button" id="close_subject" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      </div>
+      </div>
+    </form>
+</div>
+<div class="modal fade" id="add_exam_trial_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+  <form action="/add_exam_trial" name="add_exam_trial" id="add_exam_trial" method="POST">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class='text-center'>
+              <h5 id="exampleModalLabel">Add Exam Trial</h5>
+            </div>
+          </div>
+        <div class="modal-body">
+        <span id="error" style="color:red;font-weight:500;"></span>
+
+      <span>
+        <div style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px; padding: 1rem;">Exam Trial Name</div>
+        <input maxlength="60" required id="exam_trial_name" name="exam_trial_name" class="form-control" style="font-weight: bold;color: darkcyan; width: 60%"></span>
+        
+            
+      <hr>
+      <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn'>Add Exam Trial</button>
+      <button type="button" id="close_exam_trial" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      </div>
+      </div>
+    </form>
+</div>
+
+
+<div class="modal fade" id="add_course_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+  <form action="/add_course" name="add_course" id="add_course" method="POST">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class='text-center'>
+              <h5 id="exampleModalLabel">Add Course to list</h5>
+            </div>
+          </div>
+        <div class="modal-body">
+        <span id="error" style="color:red;font-weight:500;"></span>
+
+      <table>
+
+        <tr>
+          <td>
+                  <div class="form-group">
+
+                    <!-- educational system -->
+
+                      <label for="subject"
+                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Subject</label>
+                      <select required type="text" class="form-control" maxlength="50" id="subject"
+                        placeholder="Choose Subject" name="subject" id="subject" onchange="get_course()"></select>
+                    
+                    </div>
+
+                    <script>
+                      function subject_data(){
+                      let dropdown1 = $('#add_course_modal #subject');
+                      
+                      dropdown1.empty();
+                      
+                    
+                      dropdown1.append($('<option selected disabled value="">Choose Subject</option>'))
+                      const url1 = '/get_subject_data';
+                    
+                      // Populate dropdown with list of provinces
+                      $.getJSON(url1, function (data1) {
+                        $.each(data1, function (key1, entry1) {
+                          dropdown1.append($('<option></option>').attr('value', entry1.abbreviation).text(entry1.subject));
+                          
+                        });
+                        dropdown1.select2();
+                        
+                      });
+                      
+                    }
+                    </script>
+
+          </td>
+
+
+
+        </tr>
+        <tr>
+          <td>
+                  <div class="form-group">
+
+                    <!-- educational system -->
+
+                      <label for="exam_trial"
+                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Exam Trial</label>
+                      <select required type="text" class="form-control" maxlength="50" id="exam_trial"
+                        placeholder="Choose Exam Trial" name="exam_trial" id="exam_trial" onchange="get_course()"></select>
+                    
+                    </div>
+
+                    <script>
+                      function exam_trial_data(){
+                      let dropdown2 = $('#add_course_modal #exam_trial');
+                      
+                      dropdown2.empty();
+                      
+                    
+                      dropdown2.append($('<option selected disabled value="">Choose Exam Trial</option>'))
+                      const url2 = '/get_exam_trial_data';
+                    
+                      // Populate dropdown with list of provinces
+                      $.getJSON(url2, function (data2) {
+                        $.each(data2, function (key2, entry2) {
+                          dropdown2.append($('<option></option>').attr('value', entry2.abbreviation).text(entry2.exam_trial));
+                          
+                        });
+                        dropdown2.select2();
+                        
+                      });
+                      
+                    }
+                    </script>
+
+          </td>
+        </tr>
+          <script>
+            function get_course()
+            {
+              subject1 = $('#add_course_modal #subject').val()
+              exam_trial1 = $('#add_course_modal #exam_trial').val()
+              
+              if (subject1 != "" && exam_trial1 != "" && subject1 != null && exam_trial1 != null)
+              {
+                $('#add_course_modal #course1').val(subject1.trim()+" - "+exam_trial1.trim())
+              }
+            }
+          </script>
+  <tr>
+          <td>
+            <div class="form-group">
+
+              <!-- educational system -->
+  
+                <label for="exam_trial"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
+                <input required type="text" class="form-control" maxlength="140" id="course1"
+                   name="course1" id="course1" readonly
+                   style="font-weight:bold;color:gray;background-color: white;">
+              
+              </div>
+          </td>
+
+         
+
+        </tr>
+
+        
+      </table>
+        
+            
+      <hr>
+      <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn'>Add Course</button>
+      <button type="button" id="close_course" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      </div>
+      </div>
+    </form>
+</div>
+<script>
+$("form#add_educational_system").submit(function (e) {
+  e.preventDefault();
+  var formData = new FormData(this);
+
+  
+  $.ajax({
+    
+    url: '/educational_system?add_educational_system',
+    type: 'POST',
+    data: formData,
+    success: function (data) {
+      
+      state=data.state;
+      
+      if (state == "success")
+      {
+      Swal.fire(
+        'Good Job',
+        'Educational System Added Successfully.',
+        'success')
+        edu_system_data()
+        
+      $("#add_educational_modal #close").click();
+      document.getElementById("educational_system_name").value=""
+      }
+      else if (state == "missing_fields")
+      {
+      Swal.fire(
+        'Missing Educational System',
+        'Type Education System Name before submit',
+        'info')
+        edu_system_data()
+        
+      $("#add_educational_modal #close").click();
+      document.getElementById("educational_system_name").value=""
+      }
+      else if (state == "duplicate")
+      {
+      Swal.fire(
+        'Duplicate',
+        'Educational System already exists!',
+        'info')
+        edu_system_data()
+        
+      $("#add_educational_modal #close").click();
+      document.getElementById("educational_system_name").value=""
+      }
+      else{
+        Swal.fire(
+        'Sorry',
+        'Something went wrong, refresh and try again.',
+        'error')
+      }
+    },
+    cache: false,
+    contentType: false,
+    processData: false
+  });
+});
+</script>
+
+<script>
+  $("form#add_subject").submit(function (e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+  
+    
+    $.ajax({
+      
+      url: '/subject?add_subject',
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        
+        state=data.state;
+        
+        if (state == "success")
+        {
+        Swal.fire(
+          'Good Job',
+          'Subject Name Added Successfully.',
+          'success')
+          subject_data()
+          
+        $("#add_subject_modal #close_subject").click();
+        document.getElementById("subject_name").value=""
+        }
+        else if (state == "missing_fields")
+        {
+        Swal.fire(
+          'Missing Subject Field',
+          'Type Subject System Name before submit',
+          'info')
+          subject_data()
+          
+        $("#add_subject_modal #close_subject").click();
+        document.getElementById("subject_name").value=""
+        }
+        else if (state == "duplicate")
+        {
+        Swal.fire(
+          'Duplicate',
+          'Subject Name already exists!',
+          'info')
+          subject_name()
+          
+        $("#add_subject_modal #close_subject").click();
+        document.getElementById("subject_name").value=""
+        }
+        else{
+          Swal.fire(
+          'Sorry',
+          'Something went wrong, refresh and try again.',
+          'error')
+        }
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  });
+  </script>
+<!-- End of educational system Modal -->
+
+<script>
+  $("form#add_exam_trial").submit(function (e) {
+    e.preventDefault();
+    var formData = new FormData(this);
+  
+    
+    $.ajax({
+      
+      url: '/exam_trial?add_exam_trial',
+      type: 'POST',
+      data: formData,
+      success: function (data) {
+        
+        state=data.state;
+        
+        if (state == "success")
+        {
+        Swal.fire(
+          'Good Job',
+          'Exam Trial Name Added Successfully.',
+          'success')
+          exam_trial_data()
+          
+        $("#add_exam_trial_modal #close_exam_trial").click();
+        document.getElementById("exam_trial_name").value=""
+        }
+        else if (state == "missing_fields")
+        {
+        Swal.fire(
+          'Missing Exam Trial Field',
+          'Type Exam Trial Name before submit',
+          'info')
+          exam_trial_data()
+          
+        $("#add_exam_trialmodal #close_exam_trial").click();
+        document.getElementById("exam_trial_name").value=""
+        }
+        else if (state == "duplicate")
+        {
+        Swal.fire(
+          'Duplicate',
+          'exam_trial Name already exists!',
+          'info')
+          exam_trial_data()
+          
+        $("#add_exam_trial_modal #close_exam_trial").click();
+        document.getElementById("exam_trial_name").value=""
+        }
+        else{
+          Swal.fire(
+          'Sorry',
+          'Something went wrong, refresh and try again.',
+          'error')
+        }
+      },
+      cache: false,
+      contentType: false,
+      processData: false
+    });
+  });
+  </script>
+  <script>
+    $("form#add_course").submit(function (e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+    
+      
+      $.ajax({
+        
+        url: '/course?add_course',
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          
+          state=data.state;
+          reason = data.reason
+          
+          if (state == "success")
+          {
+          Swal.fire(
+            'Good Job',
+            reason,
+            'success')
+           
+            
+          $("#add_course_modal #close_course").click();
+          $("#add_course_modal #course1").val("");
+          subject_data();
+          exam_trial_data();
+          get_course_data()
+          }
+
+          else if (state == "error")
+          {
+          $("#add_course_modal #close_course").click();
+          $("#add_course_modal #course1").val("");
+          subject_data();
+          exam_trial_data();
+          Swal.fire(
+            'Sorry',
+            reason,
+            'info')
+
+          }
+
+          else{
+            Swal.fire(
+            'Sorry',
+            'Something went wrong, refresh and try again.',
+            'error')
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    });
+    </script>
+
+
+
+<script>
+  $( document ).ready(function() {
+    get_assignation();
+    edu_system_data();
+    subject_data();
+    exam_trial_data();
+    get_course_data();
+  })
+</script>
+
+<script>
+  function get_course_data() {
+
+    let course = $('#course');
+    
+    course.val([]);
+    course.empty();
+    const url_course = '/get_course_data';
+
+
+    // Populate dropdown with list of provinces
+    $.getJSON(url_course, function (data_course) {
+      $.each(data_course, function (key_course, entry_course) {
+
+        if (entry_course.hold == true)
+        {
+          course.append($('<option disabled></option>').attr('value', entry_course.abbreviation).text(entry_course.course));
+        }
+        else
+        {
+          course.append($('<option></option>').attr('value', entry_course.abbreviation).text(entry_course.course));
+        }
+      
+      });
+      
+
+      $("#course").val([]);
+      $('#course').select2({ placeholder: 'Course Selection', closeOnSelect: false, allowClear: true });
+
+    });
+
+
+
+  }
+</script>
+
+</body>
+
+{% endblock %}

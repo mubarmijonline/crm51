@@ -1,0 +1,661 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+  </style>
+<body onload="get_clients_data();stock_name_select()">
+    
+
+  <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Stock In</u></h1></center>
+    <br>
+    <div class="card_customized" style="margin-left: 20%;margin-right: 20%;">
+      <center>
+        <br>
+        <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Stock In Transactions Form</u></h3></center>
+      <form id="add_client_form" name="add_client_form" >
+        <table>
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1" style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Country</label>
+                <br>
+                <input class="form-control" id="country" name="country" style="font-weight:bold" required>
+              
+              </div>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1" style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Stock Name</label>
+                <br>
+                <select class="form-control" id="stock_name" name="stock_name" style="font-weight:bold;width: 100%;" required>
+                </select>
+              
+              </div>
+
+
+              
+
+
+            </td>
+
+
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Container</label>
+                <input id="container" class="form-control" name="container"
+                  style="font-weight:bold;color:green" required value="1" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Number of Tons</label>
+                <input id="number_of_tons" class="form-control" name="number_of_tons"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color:green" required value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Ton Price ( $ )</label>
+                <input id="ton_price_usd" class="form-control" name="ton_price_usd"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color:green" required value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">USD Price</label>
+                <input id="usd_price" class="form-control" name="usd_price"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color:green" required value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+          </tr>
+
+          <hr>
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">جمارك</label>
+                <input class="form-control" id="gamarek" name="gamarek"
+                  style="font-weight:bold;color:red" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">مخلص</label>
+                <input required style="font-weight:bold;color:red" type="text"
+                  class="form-control" id="mo5ales" value="0" name="mo5ales" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="form-group"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">
+                <label for="exampleFormControlInput1">النقل</label>
+                <input required style="font-weight:bold;color:red" type="text"
+                  class="form-control" id="transportation" name="transportation" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">مصاريق العمال</label>
+                <input autofocus required style="font-weight:bold;color:red"
+                  type="text" class="form-control" id="employee_fees" name="employee_fees"
+                  value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Bank Expenses EGP</label>
+                <input required style="font-weight:bold;color:red;width: 70%;" type="text"
+                  class="form-control" id="bank_expenses_egp" name="bank_expenses_egp" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Bank Expenses USD</label>
+                <input required style="font-weight:bold;color:red;width: 70%;" type="text"
+                  class="form-control" id="bank_expenses_usd" name="bank_expenses_usd" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Bank Expenses Sory</label>
+                <input required style="font-weight:bold;color:red;width: 70%;" type="text"
+                  class="form-control" id="bank_expenses_sory" name="bank_expenses_sory" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onchange="calculate_total_cost()">
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1" style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Total Cost</label>
+                <input required style="background:transparent;border:none;font-weight:bold;color:darkcyan;" type="text"
+                  class="form-control" id="total_cost" name="total_cost" value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              </div>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1" style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Final Ton Price</label>
+                <input autofocus required style="background:transparent;border:none;font-weight:bold;color:darkcyan"
+                  type="text" class="form-control" id="ton_price_after_cost_egp" name="ton_price_after_cost_egp"
+                  value="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1" style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Agreement Date</label>
+                <input required style="font-weight:bold;color:black;" type="text"
+                  class="form-control" id="agreement_date" name="agreement_date" >
+              </div>
+              <script>
+                $('#agreement_date').datepicker({
+                  todayBtn: "linked",
+                  weekStart: 0,
+                  autoclose: true,
+                  todayHighlight: true,
+                  format: "yyyy-mm-dd",
+
+                });
+              
+
+                //console.log("A");
+              </script>
+            </td>
+            <td></td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">Received Date</label>
+                <input autofocus required style="font-weight:bold;color:black"
+                  type="text" class="form-control" id="received_date" name="received_date"
+                   >
+              </div>
+              <script>
+                $('#received_date').datepicker({
+                  todayBtn: "linked",
+                  weekStart: 0,
+                  autoclose: true,
+                  todayHighlight: true,
+                  format: "yyyy-mm-dd",
+
+                });
+              
+
+                //console.log("A");
+              </script>
+            </td>
+          </tr>
+        </table>
+        <hr>
+        
+          
+          <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary" >Save</button></div>
+        
+          <br>
+      </form>
+
+      <br>
+      <br>
+      <br>
+      </div>
+
+
+  <div class="card_customized">
+    <table id="clients_table" class="display" style="width:100%">
+
+      <br>
+      <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Stock In Transactions Table</u></h3>
+
+      
+      <br> 
+      <br> 
+      <br>  
+      <hr>
+        <thead>
+
+            <tr>
+                <th>ID</th>
+                <th>Stock ID</th>
+                <th>Stock Name</th>
+                <th>Country</th>
+                <th>Containers</th>
+                <th>Number of Tons</th>
+                <th>Ton Price $</th>
+                <th>USD Price</th>
+                <th>جمارك</th>
+                <th>مخلص</th>
+                <th>مصاريف النقل</th>
+                <th>مصاريف العمال</th>
+                <th>Bank Expenses EGP</th>
+                <th>Bank Expenses USD</th>
+                <th>Bank Expenses SORY</th>
+                <th>Total Cost</th>
+                <th>Final Ton Price</th>
+                <th>Agreement Date</th>
+                <th>Received Date</th>
+                <th>Added by</th>
+                <th>Added Date</th>
+                <th></th>
+            </tr>
+
+        </thead>
+        <tfoot>
+            <tr>
+                <th>ID</th>
+                <th>Stock ID</th>
+                <th>Stock Name</th>
+                <th>Country</th>
+                <th>Containers</th>
+                <th>Number of Tons</th>
+                <th>Ton Price $</th>
+                <th>USD Price</th>
+                <th>جمارك</th>
+                <th>مخلص</th>
+                <th>مصاريف النقل</th>
+                <th>مصاريف العمال</th>
+                <th>Bank Expenses EGP</th>
+                <th>Bank Expenses USD</th>
+                <th>Bank Expenses SORY</th>
+                <th>Total Cost</th>
+                <th>Final Ton Price</th>
+                <th>Agreement Date</th>
+                <th>Received Date</th>
+                <th>Added by</th>
+                <th>Added Date</th>
+                <th></th>
+            </tr>
+        </tfoot>
+    </table>
+
+  </div>
+
+
+    <script>
+
+        function get_clients_data() {
+
+
+            var table = $('#clients_table').DataTable({
+                ajax: { url: '/get_stock_in_DB_data', mimeType: 'json' },
+                deferRender: true,
+                columns: [
+                    { data: 'transaction_id' },
+                    { data: 'stock_id' },
+                    { data: 'stock_name' },
+                    { data: 'country' },
+                    { data: 'container' },
+                    { data: 'number_of_Tons' },
+                    { data: 'ton_price_usd' },
+                    { data: 'usd_price' },
+                    { data: 'gamarek' },
+                    { data: 'mo5ales' },
+                    { data: 'transportation' },
+                    { data: 'employee_fees' },
+                    { data: 'bank_expenses_egp' },
+                    { data: 'bank_expenses_usd' },
+                    { data: 'bank_expenses_sory' },
+                    { data: 'total_cost' },
+                    { data: 'ton_price_after_cost_egp' },
+                    { data: 'agreement_date' },
+                    { data: 'received_date' },
+                    { data: 'added_by' },
+                    { data: 'date' },
+                    {
+                        mRender: function (data, type, row) {
+
+                            return '<div class="btn-group"> <button  id="delete" type="button" class="btn btn-danger btn-xs dt-delete" onclick="delete_stock_in('+row.transaction_id+')"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Delete</button></div>'
+
+                        },
+                    }
+                    
+
+
+                ],
+
+
+                rowId: 'extn',
+                select: true,
+                paging: false,
+                dom: 'Bfrtip',
+                scrollX: true,
+                select: false,
+                "order": [[0, "desc"]],
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print',
+                    {
+                        text: 'Reload table',
+                        exportOptions: {
+                            columns: [0, 1, 2]
+                        },
+                        action: function () {
+                            table.ajax.reload();
+                        }
+                    }
+                ]
+
+            });
+
+
+        }
+
+    </script>
+
+
+<!-- Edit Client Modal -->
+<!-- Modal -->
+
+  <!-- Edit Client Modal -->
+
+
+
+  <!-- Add Client Modal -->
+<!-- Modal -->
+
+
+
+<script>
+  function stock_name_select() {
+    let dropdown = $('#stock_name');
+
+
+dropdown.empty();
+
+dropdown.append('<option selected="true" disabled value="">Choose Stock</option>');
+
+dropdown.prop('selectedIndex', 0);
+
+const url = '/stock_name_select';
+
+// Populate dropdown with list of provinces
+$.getJSON(url, function (data) {
+  $.each(data, function (key, entry) {
+    
+      dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.stock_id+" - ("+entry.stock_name+")"));
+
+    
+    
+  })
+ 
+
+
+
+
+});
+dropdown.select2();
+  }
+</script>
+<script>
+  function calculate_total_cost()
+  {
+    container = parseFloat(document.getElementById('container').value)
+    number_of_Tons = parseFloat(document.getElementById('number_of_tons').value)
+    ton_price_usd = parseFloat(document.getElementById('ton_price_usd').value)
+    usd_price = parseFloat(document.getElementById('usd_price').value)
+    gamarek = parseFloat(document.getElementById('gamarek').value)
+    mo5ales = parseFloat(document.getElementById('mo5ales').value)
+    transportation = parseFloat(document.getElementById('transportation').value)
+    employee_fees = parseFloat(document.getElementById('employee_fees').value)
+    bank_expenses_egp = parseFloat(document.getElementById('bank_expenses_egp').value)
+    bank_expenses_usd = parseFloat(document.getElementById('bank_expenses_usd').value)
+    bank_expenses_sory = parseFloat(document.getElementById('bank_expenses_sory').value)
+
+    multiplication = container*number_of_Tons*ton_price_usd*usd_price
+    expenses = gamarek + mo5ales + transportation + employee_fees + bank_expenses_egp + bank_expenses_usd + bank_expenses_sory
+
+    total_cost_final = multiplication + expenses
+    ton_price_final = total_cost_final / number_of_Tons
+    total_cost = document.getElementById('total_cost')
+    ton_price_after_cost_egp = document.getElementById('ton_price_after_cost_egp')
+    total_cost.value = total_cost_final.toFixed(2);
+    ton_price_after_cost_egp.value = ton_price_final.toFixed(2);
+
+
+
+   
+  }
+</script>
+
+<script>
+  $("form#add_client_form").submit(function (e) {
+    e.preventDefault();
+      var formData = new FormData(this);
+      var table = $('#clients_table').DataTable();
+      
+      $.ajax({
+        url: "/add_stock_in_to_db",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          var state = data.state
+
+
+              
+
+             if (state == 'fail_stock_name') {
+            Swal.fire(
+              'System Error',
+              'Error in Parsing Stock Name',
+              'error')
+              table.ajax.reload();
+
+            
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }          
+
+          else if (state == 'success') {
+            Swal.fire(
+              'Good Job',
+              'Stock In Transaction Added to your DB',
+              'success')
+              table.ajax.reload();
+            $("#add_client_close").click();
+            document.getElementById('add_client_form').reset();
+            stock_name_select();
+            
+           
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }
+          else
+          {
+            Swal.fire(
+              'Sorry',
+              'Something went wrong',
+              'error')
+              table.ajax.reload();
+            //$("#add_client_close").click();
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    
+  });
+</script>
+
+
+
+  <script>
+
+
+
+function update_client_data(id,update_value)
+{
+
+      url = "/update_stock_name?type=stock";
+
+      console.log(url);
+  
+
+    $.post(url, { stock_id:id,update_value:update_value}).done(function (response) {
+
+    state = response.state;
+    
+    if (state == "success") {
+
+    Swal.fire(
+        'Done!',
+        'Updated...',
+        'success');
+    $('#clients_table').DataTable().ajax.reload();
+    }
+
+    else if (state == "duplicate") {
+
+    Swal.fire(
+        'Duplicate Stock Name!',
+        'Try another one...',
+        'info');
+    $('#clients_table').DataTable().ajax.reload();
+    }
+
+
+    else {
+
+    Swal.fire(
+        'Hmmm',
+        'Something went wrong, try again in a few moments',
+        'error');
+    }
+    
+    
+
+    });
+}
+
+
+function update_client_data1(id,update_value)
+{
+
+      url = "/update_stock_name?type=bales";
+
+      console.log(url);
+  
+
+    $.post(url, { stock_id:id,update_value:update_value}).done(function (response) {
+
+    state = response.state;
+    
+    if (state == "success") {
+
+    Swal.fire(
+        'Done!',
+        'Updated...',
+        'success');
+    $('#clients_table').DataTable().ajax.reload();
+    }
+
+    else if (state == "duplicate") {
+
+    Swal.fire(
+        'Duplicate Stock Name!',
+        'Try another one...',
+        'info');
+    $('#clients_table').DataTable().ajax.reload();
+    }
+    else if (state == "not_int") {
+
+Swal.fire(
+    'Not Updated',
+    'Bales / Ton must be a number',
+    'error');
+$('#clients_table').DataTable().ajax.reload();
+}
+
+    else {
+
+    Swal.fire(
+        'Hmmm',
+        'Something went wrong, try again in a few moments',
+        'error');
+    }
+    
+    
+
+    });
+}
+
+function delete_stock_in(id)
+{
+
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, delete it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      $.post("/delete_stock_in", { transaction_id:id  }).done(function (response) {
+        state = response.state;
+
+        //setTimeout(() => {  window.location.replace("/logout"); }, 3000);
+
+        if (state == "success") {
+        
+          Swal.fire({
+            icon: 'success',
+            title: 'Deleted!',
+            text: 'Transaction has been deleted.',
+            showConfirmButton: false,
+            showCancelButton: false
+          });
+          $('#clients_table').DataTable().ajax.reload();
+
+      }
+
+
+
+        else {
+          Swal.fire(
+            'Hmmm',
+            'Something went wrong, try again in a few moments',
+            'error');
+        }
+
+      });
+    }
+  });
+
+}
+  </script>
+
+
+
+
+
+</body>
+
+{% endblock %}

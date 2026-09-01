@@ -1,0 +1,824 @@
+function get_my_types() {
+    $.post("/home?get_my_types").done(function (response) {
+      price_list = response.price_list
+      types = response.types
+
+      document.getElementById('type_LIST').value = types
+      if (types != "" && types != null) {
+        types = types.split(";;;;")
+        price = price_list.split(";;;;")
+        const code = document.getElementById('code').value
+
+        for (let i = 0; i < types.length; i++) {
+          $('#types').append('<label>&nbsp;' + types[i] + ' | Hour&nbsp;</label>')
+          $('#types').append('<input readonly id="' + types[i] + code + '" value=' + price[i] + ' style="width:15%;font-weight: bold;background:transparent;"name="">')
+
+        }
+
+      }
+    });
+
+  }
+
+  function get_table() {
+
+    var table = $('#ps_calculator_table').DataTable();
+    table.destroy();
+    
+       
+   document.getElementById("ps_calculator_table").style="width:100%"
+    $.post("/home?get_new_time").done(function (response) { table.ajax.reload() });
+
+    var table = $('#ps_calculator_table').DataTable({
+      processing: true,
+      serverSide: false,
+      ajax: { url: '/get_ps_table', mimeType: 'json' },
+      deferRender: true,
+      "createdRow": function (row, data, dataIndex) {
+
+        if (data.start != null && data.end == null) {
+          $(row).addClass('blue');
+
+        }
+        else if (data.start != null && data.end != null) {
+          $(row).addClass('yellow');
+
+        }
+
+
+      },
+      columns: [
+        { data: 'id', visible: false },
+        { data: 'room' },
+        {
+          mRender: function (data, type, row) {
+            title_id = row.id
+
+            if (row.title == null) {
+
+              return '<input type="text" maxlength="30" class="form-control"  id="title' + title_id + '" >  ';
+            }
+            else {
+              return '<input type="text"  maxlength="30" class="form-control" value=\'' + row.title + '\' id="title' + title_id + '" >  ';
+            }
+
+          }
+        },
+        {
+          mRender: function (data, type, row) {
+
+            var returnValue = '<select class="form-control" id="single_multi' + row.id + '" ><option selected disabled value="">Choose Type</option>';
+            types_LIST = document.getElementById('type_LIST').value;
+            var listItems = "";
+            if (Number(types_LIST.length) > 0) {
+              types = types_LIST.split(";;;;")
+
+              for (let i = 0; i < types.length; i++) {
+                if (row.single_multi == types[i])
+                  listItems += "<option selected>" + types[i] + "</option>"
+                else {
+                  listItems += "<option>" + types[i] + "</option>"
+                }
+              }
+            }
+            //return '<select class="form-control" id="single_multi' + select_id + '" ><option selected  disabled value=""></option></select>';get_my_select("single_multi"+row.id,row.single_multi);
+            return returnValue.concat(listItems, "</select>");
+
+
+
+          }
+        },
+
+        {
+          mRender: function (data, type, row) {
+            start_id = row.id
+
+            if (row.start == null) {
+              
+              return '<input readonly  style="background:white;"  type="text" class="form-control"   id="start' + start_id + '" >  ';
+            }
+            else {
+              //counter_variable = count+row.id
+              //get_counter(row.id,row.full_start,row.full_end)
+              return '<input readonly  style="background:white;"  class="form-control"  type="text"  value=\'' + row.start + '\' id="start' + start_id + '" >  ';
+            }
+
+          }
+        },
+        {
+          mRender: function (data, type, row) {
+
+            if(row.full_start == null && row.full_end == null)
+            {
+              return '<input readonly style="background:white;"  type="text" class="form-control"  value="" id="counter_null' + row.id + '" >  ';
+            }
+            else if (row.full_start != null && row.full_end == null)
+            {
+              get_counter(row.id,row.full_start,"start")
+              return '<input readonly style="background:white;"  type="text" class="form-control"  id="counter' + row.id + '" >  ';
+              
+            }
+            else
+            {
+              get_counter(row.id,row.full_start,"stop")
+              return '<input readonly style="background:white;"  type="text" class="form-control" value="Ended"  id="counter_end' + row.id + '" >  ';
+            }
+
+
+          }
+        },
+        {
+          mRender: function (data, type, row) {
+            end_id = row.id
+
+            if (row.end == null) {
+              return '<input type="text" readonly style="background:white;" class="form-control"  id="end' + end_id + '" >  ';
+            }
+            else {
+             
+              return '<input type="text"  readonly style="background:white;" class="form-control" value=\'' + row.end + '\' id="end' + end_id + '" >  ';
+            }
+          }
+        },
+
+
+        {
+          visible: false,
+          mRender: function (data, type, row) {
+            minutes_id = row.id
+            if (row.total_minutes == null) {
+              return '<input readonly style="background:transparent;" type="text" class="form-control" id="minutes' + minutes_id + '" >  ';
+            }
+            else {
+              return '<input readonly style="background:transparent;" type="text" class="form-control" value=\'' + row.total_minutes + '\' id="minutes' + minutes_id + '" >  ';
+
+            }
+
+          }
+        },
+        {
+          visible: false,
+          mRender: function (data, type, row) {
+            amount_id = row.id
+            if (row.amount == null) {
+              return '<input type="text" readonly style="background:transparent;" class="form-control" id="amount' + amount_id + '" >  ';
+            }
+            else {
+              return '<input   type="text" readonly style="background:transparent;" class="form-control" value=\'' + row.amount + '\' id="amount' + amount_id + '" >  ';
+            }
+
+          }
+        },
+        {
+          mRender: function (data, type, row) {
+            
+            if (row.title == null || row.single_multi == null || row.single_multi == "") {
+              return '<button id="start_time' + row.id + '"  disabled type="button" class="btn btn-primary btn-xs dt-edit"  style="width:106px;height:37.6px;">Start Now</button> <button id="end_time' + row.id + '"  disabled type="button" data-toggle="modal" data-target="#end_time_modal" class="btn btn-danger" style="width:106px;height:37.6px;">End Now</button> <button style="width:106px;height:37.6px;" disabled id="pick_time' + row.id + '"  type="button"   class="btn btn-info btn-xs dt-edit" data-toggle="modal" data-target="#pick_time_form">Pick Time</button> <button style="width:106px;height:37.6px;" disabled id="reset' + row.id + '" type="button" class="btn btn-warning btn-xs dt-delete">Reset</button>'
+            }
+            else if (row.start == null && row.end == null) {
+              return ' <button style="width:106px;height:37.6px;" id="start_time' + row.id + '"  type="button" class="btn btn-primary btn-xs dt-edit" >Start Now</button> <button style="width:106px;height:37.6px;" id="end_time' + row.id + '"  disabled type="button" data-toggle="modal" data-target="#end_time_modal" class="btn btn-danger" >End Now</button> <button style="width:106px;height:37.6px;" id="pick_time' + row.id + '"  type="button"   class="btn btn-info btn-xs dt-edit" data-toggle="modal" data-target="#pick_time_form" >Pick Time</button> <button style="width:106px;height:37.6px;" disabled id="reset' + row.id + '" type="button" class="btn btn-warning btn-xs dt-delete">Reset</button>'
+            }
+            else if (row.start != null && row.end == null) {
+
+              return ' <button style="width:106px;height:37.6px;" id="start_time' + row.id + '"  disabled type="button" class="btn btn-primary btn-xs dt-edit" >Start Now</button> <button style="width:106px;height:37.6px;" id="end_time' + row.id + '"   type="button" class="btn btn-danger" >End Now</button><button style="width:106px;height:37.6px;" id="pick_time' + row.id + '"  type="button"   data-toggle="modal" data-target="#pick_time_form" class="btn btn-info btn-xs dt-edit" >Pick Time</button>  <button style="width:106px;height:37.6px;"  id="reset' + row.id + '" type="button" class="btn btn-warning btn-xs dt-delete">Reset</button>'
+
+            }
+            else {
+              return ' <button style="width:106px;height:37.6px;" id="resume' + row.id + '"  type="button"  class="btn btn-info btn-xs dt-edit" >Resume</button> <button style="width:106px;height:37.6px;" id="calculate' + row.id + '"  data-toggle="modal" data-target="#end_time_modal" type="button" class="btn btn-success" >Calculate</button> <button style="width:106px;height:37.6px;" id="reset' + row.id + '" type="button" class="btn btn-warning btn-xs dt-delete">Reset</button>'
+
+            }
+
+          },
+        }
+        
+
+      ],
+
+      targets: -1,
+      rowId: 'extn',
+      select: true,
+      paging: false,
+      dom: 'Bfrtip',
+      scrollX: true,
+      select: false,
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+    },
+      responsive: true,
+      "order": [[0, "asc"]],
+      buttons: [
+
+        {
+          text: 'Reload table',
+          action: function () {
+            table.ajax.reload();
+            run_card();
+          }
+        },
+      ]
+
+    });
+    $('#ps_calculator_table tbody').on('click', 'tr', function () {
+      if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+        // true for mobile device
+        //console.log("I am in your mobile")
+
+        var table = $('#ps_calculator_table').DataTable()
+        var action = this.id;
+        var data = table.row($(this).parents('tr')).data();
+
+
+      }
+
+    })
+
+    $('#ps_calculator_table tbody').on('click', 'button', function () {
+
+      var table = $('#ps_calculator_table').DataTable()
+      var action = this.id;
+      var data = table.row($(this).parents('tr')).data();
+      var id = data.id;
+      var room = data.room
+      if (action == 'start_time' + id) {
+
+        var today = new Date();
+        var date = today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate();
+        var time = today.getHours() + ":" + today.getMinutes()
+        var CurrentDate = moment();
+        var CurrentDate = moment().format('YYYY-MM-DDTHH:mm:ss');
+        var dateTime = CurrentDate
+
+        document.getElementById('start' + id).value = dateTime
+        document.getElementById('start' + id).value = dateTime
+
+        $.post("/home?change_start", { start: dateTime, id: data.id }).done(function (response) { table.ajax.reload();run_card() });
+        document.getElementById('end_time' + id).disabled = false;
+        document.getElementById('reset' + id).disabled = false;
+        document.getElementById('start_time' + id).disabled = true;
+        document.getElementById('datetime_start').value = dateTime
+        document.getElementById('datetime_end').disabled = false
+
+      }
+      else if (action == 'pick_time' + id) {
+        document.getElementById('id2').value = id
+        document.getElementById('room2').value = room
+        $.post("/home?get_dates", { id: id }).done(function (response) { 
+          start_date = response.start_date
+          end_date = response.end_date
+          //console.log(start_date,end_date)
+          //document.getElementById("datetime_start").value=start_date
+          //document.getElementById("datetime_end").value=end_date
+          if (start_date === null && end_date === null){
+            document.getElementById("datetime_start").value=""
+            document.getElementById('datetime_end').disabled = true;
+        }
+        else if (start_date != null && end_date === null){
+            end_date = ''
+            document.getElementById("datetime_start").value=start_date
+            //console.log("AFTER CLOT"+start_date)
+            document.getElementById('datetime_end').disabled = false;
+        }
+          else{
+           document.getElementById("datetime_start").value=start_date
+           document.getElementById("datetime_end").value=end_date 
+          document.getElementById('datetime_end').disabled = false;
+        }
+
+         });
+
+      }
+      else if (action == 'end_time' + id) {
+
+        var today = new Date();
+        var date = today.getFullYear() + '/' + (today.getMonth() + 1) + '/' + today.getDate();
+        var time = today.getHours() + ":" + today.getMinutes()
+        var CurrentDate = moment();
+        var CurrentDate = moment().format('YYYY-MM-DDTHH:mm:ss');
+        var dateTime = CurrentDate
+        document.getElementById('end' + id).value = dateTime
+        $.post("/home?change_end", { id: id, end: dateTime }).done(function (response) { table.ajax.reload();run_card() });
+      }
+      else if (action == 'calculate' + id) {
+
+
+        $.post("/home?get_minutes", { id: id }).done(function (response) {
+          state = response.state
+          if (response.state == "success") {
+            const code = document.getElementById('code').value
+            start = document.getElementById('start' + id).value
+            end = document.getElementById('end' + id).value
+            title = document.getElementById('title' + id).value
+            single_multi = document.getElementById('single_multi' + id).value
+            var resultInMinutes = Number(response.minutes)
+            //console.log("H0" + resultInMinutes)
+            type_hour_value = document.getElementById(single_multi + code).value
+            var single_minute = Number(type_hour_value) / 60;
+            var total_amount = Number(single_minute * resultInMinutes)
+            var total_amount = parseFloat(total_amount.toFixed(2))
+            
+            document.getElementById('id1').value = id
+            document.getElementById('title_modal').value = title
+            document.getElementById('room_ps_modal').value = room
+            document.getElementById('total_minutes1').value = resultInMinutes
+            
+            document.getElementById('total_amount1').value = total_amount
+            document.getElementById('total_hours').value = parseFloat(Number(resultInMinutes / 60).toFixed(2))
+            document.getElementById('time_start1').value = start
+            document.getElementById('time_end1').value = end
+            document.getElementById('multi_single1').value = single_multi
+            document.getElementById('total_paid').value = ""
+            document.getElementById('discount').value = "0%"
+          }
+          else {
+            $("#close_modal_please").click();
+            table.ajax.reload();
+            run_card();
+            Swal.fire(
+              'Sorry',
+              'Something went Wrong',
+              'error')
+
+          }
+        });
+
+        //$.post("/home?change_end", { id: id, end: end }).done(function (response) { table.ajax.reload() });
+
+      }
+      if (action == 'reset' + id) {
+        Swal.fire({
+          title: 'Are your sure ?',
+          text: "Data will be lost and cannot be restored",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, Reset'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            reset_all(id)
+
+          }
+        })
+
+      }
+      if (action == 'resume' + id) {
+        Swal.fire({
+          title: 'Are your sure to resume time ?',
+          text: "",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, Resume'
+        }).then((result) => {
+          if (result.isConfirmed) {
+
+            reset_row(id)
+
+
+          }
+        })
+
+      }
+
+
+
+    });
+    $('#ps_calculator_table tbody').on('change', 'input', function () {
+
+
+      var data = table.row($(this).parents('tr')).data();
+      var id = data.id
+      title_new = document.getElementById('title' + id).value
+      start_new = document.getElementById('start' + id).value
+      single_multi_new = document.getElementById('single_multi' + id).value
+
+      if (single_multi_new != "" && single_multi_new != null) {
+        $.post("/home?change_input", { id: id, title: title_new,  single_multi: single_multi_new }).done(function (response) { table.ajax.reload();run_card() });
+      }
+
+      //if (start_new != "" )
+      //{
+
+
+
+      //}
+
+
+
+    });
+    $('#ps_calculator_table tbody').on('change', 'select', function () {
+
+
+      var data = table.row($(this).parents('tr')).data();
+      var id = data.id
+      single_multi_new = document.getElementById('single_multi' + id).value
+      title_new = document.getElementById('title' + id).value
+
+
+      $.post("/home?change_select", { id: id, single_multi: single_multi_new, title: title_new }).done(function (response) { table.ajax.reload();run_card() });
+
+    });
+
+    
+  }
+
+
+
+
+
+  function get_counter_stepdown(id, end_time,end_after ,status) {
+                
+        var interval_Array;
+        
+        
+        interval_Array = setInterval( begin_timer, 3000);
+
+        function begin_timer() {
+        
+        let d1 = new Date();
+        let d2 = new Date(end_time.replace('-', '/'));
+
+        let diff = d2 - Date.parse(d1);
+
+        let diff_min = Math.round(diff / 1000 / 60);
+        let diff_min_str = (diff / 1000 / 60);
+
+        console.log("d1: "+Date.parse(d1));
+        console.log("d2: "+ d2);
+
+        console.log(typeof diff_min_str);
+
+        console.log("THIS IS DIFF"+diff)
+        if (document.getElementById('time_counter_end_after'+end_after+id) === null   )
+        {
+            
+            console.log("HERE IN")
+            clearInterval(interval_Array)
+            run_card()
+        }
+        else if (Number(diff) <= 0 && document.getElementById('time_counter_end_after'+end_after+id) != null)
+        {
+          console.log("HERE OUT")
+          end_after_interval(id)
+          clearInterval(interval_Array)
+          run_card()
+          var audio = new Audio('./static/sound/notification1.wav');
+          audio.play();
+          audio.play();
+          audio.play();
+          audio.play();
+        }
+        else
+        {
+        //document.getElementById('time_counter_end_after' +end_after+id).value = diff_min.toString();
+        $('#time_counter_end_after'+end_after+id).val(diff_min);
+      }
+      
+        }
+    }
+
+
+                function get_counter(id, start_time, status) {
+                
+                var interval_Array;
+                    
+                    
+                    interval_Array = setInterval( begin_timer, 3000);
+
+                    function begin_timer() {
+
+                    let d1 = Date.parse(start_time.replace('/-/g', '/'));
+                    let d2 = new Date();
+                      
+                    //var diff = Math.abs(d2.getTime() - d1.getTime());
+                    let diff = Date.parse(d2) - d1;
+                    let diff_min = Math.round(diff / 1000 / 60);
+                    let diff_min_str = (diff / 1000 / 60);
+
+                    console.log("Start Time: "+ start_time);
+                    console.log("Start Time Type: "+ typeof start_time);
+                    console.log("d1: "+d1);
+                    console.log("d2 : "+d2);
+
+                    console.log("d1 parse: "+ d1);
+                    console.log("d2 parse: "+Date.parse(d2));
+
+                    console.log("diff: "+diff);
+
+                    console.log(typeof diff_min_str);
+
+                    ////console.log("A " + id);
+                    //document.getElementById('time_counter' + id).value;
+                    //document.getElementById('counter' + id).value;
+                    ////console.log("MY COUNTER    "+diff_min)
+                    if (document.getElementById('time_step_counter' + id) === null && document.getElementById('time_counter' + id) === null )
+                    {
+                        //console.log("here")
+                        clearInterval(interval_Array)
+                    }
+                    else
+                    {
+                    //document.getElementById('counter' + id).value = diff_min.toString();
+                    $('#counter'+id).val(diff_min);
+                    //document.getElementById('time_counter' + id).value = diff_min.toString();
+                    $('#time_counter'+id).val(diff_min);
+                  }
+                  
+                    }
+                }
+
+
+function reset_row(reset_id) {
+  var table = $('#ps_calculator_table').DataTable()
+
+  $.post("/home?change_end_reset", { id: reset_id }).done(function (response) { table.ajax.reload();run_card() });
+  document.getElementById('end' + reset_id).value = null
+
+}
+
+
+function reset_all(reset_id) {
+  var table = $('#ps_calculator_table').DataTable()
+
+  $.post("/home?reset_all", { id: reset_id }).done(function (response) { table.ajax.reload();run_card() });
+
+}
+
+function discount_script(val) {
+  amounto = document.getElementById('total_amount1').value
+  discount = Number(100 - (val / amounto * 100))
+  if (discount < 0 || amounto == 0 || val == 0) {
+    discount = 0
+  }
+  document.getElementById('discount').value = parseFloat(discount.toFixed(2)) + "%"
+
+}
+
+function isNegative(num) {
+  if (Math.sign(num) === -1) {
+    return true;
+  }
+
+  return false;
+}
+
+            
+
+
+
+
+
+$(document).ready(function () {
+
+  $("#dtBox_start").DateTimePicker({
+    dateTimeFormat: "yyyy-MM-dd hh:mm:ss",
+    inputChangeEvent: date_change(),
+
+    
+  });
+  $("#dtBox_end").DateTimePicker({
+    dateTimeFormat: "yyyy-MM-dd hh:mm:ss"
+  });
+
+
+});
+
+
+
+
+function date_change() {
+  date_start = document.getElementById('datetime_start').value;
+  date_end = document.getElementById('datetime_end').value;
+  id = document.getElementById('id2').value;
+  //console.log("I am in datechange")
+  //console.log(date_start)
+
+  if (date_start != "" ) {
+    //console.log("NULLAWY")
+
+    document.getElementById('datetime_end').disabled = false;
+  }
+  else if (date_start == null || date_start == "") {
+
+    document.getElementById('datetime_end').value = "";
+    document.getElementById('datetime_end').disabled = true;
+  }
+
+}
+
+
+
+              function pick_certain_time() {
+                var table = $('#ps_calculator_table').DataTable()
+                date_start = document.getElementById('datetime_start').value;
+                date_end = document.getElementById('datetime_end').value;
+                id = document.getElementById('id2').value;
+                if (date_start == "" && date_end == "" )
+                {
+                   
+                    Swal.fire(
+                      'Date Error',
+                      'Kindly choose date',
+                      'error')
+                  
+                }
+                else if ((date_start != "") && (date_end == "")) {
+          
+                  $.post("/home?change_start", { start: date_start, id: id }).done(function (response) { table.ajax.reload();run_card() });
+                  $('#close_me').click()
+          
+                  document.getElementById('datetime_start').value = null;
+          
+                }
+                else {
+          
+                  $.post("/home?change_start", { start: date_start, id: id }).done(function (response) { });
+                  $.post("/home?change_end", { end: date_end, id: id }).done(function (response) { table.ajax.reload();run_card() });
+                  $('#close_me').click()
+          
+                  document.getElementById('datetime_start').value = null;
+                  document.getElementById('datetime_end').value = null;
+                }
+              }
+
+
+
+              function pick_close()
+              {
+                document.getElementById('datetime_start').value='';
+                document.getElementById('datetime_end').value='';
+                document.getElementById('datetime_end').disabled = true;
+              }
+
+
+              function get_history_table() {
+
+                //console.log("B");
+
+                var table1 = $('#ps_calculator_history').DataTable();
+                table1.destroy();
+                var date = document.getElementById("report_date").value;
+                var table = $('#ps_calculator_history').DataTable({
+                  ajax: { url: '/get_ps_history_table?date=' + date, mimeType: 'json' },
+                  deferRender: true,
+                  columns: [
+                    { data: 'id', visible: false },
+                    { data: 'room' },
+                    { data: 'title' },
+                    { data: 'single_multi' },
+                    { data: 'start' },
+                    { data: 'end' },
+                    { data: 'total_minutes' },
+                    { data: 'total_hour' },
+                    { data: 'amount' },
+                    { data: 'money_paid' },
+                    { data: 'time_amount' },
+                    { data: 'food_beverage_money' },
+                    { data: 'discount' },
+                    { data: 'added_by' },
+                    { data: 'modified_date',visible: false },
+                    {
+                      mRender: function (data, type, row) {
+          
+                        return '<div class="btn-group"><button  id="delete" type="button" class="btn btn-danger btn-xs dt-delete"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Delete</button></div>'
+          
+          
+          
+                      },
+                    }
+          
+          
+                  ],
+          
+          
+                  rowId: 'extn',
+                  "oLanguage": {
+                    "sEmptyTable": "Sorry, No Transactions for this Month .. عفوا لا توجد معاملات في هذا الشهر"
+                  },
+                  select: true,
+                  paging: true,
+                  dom: 'Bfrtip',
+                  scrollX: true,
+                  select: false,
+                  "order": [[14, "desc"]],
+                  buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print',
+                    {
+                      text: 'Reload table',
+                      exportOptions: {
+                        columns: [0, 1, 2]
+                      },
+                      action: function () {
+                        table.ajax.reload();
+                        
+                      }
+                    }
+                  ]
+          
+                });
+          
+          
+                $('#ps_calculator_history tbody').on('click', 'button', function () {
+          
+                  var table = $('#ps_calculator_history').DataTable()
+                  var action = this.id;
+                  var data = table.row($(this).parents('tr')).data();
+                  var id = data.id;
+          
+                  if (action == "delete") {
+          
+          
+                    Swal.fire({
+                      title: 'Are you sure?',
+                      text: "You won't be able to revert this!",
+                      icon: 'warning',
+                      showCancelButton: true,
+                      confirmButtonColor: '#3085d6',
+                      cancelButtonColor: '#d33',
+                      confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        $.post("/home?delete_time", { id: id }).done(function (response) {
+          
+                          state = response.state
+                          if (state == "success") {
+                            Swal.fire(
+                              'Good Job',
+                              'Record Deleted Successfully',
+                              'success')
+          
+                            table.ajax.reload();
+                            income_12_hour();
+                          }
+                          else if (state == "not_admin")
+                          {
+                            Swal.fire(
+                              'Hmmm',
+                              'Not Authorized.',
+                              'error');
+                          }
+                          else {
+                            Swal.fire(
+                              'Sorry',
+                              'Something Went Wrong',
+                              'error')
+                          }
+          
+          
+                        });
+          
+                      }
+          
+                    })
+          
+          
+          
+                  }
+          
+                })
+          
+          
+          
+              }
+
+
+function food_select()
+{
+  let dropdown = $('#food_beverage_select');
+  
+  $('.modal #food_quantity').val(1)
+  dropdown.empty();
+
+  dropdown.append('<option selected="true" disabled value="">Choose Item</option>');
+  dropdown.prop('selectedIndex', 0);
+
+  const url = '/food_data';
+
+  // Populate dropdown with list of provinces
+  $.getJSON(url, function (data) {
+    $.each(data, function (key, entry) {
+      dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.product));
+    })
+    $('#food_beverage_select').select2({
+      dropdownParent: $('#food_beverage_modal')
+  });
+
+  });
+}
+
+function runner()
+{
+  //console.log("diab");
+
+  get_history_table();
+  get_my_types();
+  get_table();
+  
+  list_view();
+  run_card();
+  income_12_hour()
+  
+  food_select()
+
+}

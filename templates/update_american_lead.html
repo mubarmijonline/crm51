@@ -1,0 +1,1342 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+
+
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+
+
+
+  ::selection {
+    color: #fff;
+    background: #664AFF;
+  }
+
+  .containerss {
+    max-width: 600px;
+    width: 500px;
+    margin: 30px auto;
+  }
+
+  .containerss .searchInput {
+    background: #fff;
+    width: 100%;
+    border-radius: 5px;
+    position: relative;
+    box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .searchInput input {
+    height: 55px;
+    width: 100%;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding: 0 60px 0 20px;
+    font-size: 18px;
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .searchInput.active input {
+    border-radius: 5px 5px 0 0;
+  }
+
+  .searchInput .resultBox {
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .searchInput.active .resultBox {
+    padding: 10px 8px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .resultBox li {
+    list-style: none;
+    padding: 8px 12px;
+    display: none;
+    width: 100%;
+    cursor: default;
+    border-radius: 3px;
+  }
+
+  .searchInput.active .resultBox li {
+    display: block;
+  }
+
+  .resultBox li:hover {
+    background: #efefef;
+  }
+
+  .searchInput .icon {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 55px;
+    width: 55px;
+    text-align: center;
+    line-height: 55px;
+    font-size: 20px;
+    color: maroon;
+    cursor: pointer;
+  }
+
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked+.slider {
+    background-color: #2196F3;
+  }
+
+  input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+
+  input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+</style>
+
+<body>
+
+
+  <br>
+
+  <div class="containerss">
+    <div class="searchInput">
+      <input type="text" id="seacrch_input_box" placeholder="Search for Leads">
+      <div class="resultBox">
+        <!-- here list are inserted from javascript -->
+      </div>
+      <div class="icon" onclick="clear_data()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+  </div>
+
+  <div id="update_section" style="display: none;">
+    <div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
+
+
+      <center>
+        <br>
+        <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Search and Update Education Lead Form</u>
+        </h3>
+      </center>
+      <form id="update_american_lead" name="update_american_lead">
+        <table cellpadding="10">
+          <tr>
+            <div class="form-group">
+
+              <label for="exampleFormControlInput1"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Student
+                ID</label>
+              <br>
+              <input class="form-control" maxlength="16" id="student_id" name="student_id" readonly
+                style="font-weight:bold;color:gray;background-color: white;border:none" required
+                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+            </div>
+
+          </tr>
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Student
+                  Mobile</label>
+                <br>
+                <input class="form-control" maxlength="16" id="student_mobile" name="student_mobile"
+                  style="font-weight:bold;color:gray" required
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Name</label>
+                <input id="student_name" class="form-control" name="student_name" maxlength="100"
+                  style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+              </div>
+
+            </td>
+
+
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Parent
+                  Mobile</label>
+                <br>
+                <input class="form-control" maxlength="16" id="parent_mobile" name="parent_mobile"
+                  style="font-weight:bold;color:gray"
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Gender</label>
+                <select id="gender" name="gender" class="form-control"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;width: 3000px;max-width: 300px;">
+                  <option value="" disabled selected>Choose gender</option>
+                  <option>Male</option>
+                  <option>Female</option>
+                </select>
+
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Year</label>
+                <input type="text" class="form-control" name="year" id="year">
+
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">School</label>
+                <input id="school" class="form-control" name="school" maxlength="100"
+                  style="font-weight:bold;color:gray;width: 600px;max-width: 600px;">
+              </div>
+
+
+            </td>
+          </tr>
+
+          <hr>
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <!-- educational system -->
+
+                <label for="educational_system"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Educational
+                  System</label>
+                <select required type="text" class="form-control" maxlength="50" id="educational_system"
+                  placeholder="Choose Educational System" name="educational_system" id="educational_system"></select>
+
+              </div>
+
+              <script>
+                function edu_system_data(edu_input) {
+                  let dropdown = $('#educational_system');
+
+                  dropdown.empty();
+
+                  dropdown.append($('<option disabled value="">Choose Educational System</option>'))
+                  const url = '/get_educational_system_data';
+
+                  // Populate dropdown with list of provinces
+
+                    dropdown.append($('<option selected></option>').attr('value', edu_input).text(edu_input));
+
+                  $.getJSON(url, function (data) {
+                    $.each(data, function (key, entry) {
+                      
+                      if ( edu_input !== entry.educational_system  ) {
+                        
+                        dropdown.append($('<option></option>').attr('value', entry.educational_system).text(entry.educational_system));
+                      }
+                    });
+
+                    
+                    dropdown.select2();
+
+                  });
+
+                }
+              </script>
+
+            </td>
+
+
+
+          </tr>
+
+
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <!-- educational system -->
+
+                <label for="exam_trial"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
+                <select id="course" name="course[]" class="form-control" multiple="multiple"
+                  style="width: 600px;max-width: 600px;" required >
+
+                </select>
+
+
+
+              </div>
+
+
+            </td>
+            <td>
+              <button data-toggle="modal" type="button" class="btn btn-secondary"
+              data-target="#course_status_modal">Course Status</button>
+            
+              <button type="button" title="Add Course to list" class="btn btn-danger" style="height: 40%;" data-toggle="modal"
+            data-target="#add_course_modal"><i class="fa-solid fa-plus"> quick add courses </i></button>
+            </td>
+
+
+
+
+          </tr>
+
+
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
+                <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text"
+                  class="form-control" id="email" type="email" name="email" maxlength="70">
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Source</label>
+                <input style="font-weight:bold;color:gray;width: 50;" type="text" class="form-control" id="source"
+                  name="source">
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
+                <select required id="status" name="status" class="form-control"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;"
+                  onchange="check_status(this.value,'')">
+                  <option value="">Select Status</option>
+                  <option value="enrol">Enrol</option>
+                  <option value="pending">Pending</option>
+                  <option value="not_interested">Not Interested</option>
+                </select>
+              </div>
+            </td>
+
+
+            <td>
+              <div class="form-group" id="recall_date_section">
+
+                <label for="recall_date"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
+                  Date</label>
+                <input
+                  style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
+                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
+
+              </div>
+              <script>
+                $('#recall_date').datepicker({
+                  todayBtn: "linked",
+                  weekStart: 0,
+                  autoclose: true,
+                  todayHighlight: true,
+                  format: "yyyy-mm-dd",
+
+                });
+
+              </script>
+
+              <div class="form-group" id="not_interested_notes_section" disabled hidden>
+
+                <label for="recall_date"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Reason</label>
+                <input
+                  style="text-align:center;color:gray;font-size:15px;background-color: white; height:calc(1.5em + .75rem + 2px);"
+                  type="text" class="form-control" id="not_interested_notes" name="not_interested_notes" >
+
+              </div>
+
+              <div class="form-group" id="edu_student_id_section" disabled hidden>
+
+                <label for="recall_date"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Edu
+                  Student ID</label>
+                <input
+                  style="text-align:center;color:gray;font-size:15px;background-color: white; height:calc(1.5em + .75rem + 2px);"
+                  type="text" class="form-control" id="edu_student_id" name="edu_student_id" 
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+              </div>
+            </td>
+
+          </tr>
+
+          <!-- Trail -->
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="trial"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Trial</label>
+                <select required id="trial" name="trial" class="form-control"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_trial()">
+                  <option value="0" selected>No</option>
+                  <option value="1">Yes</option>
+                </select>
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group" id="sat_scores" disabled hidden>
+                <label for="trial"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Sat
+                  Scores</label>
+                <input type="text" class="form-control" id="math" name="math" placeholder="Maths Score" default="0"
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                <input type="text" class="form-control" id="english" name="english" placeholder="English Score"
+                  default="0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                <input type="text" class="form-control" id="other" name="other" placeholder="Other Score" default="0"
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              </div>
+            </td>
+
+          </tr>
+
+          <script>
+            function check_trial() {
+              val = document.getElementById('trial').value
+              if (val == '1') {
+                document.getElementById('sat_scores').disabled = false;
+                document.getElementById('sat_scores').hidden = false;
+              }
+              else if (val == '0') {
+                document.getElementById('sat_scores').disabled = true;
+                document.getElementById('sat_scores').hidden = true;
+                document.getElementById('math').value = '';
+                document.getElementById('english').value = '';
+                document.getElementById('other').value = '';
+              }
+            }
+          </script>
+
+          <!-- Trail -->
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
+                <select id="deposit" name="deposit" class="form-control"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">
+                  <option value="" disabled selected></option>
+                  <option value=1>YES</option>
+                  <option value=0>NO</option>
+                </select>
+
+              </div>
+            </td>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
+                  to</label>
+                <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple"
+                  style="width: 600px;max-width: 600px;">
+
+                </select>
+              </div>
+
+
+
+            </td>
+          </tr>
+          <tr>
+
+            <td>
+              <div class="form-group">
+                <label for="notes"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                  Notes</label>
+                <br>
+                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray;" required></textarea>
+              </div>
+            </td>
+
+          </tr>
+
+        </table>
+        <hr>
+
+
+        <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary" >Save</button></div>
+
+        <br>
+      </form>
+
+      <br>
+      <br>
+      <br>
+    </div>
+
+
+
+    <div class="card_customized" style="margin-left: 10%;margin-right: 5%">
+      <center>
+        <h3 style="color:tomato;font-family:  'Trebuchet MS', sans-serif;"><u>Notes Log</u></h3>
+      </center>
+      <table id="notes_table" style="width: 100%;">
+        <thead>
+
+          <tr>
+            <th style="display:none">ID</th>
+            <th style="width: 950px;min-width: 950px;">Notes</th>
+            <th>Added_by</th>
+            <th>Added_date</th>
+          </tr>
+
+        </thead>
+      </table>
+
+    </div>
+
+
+    <div class="modal fade" id="course_status_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+      <form action="/add_course_status" name="add_course_status" id="add_course_status" method="POST">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <div class='text-center'>
+                  <h5 id="exampleModalLabel">Courses Status</h5>
+                </div>
+              </div>
+            <div class="modal-body">
+              <table id="course_status_table" style="width: 100%;">
+                <thead>
+        
+                  <tr>
+                    <th style="display:none">ID</th>
+                    <th>Course ID</th>
+                    <th>Student ID</th>
+                    <th>Course</th>
+                    <th style="width: 400px;">Status</th>
+
+                  </tr>
+        
+                </thead>
+
+              </table>
+          </div>
+          <hr>
+        <button type="button" id="close_course" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+          </div>
+        </form>
+
+        
+    </div>
+  </div>
+
+  <script>
+
+    function get_course_status_table() {
+
+      //$('#notification_center_table').DataTable().destroy();
+      student_id = document.getElementById('student_id').value;
+      $('#course_status_table').DataTable().clear().destroy();
+      
+      var table = $('#course_status_table').DataTable({
+        ajax: { url: '/get_course_status?student_id='+student_id, mimeType: 'json' },
+        deferRender: true,
+        columns: [
+          { data: 'id', "visible": false },
+          { data: 'course_id', "visible": false },
+          { data: 'student_id', "visible": false },
+          { data: 'course' },
+          {
+            mRender: function (data, type, row) {
+
+              if (row.status == 'pending')
+              {
+                return '<select onchange=change_status_course('+row.id+',this.value) class="form-control"><option selected value="pending">Pending</option><option value="not_interested">Not Interested</option><option value="enrol">Enrol</option></select>'
+              }
+              else if (row.status == 'not_interested')
+              {
+                return '<select onchange=change_status_course('+row.id+',this.value) class="form-control"><option value="pending">Pending</option><option selected value="not_interested">Not Interested</option><option value="enrol">Enrol</option></select>'
+              }
+              else
+              {
+                return '<select onchange=change_status_course('+row.id+',this.value) class="form-control"><option value="pending">Pending</option><option value="not_interested">Not Interested</option><option selected value="enrol">Enrol</option></select>'
+              }
+
+            },
+          },
+        ],
+
+
+        rowId: 'extn',
+        //select: true,
+        paging: false,
+        dom: 'Bfrtip',
+        scrollX: true,
+        select: false,
+        "order": [[0, "desc"]],
+        buttons: [
+
+          {
+            text: 'Refresh',
+
+            action: function () {
+              table.ajax.reload();
+            }
+          }
+        ]
+
+      });
+      document.getElementById('course_status_table').style='width: 100%;';
+
+
+    }
+
+  </script>
+
+  <script>
+    function change_status_course(id_course_status,val)
+    {
+      $.post("/change_status_course?myid="+id_course_status+"&status_value="+val).done(function (response) {
+
+        if (response.state == 'success')
+        {
+          swal.fire('Good Job','Status Updated','success')
+        }
+        else
+        {
+          swal.fire('Sorry','Something went wrong','error')
+          get_course_status_table();
+        }
+
+      })
+    }
+  </script>
+  <script>
+    function run_function_again() {
+      student_id = document.getElementById('student_id').value;
+      student_mobile = document.getElementById('student_mobile').value
+      student_name = document.getElementById('student_name').value
+      selection_again = student_id + " - " + student_mobile + " - " + student_name
+      get_data(selection_again);
+    }
+  </script>
+  <script>
+
+    $("form#update_american_lead").submit(function (e) {
+      
+      e.preventDefault();
+      var formData = new FormData(this);
+
+
+      $.ajax({
+        url: "/update_american_lead?update_student_lead",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          var state = data.state
+          var reason = data.reason
+
+          if (state == 'error') {
+            Swal.fire(
+              'Sorry',
+              reason,
+              'error')
+
+
+
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }
+
+          else if (state == 'success') {
+            Swal.fire(
+              'Good Job',
+              reason,
+              'success')
+            
+            run_function_again();
+            notifications();
+            //get_assignation('XXXXXXXXXXXXXXXXXXXXXXXXXXX','')
+            //document.getElementById('once_english_flag').checked = false
+
+
+
+            //$.post("/home?get_new_time").done(function (response) { table.ajax.reload(); run_card() });
+
+          }
+          else {
+            Swal.fire(
+              'Sorry',
+              'Something went wrong',
+              'error')
+
+            //$("#add_client_close").click();
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+
+    });
+  </script>
+
+  <script>
+
+    function get_notes(id) {
+
+      $('#notes_table').DataTable().destroy();
+      var table = $('#notes_table').DataTable({
+        ajax: { url: '/get_american_notes?id=' + id, mimeType: 'json' },
+        deferRender: true,
+        columns: [
+          { data: '_id', "visible": false },
+          {
+            mRender: function (data, type, row) {
+              mynotes = row.notes
+              const matches = mynotes.match(/\r\n|\n\r|\n|\r/g);
+              const count = matches ? matches.length + 1 : 1;
+              return '<textarea id="mytextarea' + row._id + '" rows="' + count + '" class="form-control" width="100%" height="auto" readonly style="boarder:none;background-color:white;position: relative;border: 1px solid #888;background: #fff;" contenteditable>' + row.notes + '</textarea>'
+            },
+          },
+          { data: 'added_by' },
+          { data: 'added_date' },
+        ],
+
+
+        rowId: 'extn',
+        select: true,
+        paging: false,
+        dom: 'Bfrtip',
+        scrollX: true,
+        select: false,
+        "order": [[0, "desc"]],
+        buttons: [
+
+          {
+            text: 'Refresh',
+
+            action: function () {
+              table.ajax.reload();
+            }
+          }
+        ]
+
+      });
+
+
+    }
+
+  </script>
+
+
+
+
+
+
+  <script>
+
+
+    url = "/suggesion_data_american";
+
+
+
+    suggestions_data = []
+    $.post(url).done(function (response) {
+
+
+      suggestions_data = response
+
+      let suggestions = suggestions_data;
+
+
+      // getting all required elements
+      const searchInput = document.querySelector(".searchInput");
+      const input = searchInput.querySelector("input");
+      const resultBox = searchInput.querySelector(".resultBox");
+      const icon = searchInput.querySelector(".icon");
+      let linkTag = searchInput.querySelector("a");
+      let webLink;
+
+      // if user press any key and release
+
+      input.onkeyup = (e) => {
+        let userData = e.target.value; //user enetered data
+        let emptyArray = [];
+        if (userData) {
+          emptyArray = suggestions.filter((data) => {
+            //filtering array value and user characters to lowercase and return only those words which are start with user enetered chars
+            return data.toLocaleLowerCase().includes(userData.toLocaleLowerCase());
+          });
+          emptyArray = emptyArray.map((data) => {
+            // passing return data inside li tag
+            return data = '<li>' + data + '</li>';
+          });
+          searchInput.classList.add("active"); //show autocomplete box
+          showSuggestions(emptyArray);
+          let allList = resultBox.querySelectorAll("li");
+          for (let i = 0; i < allList.length; i++) {
+            //adding onclick attribute in all li tag
+            allList[i].setAttribute("onclick", "get_data(this.innerHTML)");
+
+          }
+        } else {
+          searchInput.classList.remove("active"); //hide autocomplete box
+        }
+      }
+      function showSuggestions(list) {
+        let listData;
+
+        if (!list.length) {
+          userValue = input.value; //inputBox
+          listData = '<li>' + userValue + '</li>';
+        } else {
+          listData = list.join('');
+        }
+        resultBox.innerHTML = listData;
+      }
+
+
+
+    });
+
+  </script>
+
+  <script>
+    function clear_data() {
+      $('#seacrch_input_box').val('')
+      document.querySelector(".searchInput").classList.remove("active");
+      document.getElementById('update_section').style = 'display: none;';
+
+    }
+  </script>
+
+  <script>
+    function get_data(selected_value) {
+
+      if (selected_value === "") {
+        return;
+      }
+
+      url = '/get_american_lead_data?selected_data=' + selected_value
+      $.post(url).done(function (response) {
+
+
+
+        update_response = response[0]
+        assignation_response = response[1]
+
+        response = update_response
+        const searchInput = document.querySelector(".searchInput");
+        searchInput.classList.remove("active"); // hide search bar
+        document.getElementById('seacrch_input_box').value = selected_value
+        document.getElementById('update_section').style = 'display: block;';
+        document.getElementById('student_id').value = response.student_id;
+        document.getElementById('student_mobile').value = response.student_mobile;
+        document.getElementById('student_name').value = response.student_name;
+        document.getElementById('parent_mobile').value = response.parent_mobile;
+        document.getElementById('gender').value = response.gender;
+        document.getElementById('year').value = response.year;
+        document.getElementById('school').value = response.school;
+        //document.getElementById('educational_system').value = response.educational_system;
+        edu_system_data(response.educational_system)
+        get_course_data(response.course)
+        
+        document.getElementById('email').value = response.email;
+        document.getElementById('source').value = response.source;
+        document.getElementById('deposit').value = response.deposit;
+        document.getElementById('status').value = response.status;
+        document.getElementById('notes').value = '';
+        
+        if (response.status == 'enrol') {
+          check_status(response.status, response.edu_system_id)
+        }
+        else if (response.status == 'pending') {
+          check_status(response.status, response.recall_date)
+        }
+
+        else if (response.status == 'not_interested') {
+          check_status(response.status, response.not_interested_notes)
+        }
+        else {
+          check_status(response.status, "")
+        }
+
+        document.getElementById('trial').value = response.trial;
+        check_trial()
+
+        if (response.trial == "1") {
+
+
+          $('#math').val(response.maths)
+          $('#english').val(response.english)
+          $('#other').val(response.other)
+        }
+
+        assignation = assignation_response.username_assignation
+        myrole = "{{session['role']}}"
+        get_assignation(assignation, myrole)
+        get_notes(response.student_id)
+        get_course_status_table();
+        subject_data();
+    exam_trial_data();
+
+
+      })
+    }
+
+  </script>
+
+  <script>
+    function check_status(current_status, status_data) {
+      val = current_status
+      if (val == 'enrol') {
+        document.getElementById('recall_date_section').disabled = true;
+        document.getElementById('recall_date_section').hidden = true;
+        document.getElementById('not_interested_notes_section').disabled = true;
+        document.getElementById('not_interested_notes_section').hidden = true;
+        document.getElementById('edu_student_id_section').disabled = false;
+        document.getElementById('edu_student_id_section').hidden = false;
+        document.getElementById('edu_student_id').value = status_data;
+      }
+      else if (val == 'pending') {
+        document.getElementById('recall_date_section').disabled = false;
+        document.getElementById('recall_date_section').hidden = false;
+        document.getElementById('not_interested_notes_section').disabled = true;
+        document.getElementById('not_interested_notes_section').hidden = true;
+        document.getElementById('edu_student_id_section').disabled = true;
+        document.getElementById('edu_student_id_section').hidden = true;
+        document.getElementById('recall_date').value = status_data;
+      }
+      else if (val == 'not_interested') {
+        document.getElementById('not_interested_notes_section').disabled = false;
+        document.getElementById('not_interested_notes_section').hidden = false;
+        document.getElementById('recall_date_section').disabled = true;
+        document.getElementById('recall_date_section').hidden = true;
+        document.getElementById('edu_student_id_section').disabled = true;
+        document.getElementById('edu_student_id_section').hidden = true;
+        document.getElementById('not_interested_notes').value = status_data;
+      }
+      else {
+        document.getElementById('recall_date_section').disabled = false;
+        document.getElementById('recall_date_section').hidden = false;
+        document.getElementById('not_interested_notes_section').disabled = true;
+        document.getElementById('not_interested_notes_section').hidden = true;
+        document.getElementById('edu_student_id_section').disabled = true;
+        document.getElementById('edu_student_id_section').hidden = true;
+        document.getElementById('recall_date').value = status_data;
+      }
+    }
+  </script>
+
+
+  <script>
+    function get_course_data(course_info) {
+
+      course_list = course_info.split(',')
+      let course = $('#course');
+
+      course.val([]);
+      course.empty();
+      const url_course = '/get_course_data';
+
+      // Populate dropdown with list of provinces
+
+      for(i=0;i<course_list.length;i++)
+        {
+            course.append($('<option selected></option>').attr('value', course_list[i]).text(course_list[i]));
+        }
+
+      $.getJSON(url_course, function (data_course) {
+        $.each(data_course, function (key_course, entry_course) {
+
+          if (( course_list.includes(entry_course.course) === false)) {
+
+            if (entry_course.hold == true)
+            {
+              course.append($('<option disabled></option>').attr('value', entry_course.abbreviation).text(entry_course.course));
+            }
+            else
+            {
+              course.append($('<option></option>').attr('value', entry_course.abbreviation).text(entry_course.course));
+            }
+            
+          }
+
+        });
+
+
+
+        //$("#course").val(course_list);
+        $('#course').select2({ placeholder: 'Course Selection', closeOnSelect: false, allowClear: true });
+
+      });
+
+
+
+    }
+  </script>
+  
+<div class="modal fade" id="add_course_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+  <form action="/add_course" name="add_course" id="add_course" method="POST">
+        <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class='text-center'>
+              <h5 id="exampleModalLabel">Add Course to list</h5>
+            </div>
+          </div>
+        <div class="modal-body">
+        <span id="error" style="color:red;font-weight:500;"></span>
+
+      <table>
+
+        <tr>
+          <td>
+                  <div class="form-group">
+
+                    <!-- educational system -->
+
+                      <label for="subject"
+                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Subject</label>
+                      <select required type="text" class="form-control" maxlength="50" id="subject"
+                        placeholder="Choose Subject" name="subject" id="subject" onchange="get_course()"></select>
+                    
+                    </div>
+
+                    <script>
+                      function subject_data(){
+                      let dropdown1 = $('#add_course_modal #subject');
+                      
+                      dropdown1.empty();
+                      
+                    
+                      dropdown1.append($('<option selected disabled value="">Choose Subject</option>'))
+                      const url1 = '/get_subject_data';
+                    
+                      // Populate dropdown with list of provinces
+                      $.getJSON(url1, function (data1) {
+                        $.each(data1, function (key1, entry1) {
+                          dropdown1.append($('<option></option>').attr('value', entry1.abbreviation).text(entry1.subject));
+                          
+                        });
+                        dropdown1.select2();
+                        
+                      });
+                      
+                    }
+                    </script>
+
+          </td>
+
+
+
+        </tr>
+        <tr>
+          <td>
+                  <div class="form-group">
+
+                    <!-- educational system -->
+
+                      <label for="exam_trial"
+                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Exam Trial</label>
+                      <select required type="text" class="form-control" maxlength="50" id="exam_trial"
+                        placeholder="Choose Exam Trial" name="exam_trial" id="exam_trial" onchange="get_course()"></select>
+                    
+                    </div>
+
+                    <script>
+                      function exam_trial_data(){
+                      let dropdown2 = $('#add_course_modal #exam_trial');
+                      
+                      dropdown2.empty();
+                      
+                    
+                      dropdown2.append($('<option selected disabled value="">Choose Exam Trial</option>'))
+                      const url2 = '/get_exam_trial_data';
+                    
+                      // Populate dropdown with list of provinces
+                      $.getJSON(url2, function (data2) {
+                        $.each(data2, function (key2, entry2) {
+                          dropdown2.append($('<option></option>').attr('value', entry2.abbreviation).text(entry2.exam_trial));
+                          
+                        });
+                        dropdown2.select2();
+                        
+                      });
+                      
+                    }
+                    </script>
+
+          </td>
+        </tr>
+          <script>
+            function get_course()
+            {
+              subject1 = $('#add_course_modal #subject').val()
+              exam_trial1 = $('#add_course_modal #exam_trial').val()
+              
+              if (subject1 != "" && exam_trial1 != "" && subject1 != null && exam_trial1 != null)
+              {
+                $('#add_course_modal #course1').val(subject1.trim()+" - "+exam_trial1.trim())
+              }
+            }
+          </script>
+  <tr>
+          <td>
+            <div class="form-group">
+
+              <!-- educational system -->
+  
+                <label for="exam_trial"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
+                <input required type="text" class="form-control" maxlength="140" id="course1"
+                   name="course1" id="course1" readonly
+                   style="font-weight:bold;color:gray;background-color: white;">
+              
+              </div>
+          </td>
+
+         
+
+        </tr>
+
+        
+      </table>
+        
+            
+      <hr>
+      <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn'>Add Course</button>
+      <button type="button" id="close_course" class="btn btn-secondary" data-dismiss="modal">Close</button>
+      </div>
+      </div>
+      </div>
+    </form>
+</div>
+  <script>
+    $("form#add_course").submit(function (e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+    
+      student_id=document.getElementById('student_id').value;
+      student_mobile=document.getElementById('student_mobile').value;
+      student_name=document.getElementById('student_name').value;
+      student_data_info = student_id+" - "+student_mobile+" - "+student_name
+      $.ajax({
+        
+        url: '/course?add_course',
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          
+          state=data.state;
+          reason = data.reason
+          
+          if (state == "success")
+          {
+          Swal.fire(
+            'Good Job',
+            reason,
+            'success')
+           
+            
+          $("#add_course_modal #close_course").click();
+          $("#add_course_modal #course1").val("");
+          
+          location.assign('/update_american_lead?student_data='+student_data_info);
+          }
+          else if (state == "error")
+          {
+          $("#add_course_modal #close_course").click();
+          $("#add_course_modal #course1").val("");
+          subject_data();
+          exam_trial_data();
+          Swal.fire(
+            'Sorry',
+            reason,
+            'info')
+
+          }
+
+          else{
+            Swal.fire(
+            'Sorry',
+            'Something went wrong, refresh and try again.',
+            'error')
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+    });
+    </script>
+  <script>
+    function get_assignation(username_from_query, user_role) {
+
+      let dropdown = $('#assigned_to');
+
+      dropdown.empty()
+      const url = '/users?get_select_users';
+
+
+      user_role = "{{session['role']}}"
+      current_username = "{{session['name']}}"
+
+      user_list = []
+      // Populate dropdown with list of provinces
+      $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+
+
+
+
+          if (user_role == 'admin') {
+
+            if (username_from_query.includes(entry.username)) {
+
+              dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+              user_list.push(entry.username)
+            }
+            else {
+
+              dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
+            }
+          }
+          else {
+
+            if (username_from_query.includes(entry.username)) {
+
+              user_list.push(entry.username)
+
+              dropdown.append($('<option disabled selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+
+
+            }
+            else {
+
+              dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
+            }
+          }
+
+        })
+
+
+
+
+        $("#assigned_to").val(user_list);
+        if (user_role == 'admin') {
+        $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: true });
+        }
+        else
+        {
+         
+          $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: false,disabled:'readonly' });
+         
+          
+        }
+      });
+
+
+
+    }
+  </script>
+
+
+<script>
+ $( document ).ready(function() {
+
+  get_data('{{student_data}}')
+  
+ })
+</script>
+
+
+
+</body>
+
+{% endblock %}

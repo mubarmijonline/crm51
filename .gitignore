@@ -1,0 +1,29 @@
+# Secrets
+.env
+
+# Virtualenv
+51_american_crm_venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Runtime: logs, sockets, pid files
+*.log
+*.sock
+logs/
+
+# Client data - uploaded lead documents and exported CRM spreadsheets.
+# Real personal data, must never enter the repository.
+static/event_upload_files/*
+!static/event_upload_files/.gitkeep
+static/crm_excel_files/*
+!static/crm_excel_files/.gitkeep
+
+# Local backup copies made during the clone/revamp work
+*.orig
+*.bak
+*.bak.*
+
+# OS junk
+.DS_Store

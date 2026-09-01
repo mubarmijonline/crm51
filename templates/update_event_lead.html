@@ -1,0 +1,1277 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+
+
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+
+
+
+  ::selection {
+    color: #fff;
+    background: #664AFF;
+  }
+
+  .containerss {
+    max-width: 600px;
+    width: 500px;
+    margin: 30px auto;
+  }
+
+  .containerss .searchInput {
+    background: #fff;
+    width: 100%;
+    border-radius: 5px;
+    position: relative;
+    box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
+  }
+
+  .searchInput input {
+    height: 55px;
+    width: 100%;
+    outline: none;
+    border: none;
+    border-radius: 5px;
+    padding: 0 60px 0 20px;
+    font-size: 18px;
+    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .searchInput.active input {
+    border-radius: 5px 5px 0 0;
+  }
+
+  .searchInput .resultBox {
+    padding: 0;
+    opacity: 0;
+    pointer-events: none;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+
+  .searchInput.active .resultBox {
+    padding: 10px 8px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .resultBox li {
+    list-style: none;
+    padding: 8px 12px;
+    display: none;
+    width: 100%;
+    cursor: default;
+    border-radius: 3px;
+  }
+
+  .searchInput.active .resultBox li {
+    display: block;
+  }
+
+  .resultBox li:hover {
+    background: #efefef;
+  }
+
+  .searchInput .icon {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    height: 55px;
+    width: 55px;
+    text-align: center;
+    line-height: 55px;
+    font-size: 20px;
+    color: maroon;
+    cursor: pointer;
+  }
+
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+
+  input:checked+.slider {
+    background-color: #2196F3;
+  }
+
+  input:focus+.slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+
+  input:checked+.slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+
+  .slider.round:before {
+    border-radius: 50%;
+  }
+</style>
+
+<body>
+
+
+  <br>
+
+  <div class="containerss">
+    <div class="searchInput">
+      <input type="text" id="seacrch_input_box" placeholder="Search for Event Leads">
+      <div class="resultBox">
+        <!-- here list are inserted from javascript -->
+      </div>
+      <div class="icon" onclick="clear_data()"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+  </div>
+
+  <div id="update_section" style="display: none;">
+    <div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
+
+
+      <center>
+        <br>
+        <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Search and Update Event Lead Form</u>
+        </h3>
+      </center>
+
+  <hr>
+    <div>
+      <table>
+        <tr>
+          <td>
+            <button class="btn btn-md btn-success" data-toggle="modal" data-target="#uploadModal">File Upload</button>
+          </td>
+
+          <td>
+            <div id="file_download_div" hidden class="form-inline" style="margin-left: 1rem;">
+              <input name="file_name" id="file_name" value="" readonly class="form-control mb-2" style="background: none; border: none; width:fit-content;">
+              <a download title="Download File" class="mb-2" id="file_download" href="javascript:void(0)"><img src="/static/images/download.svg" style="width: 2em; height: 2em; margin: 0.5em;"></a>
+              <button disabled id="delete_file" class="clear-btn mb-2" onclick="delete_file();"><img src="/static/images/delete.svg" style="width: 2em; height: 2em; margin: 0.5em;"></button>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </div>
+  <hr>
+
+      <form id="update_event_lead" name="update_event_lead">
+        <table cellpadding="10">
+          <tr>
+
+            <div class="row">
+              <div class="col">
+              <label for="client_id"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client
+                ID</label>
+              <input class="form-control" maxlength="16" id="client_id" name="client_id" readonly
+                style="font-weight:bold;color:gray;background-color: white;border:none" required
+                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              </div>
+
+              <div class="col">
+                <label for="added_date"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Added Date</label>
+                <input class="form-control" maxlength="16" id="added_date" name="added_date" readonly
+                  style="font-weight:bold;color:gray;background-color: white;border:none" required>
+              </div>
+          </div>
+
+          </tr>
+          <tr>
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client Mobile</label>
+                <br>
+                <input class="form-control" maxlength="16" id="client_mobile" name="client_mobile"
+                  style="font-weight:bold;color:gray" required
+                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client Name</label>
+                <input id="client_name" class="form-control" name="client_name" maxlength="100"
+                  style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+              </div>
+
+            </td>
+
+
+          </tr>
+
+
+          <hr>
+
+
+
+          <tr>
+
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
+                <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text"
+                  class="form-control" id="email" type="email" name="email" maxlength="70">
+              </div>
+            </td>
+
+            <td>
+              <div class="form-group">
+                <label for="temperature"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Hot/Cold</label>
+                <select required id="temperature" name="temperature" class="form-control" style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;">
+                  <option value="hot" selected>Hot</option>
+                  <option value="cold">Cold</option>
+                </select>
+              </div>
+            </td>
+
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="exampleFormControlInput1"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
+                <select required id="status" name="status" class="form-control"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_status()">
+                  <option value="pending" selected>Pending</option>
+                  <option value="not_contacted">Not Contacted</option>
+                  <option value="enrol">Enrol</option>
+                  <option value="not_interested">Not Interested</option>
+                </select>
+              </div>
+            </td>
+  
+            <script>
+              function check_status() {
+                val = document.getElementById('status').value;
+                if (val == 'pending' || val == 'not_contacted') {
+                  document.getElementById('recall_date_section').disabled = false;
+                  document.getElementById('recall_date_section').hidden = false;
+  
+                  document.getElementById('not_interested_notes').disabled = true;
+                  document.getElementById('not_interested_notes_div').hidden = true;
+                }
+                else if (val == 'not_interested')
+                {
+                  document.getElementById('not_interested_notes').disabled = false;
+                  document.getElementById('not_interested_notes_div').hidden = false;
+  
+                  document.getElementById('recall_date_section').disabled = true;
+                  document.getElementById('recall_date_section').hidden = true;
+                }
+                else {
+                  val = ""
+                  document.getElementById('recall_date_section').disabled = true;
+                  document.getElementById('recall_date_section').hidden = true;
+  
+                  document.getElementById('not_interested_notes').disabled = true;
+                  document.getElementById('not_interested_notes_div').hidden = true;
+                }
+              }
+            </script>
+  
+            <td>
+              <div class="form-group" id="recall_date_section" disabled hidden>
+  
+                <label for="recall_date"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
+                  Date</label>
+                <input
+                  style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
+                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
+  
+              </div>
+              <script>
+                $('#recall_date').datepicker({
+                  todayBtn: "linked",
+                  weekStart: 0,
+                  autoclose: true,
+                  todayHighlight: true,
+                  format: "yyyy-mm-dd",
+  
+  
+  
+                });
+  
+              </script>
+  
+                <div class="form-group" id="not_interested_notes_div" hidden>
+                <label for="not_interested_notes"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Reason</label>
+                <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control" style="width: 600px;max-width: 600px;">
+                </div>
+  
+            </td>
+  
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="client_deposit_flag"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
+                <select id="client_deposit_flag" name="client_deposit_flag" class="form-control"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="deposit_change(this.value)">
+                  <option value=1>YES</option>
+                  <option selected value=0>NO</option>
+                </select>
+
+                <hr>
+
+                <label for="client_payment_status"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Payment Status</label>
+              <select id="client_payment_status" name="client_payment_status" class="form-control"
+                style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;">
+                <option value='completed'>Completed</option>
+                <option selected value='pending'>Pending</option>
+              </select>
+              
+              </div>
+            </td>
+  
+            <script>
+              function deposit_change(value)
+              {
+                if(value == "1")
+                {
+                  document.getElementById("client_deposit").disabled = false;
+                  document.getElementById("client_remaining").disabled = false;
+                  document.getElementById("client_total").disabled = false;
+                }
+                else if(value == "0")
+                {
+                  document.getElementById("client_deposit").disabled = true;
+                  document.getElementById('client_deposit').value = "0";  // Reset Deposit Value/
+
+                  document.getElementById("client_remaining").disabled = true;
+                  document.getElementById('client_remaining').value = "0";  // Reset remainging Value/
+
+                  document.getElementById("client_total").disabled = true;
+                  document.getElementById('client_total').value = "0";  // Reset total amount Value/
+                }
+              }
+            </script>
+  
+            <td>
+            
+            <div class="form-group">
+              <label for="client_deposit"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit Amount</label>
+              <input id="client_deposit" name="client_deposit" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+              <label for="client_total"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Total Amount</label>
+              <input id="client_total" name="client_total" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+
+              <label for="client_remaining"
+                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Remaining Amount</label>
+              <input id="client_remaining" name="client_remaining" class="form-control" value="0" readonly disabled style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;">
+  
+            </div>
+          </td>
+  
+          </tr>
+
+          <tr>
+            <td>
+              <div class="form-group">
+                <label for="assets_list"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                  Requirements</label>
+                <br>
+                <textarea col="60" rows="4" maxlength="256" class="form-control" id="assets_list" name="assets_list" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray
+              ;" ></textarea>
+              </div>
+            </td>
+  
+            <td>
+              <div class="form-group">
+                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#add_item_modal">Add Itemt to Check List</button>
+              </div>
+  
+              <div id="check_list_div" name="check_list_div" style="padding-top: 1rem;" class="form-check">
+              </div>
+  
+  
+            </td>
+          </tr>
+
+          <tr>
+
+            <td>
+              <div class="form-group">
+                <label for="notes"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                  Notes</label>
+                <br>
+                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray;" required></textarea>
+              </div>
+            </td>
+
+              <td>
+                <div class="form-group">
+                  <label for="exampleFormControlInput1"
+                    style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
+                    to</label>
+                    <br>
+                  <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple" required
+                    style="width: 600px;max-width: 600px;">
+  
+                  </select>
+                </div>
+              </td>
+
+          </tr>
+
+        </table>
+        <hr>
+
+
+        <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary" >Save</button></div>
+
+        <br>
+      </form>
+
+      <br>
+      <br>
+      <br>
+    </div>
+
+
+
+    <div class="card_customized" style="margin-left: 10%;margin-right: 5%">
+      <center>
+        <h3 style="color:tomato;font-family:  'Trebuchet MS', sans-serif;"><u>Notes Log</u></h3>
+      </center>
+      <table id="notes_table" style="width: 100%;">
+        <thead>
+
+          <tr>
+            <th style="display:none">ID</th>
+            <th style="width: 950px;min-width: 950px;">Notes</th>
+            <th>Added_by</th>
+            <th>Added_date</th>
+          </tr>
+
+        </thead>
+      </table>
+
+    </div>
+
+
+
+  </div>
+
+
+  <div class="modal fade" id="add_item_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class='text-center'>
+          <h5 id="exampleModalLabel">Add Item to Check List</h5>
+        </div>
+      </div>
+    <div class="modal-body">
+
+  <span>
+    <div style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px; padding: 1rem;">Item Name</div>
+    <input maxlength="40" id="check_list_item_name" name="check_list_item_name" class="form-control" style="font-weight: bold;color: darkcyan; width: 60%"></span>
+    
+        
+  <hr>
+  <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn' onclick="add_item();">Add Item</button>
+  <button type="button" id="close" class="btn btn-secondary" data-dismiss="modal">Close</button>
+  </div>
+  </div>
+  </div>
+</div>
+
+<script>
+  function add_item()
+  {
+
+    var halto = 0;
+    if (check_list_item_name == '')
+    {
+      Swal.fire(
+                    'Empty',
+                    'Please entry item first...',
+                    'info');
+                    return;
+    }
+
+    [...document.getElementsByClassName('item_in_checklist')].forEach(el => {
+    // Do something with each element
+      
+            if(el.value.toString().toUpperCase() == check_list_item_name.toString().toUpperCase())
+            {
+                          Swal.fire(
+                            'Duplicate',
+                            'Item already exists in checklist...',
+                            'info');
+                            halto = 1;                        
+            }
+    });
+
+
+      if(halto == 1)
+      {
+        return;
+      }
+
+    check_list_item_name = document.getElementById("check_list_item_name").value;
+
+    var check_list_div = document.getElementById("check_list_div");
+             
+             //var checkbox_div = document.createElement('div');
+             //checkbox_div.className = "form-check";
+
+             // creating checkbox element
+             var checkbox = document.createElement('input');
+             var checkbox_hidden = document.createElement('input');
+
+             // Assigning the attributes
+             // to created checkbox
+             // checkbox.type = "checkbox";
+             checkbox.name = "check_box";
+             checkbox.value = check_list_item_name;
+
+             checkbox.id = "id_"+check_list_item_name;
+             checkbox.className  = "form-check-input";
+             checkbox.readOnly = 'true';
+             checkbox.style="background-color:white;boarder:none";
+             checkbox.type="checkbox";
+
+              // Hidden
+             checkbox_hidden.id = "hidden_id_"+check_list_item_name;
+             checkbox_hidden.name = "check_box_hidden";
+             checkbox_hidden.value = check_list_item_name;
+             
+             checkbox_hidden.className  = "form-check-input";
+             checkbox_hidden.readOnly = 'true';
+             checkbox_hidden.style="background-color:white;boarder:none";
+             checkbox_hidden.type="hidden";
+              
+             // creating label for checkbox
+             var label = document.createElement('label');
+              
+             // assigning attributes for 
+             // the created label tag 
+             label.htmlFor = "id_"+check_list_item_name;
+              
+             // appending the created text to 
+             // the created label tag 
+             label.appendChild(document.createTextNode(check_list_item_name));
+             label.className = "form-check-label";
+             label.id =  "label_id_"+check_list_item_name;
+
+             // appending the checkbox
+             // and label to div
+             
+             check_list_div.appendChild(checkbox_hidden);
+             check_list_div.appendChild(checkbox);
+             check_list_div.appendChild(label);
+
+             var cancel_item = document.createElement('button');
+             cancel_item.id = "btn_id_"+check_list_item_name;
+             cancel_item.type = "button";
+             cancel_item.className = "btn btn-md btn-danger";
+             cancel_item.setAttribute("onclick","remove_item('id_"+check_list_item_name+"')");
+             cancel_item.setAttribute("style", "margin-left:1rem;")
+
+
+             check_list_div.appendChild(cancel_item);
+
+             var br = document.createElement('br');
+             br.id = "br_id_"+check_list_item_name;
+             check_list_div.appendChild(br);
+
+             document.getElementById("check_list_item_name").value = "";
+             //$("#add_item_modal #close").click();
+  }
+
+  function remove_item(item_id)
+  {
+    document.getElementById(item_id).remove();
+    document.getElementById('hidden_'+item_id).remove();
+    document.getElementById('btn_'+item_id).remove();
+    document.getElementById('label_'+item_id).remove();
+    document.getElementById('br_'+item_id).remove();
+  }
+</script>
+
+
+  <script>
+    function run_function_again() {
+      client_id = document.getElementById('client_id').value;
+      client_mobile = document.getElementById('client_mobile').value
+      client_name = document.getElementById('client_name').value
+      selection_again = client_id + " - " + client_mobile + " - " + client_name
+      get_data(selection_again);
+    }
+  </script>
+
+  <script>
+
+    $("form#update_event_lead").submit(function (e) {
+      
+      e.preventDefault();
+      var formData = new FormData(this);
+
+
+      $.ajax({
+        url: "/update_event_lead?update_event_lead",
+        type: 'POST',
+        data: formData,
+        success: function (data) {
+          var state = data.state
+          var reason = data.reason
+
+          if (state == 'error') {
+            Swal.fire(
+              'Sorry',
+              reason,
+              'error')
+
+
+          }
+
+          else if (state == 'success') {
+            Swal.fire(
+              'Good Job',
+              reason,
+              'success')
+            
+            //run_function_again();
+            notifications();
+            
+            client_id = document.getElementById('client_id').value;
+            client_mobile = document.getElementById('client_mobile').value;
+            client_name = document.getElementById('client_name').value;
+
+            setTimeout(window.location.assign('/update_event_lead?client_data='+client_id+' - '+client_mobile+' - '+client_name), 3000); 
+            
+            
+
+          }
+          else {
+            Swal.fire(
+              'Sorry',
+              'Something went wrong',
+              'error')
+
+            //$("#add_client_close").click();
+          }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
+      });
+
+    });
+  </script>
+
+  <script>
+
+    function get_notes(id) {
+
+      $('#notes_table').DataTable().destroy();
+      var table = $('#notes_table').DataTable({
+        ajax: { url: '/get_events_notes?id=' + id, mimeType: 'json' },
+        deferRender: true,
+        columns: [
+          { data: '_id', "visible": false },
+          {
+            mRender: function (data, type, row) {
+              mynotes = row.notes
+              const matches = mynotes.match(/\r\n|\n\r|\n|\r/g);
+              const count = matches ? matches.length + 1 : 1;
+              return '<textarea id="mytextarea' + row._id + '" rows="' + count + '" class="form-control" width="100%" height="auto" readonly style="boarder:none;background-color:white;position: relative;border: 1px solid #888;background: #fff;" contenteditable>' + row.notes + '</textarea>'
+            },
+          },
+          { data: 'added_by' },
+          { data: 'added_date' },
+        ],
+
+
+        rowId: 'extn',
+        select: true,
+        paging: false,
+        dom: 'Bfrtip',
+        scrollX: true,
+        select: false,
+        "order": [[0, "desc"]],
+        buttons: [
+
+          {
+            text: 'Refresh',
+
+            action: function () {
+              table.ajax.reload();
+            }
+          }
+        ]
+
+      });
+
+
+    }
+
+  </script>
+
+
+
+
+
+
+  <script>
+
+
+    url = "/suggesion_data_event";
+
+    suggestions_data = []
+    $.post(url).done(function (response) {
+
+
+      suggestions_data = response
+
+      let suggestions = suggestions_data;
+
+
+      // getting all required elements
+      const searchInput = document.querySelector(".searchInput");
+      const input = searchInput.querySelector("input");
+      const resultBox = searchInput.querySelector(".resultBox");
+      const icon = searchInput.querySelector(".icon");
+      let linkTag = searchInput.querySelector("a");
+      let webLink;
+
+      // if user press any key and release
+
+      input.onkeyup = (e) => {
+        let userData = e.target.value; //user enetered data
+        let emptyArray = [];
+        if (userData) {
+          emptyArray = suggestions.filter((data) => {
+            //filtering array value and user characters to lowercase and return only those words which are start with user enetered chars
+            return data.toLocaleLowerCase().includes(userData.toLocaleLowerCase());
+          });
+          emptyArray = emptyArray.map((data) => {
+            // passing return data inside li tag
+            return data = '<li>' + data + '</li>';
+          });
+          searchInput.classList.add("active"); //show autocomplete box
+          showSuggestions(emptyArray);
+          let allList = resultBox.querySelectorAll("li");
+          for (let i = 0; i < allList.length; i++) {
+            //adding onclick attribute in all li tag
+            allList[i].setAttribute("onclick", "get_data(this.innerHTML)");
+
+          }
+        } else {
+          searchInput.classList.remove("active"); //hide autocomplete box
+        }
+      }
+      function showSuggestions(list) {
+        let listData;
+
+        if (!list.length) {
+          userValue = input.value; //inputBox
+          listData = '<li>' + userValue + '</li>';
+        } else {
+          listData = list.join('');
+        }
+        resultBox.innerHTML = listData;
+      }
+
+
+
+    });
+
+  </script>
+
+  <script>
+    function clear_data() {
+      $('#seacrch_input_box').val('')
+      document.querySelector(".searchInput").classList.remove("active");
+      document.getElementById('update_section').style = 'display: none;';
+
+    }
+  </script>
+
+  <script>
+    function get_data(selected_value) {
+
+      if (selected_value === "") {
+        return;
+      }
+
+      url = '/get_event_lead_data?selected_data=' + selected_value
+      $.post(url).done(function (response) {
+
+        update_response = response[0]
+        assignation_response = response[1]
+        check_list = response[2]
+
+        response = update_response
+        const searchInput = document.querySelector(".searchInput");
+        searchInput.classList.remove("active"); // hide search bar
+        document.getElementById('seacrch_input_box').value = selected_value
+        document.getElementById('update_section').style = 'display: block;';
+        document.getElementById('client_id').value = response.client_id;
+        document.getElementById('clien_id_file_upload').value = response.client_id; // IN file Upload Modal
+        document.getElementById('added_date').value = response.added_date;
+        document.getElementById('client_mobile').value = response.client_mobile;
+        document.getElementById('client_name').value = response.client_name;
+
+        document.getElementById('email').value = response.client_email;
+
+        document.getElementById('client_deposit_flag').value = response.client_deposit_flag;
+        document.getElementById('client_deposit').value = response.client_deposit;
+        document.getElementById('client_remaining').value = response.client_remaining;
+        document.getElementById('client_total').value = response.client_total;
+        deposit_change(response.client_deposit_flag); // Update flag
+
+        document.getElementById('status').value = response.status;
+
+        document.getElementById('temperature').value = response.temperature;
+
+        document.getElementById('client_payment_status').value = response.client_payment_status;
+        
+        if (response.status == 'pending' || response.status == 'not_contacted') {
+          check_status();
+          document.getElementById('recall_date').value = response.recall_date;
+          //$('#recall_date').datepicker("setDate", response.recall_date);
+        }
+        else if (response.status == 'not_interested')
+        {
+          check_status();
+          document.getElementById('not_interested_notes').value = response.client_not_interested_notes;
+        }
+
+        document.getElementById('assets_list').value = response.client_assets_list;
+
+        document.getElementById('notes').value = '';
+
+        assignation = assignation_response.username_assignation;
+        myrole = "{{session['role']}}";
+        get_assignation(assignation, myrole);
+        get_notes(response.client_id);
+
+        get_client_file();
+
+        // Build Check List //
+        var check_list_div = document.getElementById("check_list_div");
+
+        for(i=0;i<check_list.length;i++)
+        {
+        check_list_item_name = check_list[i].item;
+        item_state = check_list[i].checked;
+
+
+             // creating checkbox element
+             var checkbox = document.createElement('input');
+             var checkbox_hidden = document.createElement('input');
+
+             // Assigning the attributes
+             // to created checkbox
+             checkbox.name = "check_box";
+             checkbox.value = check_list_item_name;
+
+             checkbox.id = "id_"+check_list_item_name;
+             checkbox.className  = "form-check-input";
+             checkbox.readOnly = 'true';
+             checkbox.style="background-color:white;boarder:none";
+             checkbox.type="checkbox";
+             if(item_state == 1)
+             {
+              checkbox.checked = true;
+             }
+             else{
+              checkbox.checked = false;
+             }
+
+              // Hidden
+             checkbox_hidden.id = "hidden_id_"+check_list_item_name;
+             checkbox_hidden.name = "check_box_hidden";
+             checkbox_hidden.value = check_list_item_name;
+             
+             checkbox_hidden.className  = "form-check-input";
+             checkbox_hidden.readOnly = 'true';
+             checkbox_hidden.style="background-color:white;boarder:none";
+             checkbox_hidden.type="hidden";
+              
+             // creating label for checkbox
+             var label = document.createElement('label');
+              
+             // assigning attributes for 
+             // the created label tag 
+             label.htmlFor = "id_"+check_list_item_name;
+              
+             // appending the created text to 
+             // the created label tag 
+             label.appendChild(document.createTextNode(check_list_item_name));
+             label.className = "form-check-label";
+             label.id = "label_id_"+check_list_item_name;
+
+             // appending the checkbox
+             // and label to div
+                          
+             check_list_div.appendChild(checkbox_hidden);
+             check_list_div.appendChild(checkbox);
+             check_list_div.appendChild(label);
+
+             cancel_item = document.createElement('button');
+             cancel_item.id = "btn_id_"+check_list_item_name;
+             cancel_item.type = "button";
+             cancel_item.className = "btn btn-md btn-danger";
+             cancel_item.setAttribute("onclick","remove_item('id_"+check_list_item_name+"')");
+             cancel_item.setAttribute("style", "margin-left:1rem;")
+
+             check_list_div.appendChild(cancel_item);
+             var br = document.createElement('br');
+             br.id = "br_id_"+check_list_item_name;
+             check_list_div.appendChild(br);
+
+        }
+
+      });
+    }
+
+  </script>
+
+
+  <script>
+    function get_assignation(username_from_query, user_role) {
+
+      let dropdown = $('#assigned_to');
+
+      dropdown.empty()
+      const url = '/users?get_select_users_event';
+
+
+      user_role = "{{session['role']}}"
+      current_username = "{{session['name']}}"
+
+      user_list = []
+      // Populate dropdown with list of provinces
+      $.getJSON(url, function (data) {
+        $.each(data, function (key, entry) {
+
+
+
+
+          if (user_role == 'admin') {
+
+            if (username_from_query.includes(entry.username)) {
+
+              dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+              user_list.push(entry.username)
+            }
+            else {
+
+              dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
+            }
+          }
+          else {
+
+            if (username_from_query.includes(entry.username)) {
+
+              user_list.push(entry.username)
+
+              dropdown.append($('<option disabled selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
+
+
+            }
+            else {
+
+              dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
+            }
+          }
+
+        })
+
+
+
+
+        //$("#assigned_to").val(user_list);
+        if (user_role == 'admin') {
+        $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: true });
+        }
+        else
+        {
+         
+          $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: false,disabled:'readonly' });
+         
+          
+        }
+
+      });
+
+
+
+    }
+  </script>
+
+
+<!-- Upload Modal -->
+
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalTitle" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+	  <div class="modal-content">
+		<div class="modal-header">
+		  <h5 class="modal-title" id="uploadModalLongTitle">Upload File</h5>
+		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+			<span aria-hidden="true">&times;</span>
+		  </button>
+		</div>
+		<div class="modal-body">
+  
+		  <form id="upload_files_form" method="POST" enctype="multipart/form-data" >
+			<input name="client_id" id="clien_id_file_upload" type="hidden" readonly value="0">
+
+			<input type="file" id="uploadFile" class="btn btn-secondary" name="files[]" multiple="false" autocomplete="off" required accept=".xls,.xlsx,.png,.jpg,.jpeg,.gif,.pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+			<!-- <input type="submit" class="btn btn-success" id="upload_files" name="upload_files" value="Upload"> -->
+			<button id="upload-file-btn" class="btn btn-success" type="button" disabled="true" >Upload</button>
+  
+  <script>
+	var MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+   
+   $(document).ready(function() {
+	   $('#uploadFile').change(function() {
+		$('#upload-file-btn').attr('disabled', true);
+		 fileSize = 0;
+
+		 if (this.files.length > 1) {
+			   this.setCustomValidity("Only 1 FIle !");
+			   this.reportValidity();
+			   $('#upload-file-btn').attr('disabled', true);
+		   }
+		   else{
+
+		 for(i=0; i<this.files.length; i++){
+		   fileSize = this.files[i].size + fileSize;
+		  }
+		  if (fileSize > MAX_FILE_SIZE) {
+			   this.setCustomValidity("File must not exceed 5 MB!");
+			   this.reportValidity();
+			   $('#upload-file-btn').attr('disabled', true);
+		   } else {
+			   this.setCustomValidity("");
+			   $('#upload-file-btn').attr('disabled', false);
+		   }
+		}
+	   });
+   });
+  </script>
+  
+  
+		  </form>
+  
+		  <br>
+		  <div class="progress">
+			  <div class="progress-bar progress-bar-striped bg-info"></div>
+		  </div>
+  
+		</div>
+
+
+		<div class="modal-footer">
+		  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+		</div>
+	  </div>
+	</div>
+  </div>
+  
+  <script type="text/javascript">
+  
+  $(function() {
+	  $('#upload-file-btn').click(function() {
+		  var form_data = new FormData($('#upload_files_form')[0]);
+		  $.ajax({
+  
+		xhr: function() {
+				  var xhr = new window.XMLHttpRequest();
+				  xhr.upload.addEventListener("progress", function(evt) {
+					  if (evt.lengthComputable) {
+						  var percentComplete = parseInt( ((evt.loaded / evt.total) * 100) );
+						  $(".progress-bar").width(percentComplete + '%');
+						  $(".progress-bar").html(percentComplete+'%');
+					  }
+				  }, false);
+				  return xhr;
+			  },
+  
+			  type: 'POST',
+			  url: '/upload_file_event',
+			  data: form_data,
+			  contentType: false,
+			  cache: false,
+			  processData: false,
+			  success: function(data) {
+				  if (data == "Success"){
+					Swal.fire(
+							'File Uploaded Successfully',
+							'You can check it now. ',
+							'success');
+				  }
+				  else{
+					Swal.fire(
+							'Failed to Upload!',
+							'Kindly retry. ',
+							'error');
+				  }
+
+				$('#upload_files_form').trigger("reset");
+				$("#uploadModal .close").click();
+				$(".progress-bar").width( 0 + '%');
+				$(".progress-bar").html( 0+'%');
+				  console.log(data);
+				  console.log('Success!');
+				  get_client_file(); // refresh
+			  },
+		  });
+	  });
+  });
+  
+  </script>
+  
+  <!-- End of Upload Modal -->
+
+  <script>
+    function get_client_file()
+  {
+    client_id = document.getElementById("client_id").value;
+    console.log(client_id)
+
+    banana = {"client_id":client_id};
+    $.post("/get_client_file", banana).done(function (data) {
+      console.log(data);
+      if (data.length == 0 || data == 'no_file' || data == 'error'){
+      console.log("No Files");
+      }
+      else{
+      document.getElementById('file_download_div').hidden = false;
+
+        console.log(data);
+        filename=data;
+
+        document.getElementById('file_name').value = filename;
+        $('a#file_download').attr("href", "/static/event_upload_files/"+filename+`?v=${new Date().getTime()}` );
+
+        $('#delete_file').prop('disabled', false); // Activiate Delete Button
+      
+
+    }
+    });
+
+  }  // End Of File Name Fetcher
+
+
+function delete_file()
+{
+  client_id = document.getElementById("client_id").value;
+
+body = {"client_id":client_id}
+$.post("/file_delete", body).done(function (data) {
+if( data == "Success")
+{
+Swal.fire(
+		  'File Deleted Successfully',
+		  '',
+		  'success'
+		  );
+
+      $('#delete_file').attr("href", "javascript:void(0)");
+
+ 	$('#delete_file').prop('disabled', true);
+  document.getElementById('file_name').value = "";
+  document.getElementById('file_download_div').hidden = true;
+
+	get_client_file(); // refresh
+}
+else{
+	Swal.fire(
+		  'Failed to Delete File...',
+		  'Kindly try again',
+		  'error'
+		  );
+}
+
+});
+
+} // End Of File Delete
+
+</script>
+<!--  FILES END   -->
+
+
+<script>
+ $( document ).ready(function() {
+
+  get_data('{{client_data}}');
+  
+ })
+</script>
+
+
+
+</body>
+
+{% endblock %}

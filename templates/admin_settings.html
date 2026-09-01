@@ -1,0 +1,539 @@
+{% extends 'main.html' %}
+{% block body %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.bootstrap4.css" integrity="sha512-WJ1jnnij6g+LY1YfSmPDGxY0j2Cq/I6PPA7/s4QJ/5sRca5ypbHhFF+Nam0TGfvpacrw9F0OGeZa0ROdNAsaEQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<body>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.js" integrity="sha512-pF+DNRwavWMukUv/LyzDyDMn8U2uvqYQdJN0Zvilr6DDo/56xPDZdDoyPDYZRSL4aOKO/FGKXTpzDyQJ8je8Qw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Admin Settings</u>
+</h1>
+</center>
+<br>
+
+
+
+<div class="card_customized" style="margin-left: 3%;margin-right: 3%;">
+
+<table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Setting</th>
+        <th scope="col">Value</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      
+      <tr>
+        <th scope="row">Delete Educational System</th>
+        <td>
+
+            <div class="form-group">
+
+                <!-- educational system -->
+
+                  <label for="educational_system"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Educational System</label>
+                  <br>
+                  <select required type="text" class="form-control" maxlength="50" id="educational_system"
+                    placeholder="Choose Educational System" name="educational_system" id="educational_system" style="max-width: 50%;"></select>
+                </div>
+            
+                <div class="form-group">
+                    <button class="btn btn-danger btn-md" onclick="delete_educational_system();">Delete Educational System</button>
+                </div>
+
+          <script>
+            function edu_system_data(){
+            let dropdown = $('#educational_system');
+            
+            dropdown.empty();
+            
+          
+            dropdown.append($('<option selected disabled value="">Choose Educational System</option>'))
+            const url = '/get_educational_system_data';
+          
+            // Populate dropdown with list of provinces
+            $.getJSON(url, function (data) {
+              $.each(data, function (key, entry) {
+                dropdown.append($('<option></option>').attr('value', entry.id).text(entry.educational_system));
+                
+              });
+              dropdown.select2();
+              
+            });
+            
+          }
+          </script>
+
+        </td>
+      </tr>
+
+      <tr>
+        <th scope="row">Delete Subject</th>
+        <td>
+
+                    <!-- Subject -->
+                <div class="form-group">
+                    <label for="subject"
+                    style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Subject</label>
+                    <br>
+                    <select required type="text" class="form-control" maxlength="50" id="subject"
+                      placeholder="Choose Subject" name="subject" id="subject" style="max-width: 50%;"></select>
+                  
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-danger btn-md" onclick="delete_subject();">Delete Subject</button>
+                </div>
+
+          <script>
+            function subject_data(){
+            let dropdown1 = $('#subject');
+            
+            dropdown1.empty();
+            
+          
+            dropdown1.append($('<option selected disabled value="">Choose Subject</option>'))
+            const url1 = '/get_subject_data';
+          
+            // Populate dropdown with list of provinces
+            $.getJSON(url1, function (data1) {
+              $.each(data1, function (key1, entry1) {
+                dropdown1.append($('<option></option>').attr('value', entry1.id).text(entry1.subject));
+                
+              });
+              dropdown1.select2();
+              
+            });
+            
+          }
+          </script>
+
+        </td>
+      </tr>
+
+
+      <tr>
+        <th scope="row">Delete Exam Trial</th>
+        <td>
+
+            <div class="form-group">
+
+                <!-- Exam Trial -->
+
+                  <label for="exam_trial"
+                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Exam Trial</label>
+                  
+                <br>
+
+                  <select required type="text" class="form-control" maxlength="50" id="exam_trial"
+                    placeholder="Choose Exam Trial" name="exam_trial" id="exam_trial" style="max-width: 40%;"></select>
+                
+                </div>
+
+          <div class="form-group">
+            <button class="btn btn-danger btn-md" onclick="delete_exam_trial();">Delete Exam Trial</button>
+          </div>
+
+          <script>
+            function exam_trial_data(){
+            let dropdown2 = $('#exam_trial');
+            
+            dropdown2.empty();
+            
+          
+            dropdown2.append($('<option selected disabled value="">Choose Exam Trial</option>'))
+            const url2 = '/get_exam_trial_data';
+          
+            // Populate dropdown with list of provinces
+            $.getJSON(url2, function (data2) {
+              $.each(data2, function (key2, entry2) {
+                dropdown2.append($('<option></option>').attr('value', entry2.id).text(entry2.exam_trial));
+                
+              });
+              dropdown2.select2();
+              
+            });
+            
+          }
+          </script>
+
+        </td>
+      </tr>
+
+
+
+      <tr>
+        <th scope="row">Manage Course</th>
+        <td>
+
+            <div class="form-group">
+
+                <!-- Exam Course -->
+
+                  <label for="course"
+                  style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
+                  
+                <br>
+
+                  <select required type="text" class="form-control" maxlength="50" id="course"
+                    placeholder="Choose Course" name="course" id="course" style="max-width: 70%;"></select>
+                
+                </div>
+
+          <div class="row g-3">
+            <div class="col-auto">
+              <button class="btn btn-info btn-md" onclick="hold_course();">Hold | Unhold Course</button>
+            </div>
+
+            <div class="col-auto">
+              <button class="btn btn-success btn-md" onclick="avail_course();">Availabe | Disable to External Form</button>
+            </div>
+
+            <div class="col-auto">
+              <button class="btn btn-danger btn-md" onclick="delete_course();">Delete Course</button>
+            </div>
+          </div>
+
+          <script>
+            function get_course_data(){
+            let dropdown3 = $('#course');
+            
+            dropdown3.empty();
+            
+            dropdown3.append($('<option selected disabled value="">Choose Course</option>'))
+            const url3 = '/get_course_data';
+          
+            // Populate dropdown with list of provinces
+            $.getJSON(url3, function (data3) {
+              $.each(data3, function (key3, entry3) {
+                if(entry3.hold == true)
+                {
+                  hold = "Holded"
+                }
+                else if(entry3.hold == false)
+                {
+                  hold = "unHolded"
+                }
+
+                if(entry3.form == true)
+                {
+                  avail = "Form Active"
+                }
+                else if(entry3.form == false)
+                {
+                  avail = "Form Inactive"
+                }
+
+                dropdown3.append($('<option></option>').attr('value', entry3.id).text(entry3.course + ' | ' + hold + ' | ' + avail));
+                
+              });
+              dropdown3.select2();
+              
+            });
+            
+          }
+          </script>
+
+        </td>
+      </tr>
+
+
+    </tbody>
+</table>
+
+</div>
+
+<script>
+// Delete function for each item
+
+function delete_educational_system()
+{
+
+    var educational_system_id = document.getElementById("educational_system").value;
+    console.log(educational_system_id);
+
+    $.post("/delete_educational_system",{educational_system_id:educational_system_id}).done(function (response) {
+        
+        state = response.state;
+        
+        if (state == "success")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Educational System Deleted...',
+                showConfirmButton: false,
+                timer: 1000});
+
+                $("#educational_system").select2('destroy'); 
+                edu_system_data(); // refresh data
+                educational_system_name = "";
+
+        }
+        else
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong, kindly refresh...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#educational_system").select2('destroy'); 
+                edu_system_data(); // refresh data
+                educational_system_name = "";
+        }
+        });
+
+}
+
+function delete_subject()
+{
+
+    var subject_id = document.getElementById("subject").value;
+
+    $.post("/delete_subject",{subject_id:subject_id}).done(function (response) {
+        
+        state = response.state;
+        
+        if (state == "success")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Subject Deleted...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#subject").select2('destroy'); 
+                subject_data(); // refresh data
+                document.getElementById("subject").value = "";
+        }
+        else
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong, kindly refresh...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#subject").select2('destroy'); 
+                subject_data(); // refresh data
+                document.getElementById("subject").value = "";
+
+        }
+        });
+
+}
+
+function delete_exam_trial()
+{
+
+    var exam_trial_id = document.getElementById("exam_trial").value;
+
+    $.post("/delete_exam_trial",{exam_trial_id:exam_trial_id}).done(function (response) {
+        
+        state = response.state;
+        
+        if (state == "success")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Exam Trial Deleted...',
+                showConfirmButton: true});
+
+                $("#exam_trial").empty();
+                $("#exam_trial").select2('destroy');
+                document.getElementById("exam_trial").value = "";
+                exam_trial_data(); // refresh data
+        }
+        else
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong, kindly refresh...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#exam_trial").empty();
+                $("#exam_trial").select2('destroy');
+                document.getElementById("exam_trial").value = "";
+                exam_trial_data(); // refresh data
+        }
+        });
+
+
+}
+
+function hold_course()
+{
+
+    var course_id = document.getElementById("course").value;
+
+    if (course_id === '' )
+    {
+      Swal.fire({
+                icon: 'info',
+                title: 'Choose Course First!',
+                showConfirmButton: true});
+                return;
+    }
+
+    $.post("/hold_course",{course_id:course_id}).done(function (response) {
+        
+        state = response.state;
+        
+        if (state == "holded")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Course Holded...',
+                showConfirmButton: true});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        else if (state == "unholded")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Course Unholded...',
+                showConfirmButton: true});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        else
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong, kindly refresh...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        });
+}
+
+
+function avail_course()
+{
+
+    var course_id = document.getElementById("course").value;
+
+    if (course_id === '' )
+    {
+      Swal.fire({
+                icon: 'info',
+                title: 'Choose Course First!',
+                showConfirmButton: true});
+      return;
+    }
+
+    $.post("/avail_course",{course_id:course_id}).done(function (response) {
+        
+        state = response.state;
+        
+        if (state == "avail")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Course Now Availabe to Clients...',
+                showConfirmButton: true});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        else if (state == "unavail")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Course is now NOT Availabe to Clients...',
+                showConfirmButton: true});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        else
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong, kindly refresh...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        });
+}
+
+
+function delete_course()
+{
+
+    var course_id = document.getElementById("course").value;
+
+    if (course_id === '' )
+    {
+      Swal.fire({
+                icon: 'info',
+                title: 'Choose Course First!',
+                showConfirmButton: true});
+      return;
+    }
+
+    $.post("/delete_course",{course_id:course_id}).done(function (response) {
+        
+        state = response.state;
+        
+        if (state == "success")
+        {
+            Swal.fire({
+                icon: 'success',
+                title: 'Course Deleted...',
+                showConfirmButton: true});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        else
+        {
+            Swal.fire({
+                icon: 'error',
+                title: 'Something went wrong, kindly refresh...',
+                showConfirmButton: false,
+                timer: 1500});
+
+                $("#course").empty();
+                document.getElementById("course").value = "";
+                get_course_data(); // refresh data
+        }
+        });
+}
+</script>
+
+
+<script>
+    $( document ).ready(function() {
+      edu_system_data();
+      subject_data();
+      exam_trial_data();
+      get_course_data();
+    })
+  </script>
+
+
+</body>
+{% endblock %}

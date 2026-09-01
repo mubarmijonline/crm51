@@ -1,0 +1,372 @@
+{% extends 'main.html' %}
+{% block body %}
+
+<head>
+  <!-- <script src="{{url_for('static', filename='js/ps_calc_js/home.js')}}"></script> -->
+</head>
+
+<style>
+  body {
+    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    background-color: #f2f3f7;
+  }
+
+  .blue {
+    background-color: #86ba90 !important;
+  }
+
+  .yellow {
+    background-color: #ef6c5f !important;
+  }
+
+
+  .sidenav {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+  }
+
+  .sidenav a {
+    padding: 8px 8px 8px 32px;
+    text-decoration: none;
+    font-size: 25px;
+    color: #818181;
+    display: block;
+    transition: 0.3s;
+  }
+
+  .sidenav a:hover {
+    color: #f1f1f1;
+  }
+
+  .sidenav .closebtn {
+    position: static;
+    top: -20px;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+  }
+
+  @media screen and (max-height: 450px) {
+    .sidenav {
+      padding-top: 15px;
+    }
+
+    .sidenav a {
+      font-size: 18px;
+    }
+  }
+</style>
+<style>
+  .grid-container {
+    display: grid;
+    grid-gap: 6px;
+    grid-template-columns: auto auto;
+    background-color: #FFFF;
+    padding: 4px;
+    border-radius: 8px;
+  }
+
+  .grid-container-mobile {
+    display: grid;
+
+    grid-gap: 6px;
+    grid-template-columns: auto;
+    background-color: #FFFF;
+    padding: 4px;
+    border-radius: 8px;
+  }
+
+  .grid-item {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    background-color: antiquewhite;
+    border-radius: 8px;
+
+
+  }
+
+  .counter {
+    width: 150px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .counter input {
+    width: 50px;
+    border: 0;
+    line-height: 30px;
+    font-size: 20px;
+    text-align: center;
+    background: #0052cc;
+    color: #fff;
+    appearance: none;
+    outline: 0;
+  }
+
+  .counter span {
+    display: block;
+    font-size: 25px;
+    padding: 0 10px;
+    cursor: pointer;
+    color: #0052cc;
+    user-select: none;
+  }
+
+  #food_table_wrapper {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 17px;
+    font-weight: bold;
+    position: relative;
+    clear: both;
+    zoom: 1;
+    zoom: 1;
+  }
+
+
+  .card_customized  {
+    position: relative;
+    font-family: 'Trebuchet MS', sans-serif;
+    flex-direction: column;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 0 solid transparent;
+    border-radius: .25rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 6px 0 rgb(218 218 253 / 65%), 0 2px 6px 0 rgb(206 206 238 / 54%);
+    background-color:white;
+    padding-left: 40px;
+    padding-right:40px;
+    padding-top: 2em;
+
+  /* background-image: url("{{url_for('static', filename='images/padel_background.jpg')}}"); */
+    background-size: cover;
+   background-repeat: no-repeat;
+   background-position:  center  center ;
+
+
+
+}
+
+</style>
+
+
+<br>
+
+
+<script>
+  function openNav() {
+    document.getElementById("mySidenav").style.width = "300px";
+
+
+    Swal.fire({
+
+      background: 'transparent',
+      allowOutsideClick: true,
+      showConfirmButton: false,
+
+      customClass: {
+        container: 'loading-container-class',
+        popup: 'popup-class',
+        backdrop: 'true'
+      },
+
+
+    });
+
+
+  }
+
+  function closeNav() {
+    document.getElementById("mySidenav").style.width = "0";
+    $(".loading-container-class .swal2-close").click();
+
+  }
+</script>
+
+
+<hr>
+
+
+
+<section class="pt-4">
+  <div class="container px-lg-5">
+      <!-- Page Features-->
+      <div class="row gx-lg-5">
+  
+          <div class="col-lg-6 col-xxl-4 mb-5" hidden id="create_lead">
+            <div class="card bg-light border-0 h-100">
+                <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                    <a href="/create_lead_american">
+                    <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/210535/plus.svg"> </div>
+                    <h2 class="fs-4 fw-bold">Create Education Leads</h2>
+                    <p class="mb-0"></p>
+                </a>
+                    <p class="mb-0">Manually Add Education Leads</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-xxl-4 mb-5" hidden id="create_lead_event">
+          <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                  <a href="/create_lead_event">
+                  <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/210535/plus.svg"> </div>
+                  <h2 class="fs-4 fw-bold">Create Event Leads</h2>
+                  <p class="mb-0"></p>
+              </a>
+                  <p class="mb-0">Manually Add Event Leads</p>
+              </div>
+          </div>
+      </div>
+
+        <div class="col-lg-6 col-xxl-4 mb-5" hidden id="update_lead">
+          <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                  <a href="/update_american_lead">
+                  <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/520495/book.svg"> </div>
+                  <h2 class="fs-4 fw-bold">Update & Search Education Leads</h2>
+                  <p class="mb-0"></p>
+              </a>
+                  <p class="mb-0">Search & Update Education Lead</p>
+              </div>
+          </div>
+      </div>
+
+      <div class="col-lg-6 col-xxl-4 mb-5" hidden id="update_lead_event">
+        <div class="card bg-light border-0 h-100">
+            <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                <a href="#">
+                <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/520495/book.svg"> </div>
+                <h2 class="fs-4 fw-bold">Update & Search Event Leads</h2>
+                <p class="mb-0"></p>
+            </a>
+                <p class="mb-0">Search & Update Event Lead</p>
+            </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6 col-xxl-4 mb-5" hidden id="recall_date_table">
+        <div class="card bg-light border-0 h-100">
+            <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                <a href="/recall_date_table">
+                <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/148109/calendar.svg"> </div>
+                <h2 class="fs-4 fw-bold">Education Recall Dates</h2>
+                <p class="mb-0"></p>
+            </a>
+                <p class="mb-0">Recall Dates Table for Education Leads</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-xxl-4 mb-5" hidden id="recall_date_table_event">
+      <div class="card bg-light border-0 h-100">
+          <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+              <a href="/recall_date_table_event">
+              <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/148109/calendar.svg"> </div>
+              <h2 class="fs-4 fw-bold">Event Recall Dates</h2>
+              <p class="mb-0"></p>
+          </a>
+              <p class="mb-0">Recall Dates Table for Event Leads</p>
+          </div>
+      </div>
+    </div>
+
+          <div class="col-lg-6 col-xxl-4 mb-5" hidden id="studentsDB">
+              <div class="card bg-light border-0 h-100">
+                  <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                      <a href="/american_active_leads">
+                      <div class="feature text-white rounded-3 mb-4 mt-n4"> <img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/104966/group.svg"> </div>
+                      <h2 class="fs-4 fw-bold">Course Active Leads DB</h2>
+                      <p class="mb-0"></p>
+                  </a>
+                      <p class="mb-0">View Course lead Data</p>
+                  </div>
+              </div>
+          </div>
+  
+<!--           <div class="col-lg-6 col-xxl-4 mb-5" hidden id="crm_excel_sheet">
+            <div class="card bg-light border-0 h-100">
+                <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                    <a href="/crm_excel_sheet">
+                        <div class="feature text-white rounded-3 mb-4 mt-n4"><img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/223056/sheets-sheet.svg" ></div>
+                    <h2 class="fs-4 fw-bold">Upload CRM Excel Sheet</h2>
+                    </a>
+                    <p class="mb-0">Upload Sheets and view older ones</p>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="col-lg-6 col-xxl-4 mb-5" hidden id="users">
+          <div class="card bg-light border-0 h-100">
+              <div class="card-body text-center p-4 p-lg-5 pt-0 pt-lg-0">
+                  <a href="/users">
+                      <div class="feature text-white rounded-3 mb-4 mt-n4"><img style="width:64px; height: 64px;"  src="https://www.svgrepo.com/show/16070/users.svg" ></div>
+                  <h2 class="fs-4 fw-bold">Users</h2>
+                  </a>
+                  <p class="mb-0">View and Edit System Users</p>
+              </div>
+          </div>
+      </div>
+
+      </div>
+  </div>
+  </section>
+
+
+  <script>
+
+    $( document ).ready(function() {
+        role = "{{session['role']}}";
+        if (role == 'admin')
+        {
+          document.getElementById('create_lead').hidden = false;
+          document.getElementById('create_lead_event').hidden = false;
+
+          document.getElementById('update_lead').hidden = false;
+          document.getElementById('update_lead_event').hidden = false;
+
+          document.getElementById('recall_date_table').hidden = false;
+          document.getElementById('recall_date_table_event').hidden = false;
+
+          document.getElementById('studentsDB').hidden = false;
+          //document.getElementById('crm_excel_sheet').hidden = false;
+          document.getElementById('users').hidden = false;
+        }
+        else
+        {
+          document.getElementById('create_lead').hidden = false;
+          document.getElementById('create_lead_event').hidden = false;
+
+          document.getElementById('update_lead').hidden = false;
+          document.getElementById('update_lead_event').hidden = false;
+
+          document.getElementById('recall_date_table').hidden = false;
+          document.getElementById('recall_date_table_event').hidden = false;
+          
+          document.getElementById('studentsDB').hidden = false;
+        }
+    });
+    
+  </script>
+
+<!-- <script>
+  window.onload = runner(); 
+</script> -->
+
+{% endblock %}

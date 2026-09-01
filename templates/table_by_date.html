@@ -1,0 +1,284 @@
+{% extends 'main.html' %}
+{% block body %}
+
+
+<style>
+    body {
+        font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        background-color: #f2f3f7;
+    }
+</style>
+
+<body onload="get_clients_data();get_total()">
+
+
+    <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Cheque Section by Date</u>
+    </h1>
+    </center>
+    <br>
+
+
+
+    <div class="card_customized" style="margin-left: 3%;margin-right: 3%;">
+        <table id="clients_table" class="display" style="width:100%">
+
+            <br>
+            
+
+
+                <br>
+                <center>
+                <div class="form-group">
+                    <label for="exampleFormControlInput1"
+                        style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;font-size: 20px;">Date</label>
+                    <input style="text-align:center;color:blue;width: 70%;background-color: white;width:30%" type="text" class="form-control"
+                        id="cheque_date" name="cheque_date" readonly onchange="get_clients_data();get_total()">
+                </div>
+            </center>
+            <div class="form-group">
+                <label for="exampleFormControlInput1"
+                    style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;font-size: 20px;">Total Cheque Amount Monthly</label>
+                <input style="text-align:center;color:green;font-size:25px;background-color: white;width:20%;border:none;" type="text" class="form-control" readonly
+                    id="total_cheque_month" name="total_cheque_month" >
+            </div>
+                <script>
+                    $('#cheque_date').datepicker({
+                      todayBtn: "linked",
+                      weekStart: 0,
+                      autoclose: true,
+                      todayHighlight: true,
+                      format: "yyyy-mm",
+                      viewMode: "months",
+                      minViewMode: "months",
+
+        
+                    });
+                    
+                    
+                        var date = new Date();
+                        date.setMonth(date.getMonth(), 1);
+
+                    $('#cheque_date').datepicker("endDate","today");
+                    $('#cheque_date').datepicker("setDate", date);
+
+        
+                    //console.log("A");
+                  </script>
+                <br>
+                <br>
+                <hr>
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Stock Out ID</th>
+                        <th>Stock Name</th>
+
+                        <th>Client Name</th>
+                        <th>Client Mobile</th>
+
+                        <th>Cheque Amount</th>
+                        <th>Cheque Date</th>
+                        <th>Cheque Collection Date</th>
+                        <th>Cheque Confirmed</th>
+
+
+                        <th></th>
+                    </tr>
+
+                </thead>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th>Stock Out ID</th>
+                        <th>Stock Name</th>
+
+                        <th>Client Name</th>
+                        <th>Client Mobile</th>
+
+                        <th>Cheque Amount</th>
+                        <th>Cheque Date</th>
+                        <th>Cheque Collection Date</th>
+                        <th>Cheque Confirmed</th>
+
+
+                        <th></th>
+                    </tr>
+                </tfoot>
+        </table>
+
+    </div>
+
+
+    <script>
+
+        function get_clients_data() {
+            
+        $('#clients_table').DataTable().destroy();
+       
+
+            date = document.getElementById('cheque_date').value;
+            var table = $('#clients_table').DataTable({
+                ajax: { url: '/get_cheque_by_date?date='+date, mimeType: 'json' },
+                deferRender: true,
+                columns: [
+                    { data: 'cheque_id' },
+                    { data: 'transaction_id' },
+                    { data: 'stock_name' },
+                    { data: 'client_name' },
+                    { data: 'client_mobile' },
+                    { data: 'cheque_amount' },
+                    { data: 'cheque_date' },
+                    { data: 'cheque_received_date' },
+                    {
+                        mRender: function (data, type, row) {
+                            if (row.cheque_confirmed == '1') {
+                                return 'Confirmed';
+                            }
+                            else {
+                                return 'Pending';
+                            }
+                        },
+                    },
+                    {
+                        mRender: function (data, type, row) {
+
+                                if (row.cheque_confirmed == "1")
+                                    return '<div class="btn-group"><button  id="change_confirmation" type="button" class="btn btn-warning btn-xs dt-delete" onclick="change_confirmation(' + row.cheque_id + ')"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Change to Pending</button> </div>';
+                                else {
+                                    return '<div class="btn-group"><button  id="change_confirmation" type="button" class="btn btn-success btn-xs dt-delete" onclick="change_confirmation(' + row.cheque_id + ')"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Change to Confirmed</button></div>';
+                                }
+                            
+
+
+                        },
+                    }
+
+
+
+                ],
+
+
+                rowId: 'extn',
+                select: true,
+                paging: false,
+                dom: 'Bfrtip',
+                scrollX: true,
+                select: false,
+                "order": [[0, "desc"]],
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print',
+                    {
+                        text: 'Reload table',
+                        exportOptions: {
+                            columns: [0, 1, 2]
+                        },
+                        action: function () {
+                            table.ajax.reload();
+                        }
+                    }
+                ]
+
+            });
+
+
+        }
+
+    </script>
+
+
+    <!-- Edit Client Modal -->
+    <!-- Modal -->
+
+    <!-- Edit Client Modal -->
+
+
+
+    <!-- Add Client Modal -->
+    <!-- Modal -->
+
+<script>
+    function get_total()
+    {
+    date = document.getElementById('cheque_date').value;
+
+          $.post("/get_sum_cheque_by_date", { date:date  }).done(function (response) {
+            total_cheque_month = response.total_cheque_month;
+            total_cheque_month = numberWithCommas(total_cheque_month);
+            console.log(total_cheque_month)
+            document.getElementById('total_cheque_month').value = total_cheque_month + " L.E"
+
+        //setTimeout(() => {  window.location.replace("/logout"); }, 3000);
+
+
+      });
+    }
+    function numberWithCommas(x) {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+</script>
+
+
+
+ 
+<script>
+    function change_confirmation(id)
+{
+
+  Swal.fire({
+    title: 'Are you sure?',
+    text: "",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#3085d6',
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Yes, change it!'
+  }).then((result) => {
+    if (result.isConfirmed) {
+
+      $.post("/change_confirmation", { cheque_id:id  }).done(function (response) {
+        state = response.state;
+
+        //setTimeout(() => {  window.location.replace("/logout"); }, 3000);
+
+        if (state == "success") {
+        
+          Swal.fire({
+            icon: 'success',
+            title: 'Done',
+            text: 'Cheque Confirmation Changed',
+            showConfirmButton: false,
+            showCancelButton: false
+          });
+          $('#clients_table').DataTable().ajax.reload();
+          get_total();
+
+      }
+
+
+
+        else {
+          Swal.fire(
+            'Hmmm',
+            'Something went wrong, try again in a few moments',
+            'error');
+        }
+
+      });
+    }
+  });
+
+}
+</script>
+
+
+
+
+
+
+</body>
+
+{% endblock %}
