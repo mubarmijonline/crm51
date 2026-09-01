@@ -30,6 +30,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
 {# App-level overrides. Last, so they win over the bridge. #}
 <link rel="stylesheet" href="{{ url_for('static', filename='select2/select2.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 {# Forces the light-only vendor stack (Bootstrap, DataTables, select2,
    datepicker, SweetAlert) onto our tokens. Must load last. #}
@@ -78,6 +79,7 @@
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 {# The one table component: server-side search, URL state, real states. #}
 <script src="{{ url_for('static', filename='js/crm-table.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crm-form.js') }}"></script>
 {# Google Charts backs the 10 ColumnCharts on profile and event_profile.
    The old base loaded this; dropping it left google.charts undefined at
    call time and every one of those charts dead. #}

@@ -1,0 +1,202 @@
+/* ---------------------------------------------------------------------------
+   forms.css — the one form language, in the Shopify Dawn / Polaris register.
+
+   What that means concretely, and why:
+   - Labels sit above the field and stay visible. Placeholder-as-label breaks
+     the moment someone types.
+   - Helper text lives under the field in quiet 12px and stays; the error
+     message replaces it rather than being appended, so the row never reflows.
+   - Fields are 40px, 1px border, 6px radius, white fill. Focus moves the
+     border to brand and adds a 3px tint ring - never an outline swap.
+   - Sections are bordered cards with a title and one line of description.
+   - The action row is a sticky footer bar so Save is reachable on a long form.
+   Tokens only.
+   --------------------------------------------------------------------------- */
+
+/* --- section card --------------------------------------------------------- */
+
+.form-section {
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  padding: var(--space-8);
+  margin-bottom: var(--space-7);
+}
+
+.form-section__head { margin-bottom: var(--space-7); }
+
+.form-section__title {
+  margin: 0;
+  font: var(--weight-semibold) 17px/1.4 var(--font-sans);
+  color: var(--text-title);
+}
+
+.form-section__desc {
+  margin: var(--space-2) 0 0;
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+}
+
+/* --- the field grid ------------------------------------------------------- */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-6) var(--space-8);
+}
+
+.form-grid > .span-2 { grid-column: 1 / -1; }
+
+/* --- field anatomy -------------------------------------------------------- */
+
+.form-group { display: block; margin-bottom: 0; }
+
+.form-group > label,
+.form-label {
+  display: block;
+  margin-bottom: var(--space-3);
+  font: var(--weight-medium) 13px/1.4 var(--font-sans);
+  color: var(--text-body);
+}
+
+.form-label__req {
+  color: var(--text-danger);
+  margin-inline-start: 2px;
+}
+
+.form-label__optional {
+  color: var(--text-subtle);
+  font-weight: var(--weight-regular);
+  margin-inline-start: var(--space-3);
+}
+
+.form-control,
+.form-group input[type=text],
+.form-group input[type=email],
+.form-group input[type=password],
+.form-group input[type=number],
+.form-group input[type=search],
+.form-group select,
+.form-group textarea {
+  display: block;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  font: var(--type-body);
+  color: var(--text-body);
+  box-shadow: none;
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
+}
+
+.form-group textarea,
+textarea.form-control { height: auto; padding: 10px 12px; line-height: var(--leading-normal); }
+
+.form-control:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: var(--focus-ring);
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background: var(--surface-app);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Helper text is always there; the error replaces it in place. */
+.form-text,
+small.form-text {
+  display: block;
+  margin-top: var(--space-3);
+  font: 12px/1.45 var(--font-sans);
+  color: var(--text-muted);
+}
+
+.form-error {
+  display: none;
+  margin-top: var(--space-3);
+  font: 12px/1.45 var(--font-sans);
+  color: var(--text-danger);
+}
+
+.form-group.has-error .form-text { display: none; }
+.form-group.has-error .form-error { display: block; }
+.form-group.has-error .form-control,
+.form-group.has-error .select2-selection {
+  border-color: var(--border-danger) !important;
+}
+.form-group.has-error .form-control:focus {
+  box-shadow: 0 0 0 3px var(--status-danger-bg);
+}
+
+/* --- validation summary --------------------------------------------------- */
+
+.form-summary {
+  display: none;
+  padding: var(--space-5) var(--space-6);
+  margin-bottom: var(--space-7);
+  background: var(--status-danger-bg);
+  border: 1px solid var(--status-danger-border);
+  border-radius: var(--radius-card);
+  color: var(--status-danger-fg);
+}
+.form-summary.is-shown { display: block; }
+.form-summary__title { font: var(--weight-semibold) var(--text-md)/1.4 var(--font-sans); margin: 0 0 var(--space-3); }
+.form-summary ul { margin: 0; padding-inline-start: var(--space-6); font: var(--type-body-sm); }
+.form-summary a { color: var(--status-danger-fg); text-decoration: underline; }
+
+/* --- action bar ----------------------------------------------------------- */
+
+.form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6);
+  margin-top: var(--space-7);
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+}
+
+.form-actions__note { margin-inline-end: auto; font: var(--type-body-sm); color: var(--text-muted); }
+
+/* Submitting: the button never goes disabled for being invalid, only while
+   the request is in flight. */
+.btn.is-busy { pointer-events: none; opacity: .75; }
+.btn.is-busy::before {
+  content: "";
+  display: inline-block;
+  width: 13px; height: 13px;
+  margin-inline-end: var(--space-3);
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: var(--radius-pill);
+  animation: crm-spin .6s linear infinite;
+  vertical-align: -2px;
+}
+@media (prefers-reduced-motion: reduce) { .btn.is-busy::before { animation: none; } }
+
+/* --- mobile --------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .form-section { padding: var(--space-6); border-radius: var(--radius-card); }
+  .form-grid { grid-template-columns: 1fr; gap: var(--space-6); }
+  /* 44px minimum touch target */
+  .form-control,
+  .form-group select,
+  .form-group input { height: 44px; }
+  .form-actions { flex-direction: column-reverse; align-items: stretch; }
+  .form-actions .btn { width: 100%; justify-content: center; }
+  .form-actions__note { margin: 0 0 var(--space-3); text-align: center; }
+}

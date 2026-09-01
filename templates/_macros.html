@@ -63,3 +63,52 @@
   {{ caller() }}
 </div>
 {% endmacro %}
+
+
+{# --- form_section ----------------------------------------------------------
+   A bordered card with a title and one line of description, in the Dawn
+   register. Replaces the ad-hoc card_customized + inline h2 pattern.
+--------------------------------------------------------------------------- #}
+{% macro form_section(title=none, description=none) %}
+<div class="form-section">
+  {% if title %}
+  <div class="form-section__head">
+    <h2 class="form-section__title">{{ title }}</h2>
+    {% if description %}<p class="form-section__desc">{{ description }}</p>{% endif %}
+  </div>
+  {% endif %}
+  <div class="form-grid">{{ caller() }}</div>
+</div>
+{% endmacro %}
+
+
+{# --- field ------------------------------------------------------------------
+   Label above, always visible. Helper text below, always visible; the error
+   replaces it in place. Required marked with an asterisk and aria-required.
+
+     {{ field('student_mobile', 'Student mobile', required=true,
+              help='Digits only.', mono=true,
+              attrs='maxlength="16" oninput="..."') }}
+--------------------------------------------------------------------------- #}
+{% macro field(name, label, type='text', required=false, help=none, value='',
+               placeholder='', mono=false, span=false, optional=false, attrs='') %}
+<div class="form-group{% if span %} span-2{% endif %}">
+  <label for="{{ name }}">{{ label }}{% if required %}<span class="form-label__req" aria-hidden="true">*</span>{% elif optional %}<span class="form-label__optional">optional</span>{% endif %}</label>
+  <input type="{{ type }}" class="form-control{% if mono %} mono{% endif %}"
+         id="{{ name }}" name="{{ name }}" value="{{ value }}"
+         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+         {% if required %}required aria-required="true"{% endif %} {{ attrs|safe }}>
+  {% if help %}<small class="form-text">{{ help }}</small>{% endif %}
+</div>
+{% endmacro %}
+
+
+{# --- form_actions ----------------------------------------------------------
+   Sticky footer bar. Exactly one solid button; everything else is secondary.
+--------------------------------------------------------------------------- #}
+{% macro form_actions(note=none) %}
+<div class="form-actions">
+  {% if note %}<span class="form-actions__note">{{ note }}</span>{% endif %}
+  {{ caller() }}
+</div>
+{% endmacro %}
