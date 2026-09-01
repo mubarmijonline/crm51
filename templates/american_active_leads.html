@@ -1,293 +1,224 @@
 {% extends 'main.html' %}
+{% block title %}Education active leads — 51 American CRM{% endblock %}
+
 {% block body %}
 
-<head>
-<!--   <script src="https://code.jquery.com/jquery-3.7.0.js" ></script>
-  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js" ></script>
-
-
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" type="text/css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css" type="text/css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css" type="text/css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/searchbuilder/1.5.0/css/searchBuilder.dataTables.min.css" type="text/css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.1/css/dataTables.dateTime.min.css" type="text/css">
- -->
-
- <script src="https://cdn.datatables.net/searchpanes/2.2.0/js/dataTables.searchPanes.min.js" ></script>
- <script src="https://cdn.datatables.net/select/1.7.0/js/dataTables.select.min.js" ></script>
- <script src="https://cdn.datatables.net/searchbuilder/1.5.0/js/dataTables.searchBuilder.min.js" ></script>
- <script src="https://cdn.datatables.net/datetime/1.5.1/js/dataTables.dateTime.min.js" ></script>
-
- <link rel="stylesheet" href="https://cdn.datatables.net/searchpanes/2.2.0/css/searchPanes.dataTables.min.css" type="text/css">
- <link rel="stylesheet" href="https://cdn.datatables.net/select/1.7.0/css/select.dataTables.min.css" type="text/css">
- <link rel="stylesheet" href="https://cdn.datatables.net/searchbuilder/1.5.0/css/searchBuilder.dataTables.min.css" type="text/css">
- <link rel="stylesheet" href="https://cdn.datatables.net/datetime/1.5.1/css/dataTables.dateTime.min.css" type="text/css">
-
-</head>
-
-<body onload="get_american_lead_data()">
-    
-
-  <div  style="margin-left: 2%;margin-right: 2%;">
-  <div class="card_customized">
-    <table id="students_table" class="display" style="width:100%">
-
-      <br>
-      <h1 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Education Active Leads</u></h1>
-
-       <div>
-      <div style="float:right"><a  href="https://crm.mubarmijonline.com/create_lead_american">&nbsp;&nbsp;<span>Add Lead</span><i class="fa-solid fa-plus fa-3x" title="Add Student"></i></a></div>
-    </div> 
-      <br> 
-      <br> 
-      <br>  
-      <hr>
-        <thead>
-
-          <tr>
-            <th></th>
-            <th>ID</th>
-            <th>Name</th>
-            <th style="width: 8%;">Student Mobile</th>
-            <th style="width: 8%;">Parent Mobile</th>
-            <th>Grade</th>
-            <th>Educational System</th>
-            <th>Exam Trial</th>
-            <th>Subject</th>
-            <th>Course</th>
-            <th>School</th>
-            <th>Email</th>
-            <th>Source</th>
-            <th>Status</th>
-            <th>Recall Date</th>
-            <th>NI Notes</th>
-            <th>Deposit</th>
-            <th>Added Date</th>
-            <th>Added By</th>
-            <th>Modification Date</th>
-            <th>System Section</th>
-            
-          </tr>
-
-        </thead>
-
-        <tfoot>
-
-          <tr>
-            <th></th>
-            <th>ID</th>
-            <th>Name</th>
-            <th style="width: 8%;">Student Mobile</th>
-            <th style="width: 8%;">Parent Mobile</th>
-            <th>Grade</th>
-            <th>Educational System</th>
-            <th>Exam Trial</th>
-            <th>Subject</th>
-            <th>Course</th>
-            <th>School</th>
-            <th>Email</th>
-            <th>Source</th>
-            <th>Status</th>
-            <th>Recall Date</th>
-            <th>NI Notes</th>
-            <th>Deposit</th>
-            <th>Added Date</th>
-            <th>Added By</th>
-            <th>Modification Date</th>
-            <th>System Section</th>
-            
-          </tr>
-        </tfoot>
-
-    </table>
-
+{# The page header used to sit INSIDE <table>, before <thead>, along with three
+   <br> and an <hr>. Browsers hoist that markup out of the table, which is why
+   the spacing was unpredictable. It belongs here, above the card. #}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-6);margin-bottom:var(--space-7)">
+  <div style="display:flex;flex-direction:column;gap:var(--space-3)">
+    <h1 style="font:var(--type-title-lg);color:var(--text-title);letter-spacing:var(--tracking-tight)">Education active leads</h1>
+    <p style="font:var(--type-body-sm);color:var(--text-muted)">Leads assigned to you that are still open.</p>
   </div>
+  <a href="{{ url_for('create_lead_american') }}" class="btn btn-primary">
+    <i data-lucide="plus"></i>Add lead
+  </a>
 </div>
 
-    <script>
+<div class="card_customized" style="padding:0">
+  <table id="students_table" class="display" style="width:100%">
+    <thead>
+      <tr>
+        <th></th>
+        <th>ID</th>
+        <th>Name</th>
+        <th style="width: 8%;">Student mobile</th>
+        <th style="width: 8%;">Parent mobile</th>
+        <th>Grade</th>
+        <th>Educational system</th>
+        <th>Exam trial</th>
+        <th>Subject</th>
+        <th>Course</th>
+        <th>School</th>
+        <th>Email</th>
+        <th>Source</th>
+        <th>Status</th>
+        <th>Recall date</th>
+        <th>NI notes</th>
+        <th>Deposit</th>
+        <th>Added date</th>
+        <th>Added by</th>
+        <th>Modification date</th>
+        <th>System section</th>
+      </tr>
+    </thead>
 
-        function get_american_lead_data() {
+    <tfoot>
+      <tr>
+        <th></th>
+        <th>ID</th>
+        <th>Name</th>
+        <th style="width: 8%;">Student mobile</th>
+        <th style="width: 8%;">Parent mobile</th>
+        <th>Grade</th>
+        <th>Educational system</th>
+        <th>Exam trial</th>
+        <th>Subject</th>
+        <th>Course</th>
+        <th>School</th>
+        <th>Email</th>
+        <th>Source</th>
+        <th>Status</th>
+        <th>Recall date</th>
+        <th>NI notes</th>
+        <th>Deposit</th>
+        <th>Added date</th>
+        <th>Added by</th>
+        <th>Modification date</th>
+        <th>System section</th>
+      </tr>
+    </tfoot>
+  </table>
+</div>
 
-          $('#students_table tfoot th').each(function() {
-                var title = $(this).text();
-                $(this).html('<input type="text" placeholder="Search ' + title + '" />');
-            });
-
-            var table = $('#students_table').DataTable({
-                ajax: { url: '/get_active_american_lead_data', mimeType: 'json' },
-                deferRender: true,
-                columns: [
-                {
-                        mRender: function (data, type, row) {
-                            myrole = "{{session['role']}}"
-                            if (myrole == 'admin')
-                            {
-                              return '<div class="btn-group"> <button data-toggle="modal" data-target="#edit_student_modal"  name="edit_student" class="btn btn-primary" onclick="window.location.assign(\'/update_american_lead?student_data='+row.student_id+' - '+row.student_mobile+' - '+row.student_name+'\');">Profile</button> <button  id="delete" type="button" class="btn btn-danger btn-xs dt-delete" onclick="delete_student('+row.student_id+')"><span class="glyphicon glyphicon-remove glyphicon-trash" aria-hidden="true"></span>Delete</button></div>'
-                            }
-                            else
-                            {
-                              return '<div class="btn-group"> <button data-toggle="modal" data-target="#edit_student_modal"  name="edit_student" class="btn btn-primary" onclick="window.location.assign(\'/update_american_lead?student_data='+row.student_id+' - '+row.student_mobile+' - '+row.student_name+'\');">Profile</button></div>'
-                            }
-
-
-                        },
-                    },
-                      { data: 'student_id'},
-                      { data: 'student_name'},
-                      { data: 'student_mobile'},
-                      { data: 'parent_mobile'},
-                      { data: 'year'},
-                      { data: 'educational_system'},
-                      { data: 'exam_trial'},
-                      { data: 'subject'},
-                      { data: 'course'},
-                      { data: 'school'},
-                      { data: 'email'},
-                      { data: 'source'},
-                      { data: 'status'},
-                      { data: 'recall_date'},
-                      { data: 'not_interested_notes'},
-                      { data: 'deposit'},
-                      { data: 'added_date'},
-                      { data: 'added_by'},
-                      { data: 'modified_date'},
-                      { data: 'system_section'},
-                    
+{% endblock %}
 
 
-                ],
+{% block scripts %}
+<script>
+  // Status values come from american_leads.status: enrol, not_interested,
+  // pending. Decorate only the display type, so sorting, searching and the
+  // searchPanes facets keep indexing the raw value rather than badge markup.
+  var STATUS_TONE = {
+    enrol:          'success',
+    not_interested: 'danger',
+    pending:        'warning',
+    not_contacted:  'secondary'
+  };
 
-                searchPanes: {
-                viewTotal: true,
-                initCollapsed: true
-                },
+  function render_status(data, type) {
+    if (type !== 'display' || !data) return data;
+    var tone  = STATUS_TONE[data] || 'secondary';
+    var label = String(data).replace(/_/g, ' ');
+    label = label.charAt(0).toUpperCase() + label.slice(1);
+    return '<span class="badge badge-' + tone + '">' + label + '</span>';
+  }
 
-                    columnDefs: [
-                {
-                    searchPanes: {
-                        show: false
-                    },
-                    targets: [10,16]  // Hide Email and Added Date Filters
-                }],
-                
-                searchBuilder: {
-                  columns: [17],
-                },
+  function get_american_lead_data() {
+    $('#students_table tfoot th').each(function () {
+      var title = $(this).text();
+      $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+    });
 
-                dom: 'PQlfrtip',
-                scrollX: true,
-                paging: false
+    var table = $('#students_table').DataTable({
+      ajax: { url: '/get_active_american_lead_data', mimeType: 'json' },
+      deferRender: true,
+      columns: [
+        {
+          mRender: function (data, type, row) {
+            var myrole = "{{ session['role'] }}";
+            var profile =
+              '<button name="edit_student" class="btn btn-secondary btn-sm" ' +
+              'onclick="window.location.assign(\'/update_american_lead?student_data=' +
+              row.student_id + ' - ' + row.student_mobile + ' - ' + row.student_name + '\');">Profile</button>';
+            if (myrole !== 'admin') return '<div class="btn-group">' + profile + '</div>';
+            return '<div class="btn-group">' + profile +
+              '<button id="delete" type="button" class="btn btn-danger btn-sm dt-delete" ' +
+              'onclick="delete_student(' + row.student_id + ')"><i data-lucide="trash-2"></i>Delete</button></div>';
+          }
+        },
+        { data: 'student_id',           className: 'mono' },
+        { data: 'student_name' },
+        { data: 'student_mobile',       className: 'mono' },
+        { data: 'parent_mobile',        className: 'mono' },
+        { data: 'year' },
+        { data: 'educational_system' },
+        { data: 'exam_trial' },
+        { data: 'subject' },
+        { data: 'course' },
+        { data: 'school' },
+        { data: 'email' },
+        { data: 'source' },
+        { data: 'status',               render: render_status },
+        { data: 'recall_date',          className: 'mono' },
+        { data: 'not_interested_notes' },
+        { data: 'deposit',              className: 'mono' },
+        { data: 'added_date',           className: 'mono' },
+        { data: 'added_by' },
+        { data: 'modified_date',        className: 'mono' },
+        { data: 'system_section' }
+      ],
 
-/*                 buttons: [
-                    'copy', 'excel', 'pdf',
-                    {
-                        text: 'Reload table',
-                        exportOptions: {
-                            columns: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9 , 10, 11 , 12, 13, 14 ,15 ,16, 17, 18 , 19]
-                        },
-                        action: function () {
-                            table.ajax.reload();
-                        }
-                    }
-                ] */
+      searchPanes: {
+        viewTotal: true,
+        initCollapsed: true
+      },
 
-            });
+      columnDefs: [{
+        searchPanes: { show: false },
+        targets: [10, 16]   // School and Deposit — too high-cardinality to facet
+      }],
 
-            table.columns().every( function() {
-        var that = this;
-  
-        $('input', this.footer()).on('keyup change', function() {
-            if (that.search() !== this.value) {
-                that
-                    .search(this.value)
-                    .draw();
-            }
-        });
+      searchBuilder: {
+        columns: [17],
+      },
 
+      dom: 'PQlfrtip',
+      scrollX: true,
+      // Was paging:false, which rendered every lead row on load.
+      paging: true,
+      pageLength: 25,
+      lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
+
+      // Lucide replaces icon markup at load; rows drawn later need the same
+      // pass or the delete button renders an empty <i>.
+      drawCallback: function () {
+        lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14, 'stroke-width': 1.75 } });
+      }
+    });
+
+    table.columns().every(function () {
+      var that = this;
+      $('input', this.footer()).on('keyup change', function () {
+        if (that.search() !== this.value) {
+          that.search(this.value).draw();
+        }
       });
+    });
+  }
 
-    }
+  function delete_student(id) {
+    Swal.fire({
+      title: 'Delete this lead?',
+      text: 'The lead and its assignation history are removed immediately. This cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Delete lead',
+      cancelButtonText: 'Cancel'
+    }).then(function (result) {
+      if (!result.isConfirmed) return;
 
-    </script>
-
-
-
-
-
-
-
-  <script>
-
-
-function delete_student(id)
-{
-
-  Swal.fire({
-    title: 'Are you sure?',
-    text: "You won't be able to revert this!",
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#3085d6',
-    cancelButtonColor: '#d33',
-    confirmButtonText: 'Yes, delete it!'
-  }).then((result) => {
-    if (result.isConfirmed) {
-
-      $.post("/delete_student", { student_id:id  }).done(function (response) {
-        state = response.state;
-
-        //setTimeout(() => {  window.location.replace("/logout"); }, 3000);
+      $.post("/delete_student", { student_id: id }).done(function (response) {
+        var state = response.state;
 
         if (state == "success") {
-        
           Swal.fire({
             icon: 'success',
-            title: 'Deleted!',
-            text: 'Lead has been deleted.',
+            title: 'Lead deleted',
             showConfirmButton: false,
             showCancelButton: false
           });
           $('#students_table').DataTable().ajax.reload();
-
-      }
-      else if (state == "no_access") {
-        
-        Swal.fire({
-          icon: 'warning',
-          title: 'Sorry',
-          text: 'Not Authorized!',
-          showConfirmButton: false,
-          showCancelButton: false
-        });
-        
-
-    }
-
-
-
-        else {
-          Swal.fire(
-            'Hmmm',
-            'Something went wrong, try again in a few moments',
-            'error');
         }
-
+        else if (state == "no_access") {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Not authorised',
+            text: 'Your account cannot delete leads.',
+            showConfirmButton: false,
+            showCancelButton: false
+          });
+        }
+        else {
+          Swal.fire('Something went wrong', 'The lead was not deleted. Try again in a few moments.', 'error');
+        }
       });
-    }
-  });
+    });
+  }
 
-}
-  </script>
-
-
-<script>
-  $( document ).ready(function() {
+  $(document).ready(function () {
     get_american_lead_data();
-  })
+  });
 </script>
-
-
-
-</body>
-
 {% endblock %}
