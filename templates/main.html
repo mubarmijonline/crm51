@@ -50,6 +50,10 @@
 <script src="{{ url_for('static', filename='vendor/datatables/dataTables.dateTime.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/datatables/dataTables.buttons.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/datatables/jszip.min.js') }}"></script>
+{# pdfmake + its font file back the 'pdf'/'pdfHtml5' export button, which seven
+   live templates use. Must load before buttons.html5, which reads them. #}
+<script src="{{ url_for('static', filename='vendor/datatables/pdfmake.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/vfs_fonts.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
 <script src="{{ url_for('static', filename='vendor/datatables/buttons.print.min.js') }}"></script>
 <script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
