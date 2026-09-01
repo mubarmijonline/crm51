@@ -31,8 +31,8 @@ body {
   display: flex;
   flex-direction: column;
   width: 248px;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--chrome);
+  color: var(--chrome-fg);
   transition: width var(--duration-base) var(--ease-standard);
   overflow: hidden;
 }
@@ -44,13 +44,13 @@ body {
   height: 56px;
   flex: none;
   padding: 0 var(--space-5);
-  border-bottom: 1px solid var(--border-inverse);
-  color: var(--paper);
+  border-bottom: 1px solid var(--chrome-border);
+  color: var(--chrome-fg);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.app-sidebar__brand:hover { color: var(--paper); text-decoration: none; }
+.app-sidebar__brand:hover { color: var(--chrome-fg); text-decoration: none; }
 .app-sidebar__brand img   { width: 26px; height: 26px; object-fit: contain; flex: none; }
 .app-sidebar__brand span  { font: var(--weight-semibold) var(--text-md)/1 var(--font-sans); }
 
@@ -67,7 +67,7 @@ body {
   font: var(--weight-semibold) var(--text-xs)/1 var(--font-sans);
   letter-spacing: .06em;
   text-transform: uppercase;
-  color: var(--gray-500);
+  color: var(--chrome-muted);
   white-space: nowrap;
 }
 
@@ -78,7 +78,7 @@ body {
   gap: var(--space-4);
   min-height: 38px;
   padding: var(--space-3) var(--space-5);
-  color: var(--gray-400);
+  color: var(--chrome-muted);
   font: var(--type-body-sm);
   text-decoration: none;
   white-space: nowrap;
@@ -88,7 +88,7 @@ body {
 
 .app-sidebar__link:hover {
   background: var(--sidebar-hover);
-  color: var(--paper);
+  color: var(--chrome-fg);
   text-decoration: none;
 }
 
@@ -98,7 +98,7 @@ body {
 /* Active: a 3px red bar plus a low-opacity red wash on the dark ground. */
 .app-sidebar__link.is-active {
   background: var(--sidebar-active);
-  color: var(--paper);
+  color: var(--chrome-fg);
   font-weight: var(--weight-medium);
 }
 
@@ -114,7 +114,7 @@ body {
 .app-sidebar__foot {
   flex: none;
   padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-inverse);
+  border-top: 1px solid var(--chrome-border);
 }
 
 .app-sidebar__toggle {
@@ -126,13 +126,13 @@ body {
   background: none;
   border: 0;
   border-radius: var(--radius-control);
-  color: var(--gray-400);
+  color: var(--chrome-muted);
   font: var(--type-body-sm);
   cursor: pointer;
   white-space: nowrap;
 }
 
-.app-sidebar__toggle:hover { background: var(--sidebar-hover); color: var(--paper); }
+.app-sidebar__toggle:hover { background: var(--sidebar-hover); color: var(--chrome-fg); }
 
 
 /* Collapsed: 64px, icons only. Labels are hidden but stay in the DOM for
@@ -143,7 +143,7 @@ body {
 .app-sidebar.is-collapsed .app-sidebar__toggle span { display: none; }
 .app-sidebar.is-collapsed .app-sidebar__group {
   height: 1px; padding: 0; margin: var(--space-5) var(--space-5) 0;
-  overflow: hidden; color: transparent; background: var(--border-inverse);
+  overflow: hidden; color: transparent; background: var(--chrome-border);
 }
 .app-sidebar.is-collapsed .app-sidebar__link,
 .app-sidebar.is-collapsed .app-sidebar__brand,
@@ -177,8 +177,9 @@ body {
   height: 56px;
   flex: none;
   padding: 0 var(--space-7);
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
+  background: var(--chrome);
+  border-bottom: 1px solid var(--chrome-border);
+  color: var(--chrome-fg);
 }
 
 .app-topbar__crumbs {
@@ -187,15 +188,15 @@ body {
   gap: var(--space-3);
   min-width: 0;
   font: var(--type-body-sm);
-  color: var(--text-muted);
+  color: var(--chrome-muted);
   white-space: nowrap;
   overflow: hidden;
 }
 
-.app-topbar__crumbs a { color: var(--text-muted); text-decoration: none; }
-.app-topbar__crumbs a:hover { color: var(--text-body); text-decoration: underline; }
-.app-topbar__crumbs .sep { color: var(--gray-400); }
-.app-topbar__crumbs .current { color: var(--text-body); font-weight: var(--weight-medium); }
+.app-topbar__crumbs a { color: var(--chrome-muted); text-decoration: none; }
+.app-topbar__crumbs a:hover { color: var(--chrome-fg); text-decoration: underline; }
+.app-topbar__crumbs .sep { color: var(--chrome-muted); }
+.app-topbar__crumbs .current { color: var(--chrome-fg); font-weight: var(--weight-medium); }
 
 /* Global search sits centre and takes the slack. */
 .app-topbar__search {
@@ -209,20 +210,19 @@ body {
   width: 100%;
   height: 34px;
   padding-inline: 34px var(--space-8);
-  background: var(--surface);
-  border: 1px solid transparent;
+  background: var(--chrome-field);
+  border: 1px solid var(--chrome-border);
   border-radius: var(--radius-control);
   font: var(--type-body-sm);
-  color: var(--text-body);
+  color: var(--chrome-fg);
   transition: var(--transition-control);
 }
 
-.app-topbar__search input::placeholder { color: var(--text-subtle); }
+.app-topbar__search input::placeholder { color: var(--chrome-muted); }
 
 .app-topbar__search input:focus {
   outline: none;
-  background: var(--paper);
-  border-color: var(--border-focus);
+  border-color: var(--red);
   box-shadow: var(--focus-ring);
 }
 
@@ -231,7 +231,7 @@ body {
   inset-inline-start: var(--space-4);
   top: 50%;
   transform: translateY(-50%);
-  color: var(--text-subtle);
+  color: var(--chrome-muted);
   pointer-events: none;
   display: flex;
 }
@@ -242,11 +242,11 @@ body {
   top: 50%;
   transform: translateY(-50%);
   padding: 2px var(--space-3);
-  background: var(--paper);
-  border: 1px solid var(--line);
+  background: transparent;
+  border: 1px solid var(--chrome-border);
   border-radius: var(--radius-xs);
   font: var(--weight-medium) var(--text-xs)/1.4 var(--font-mono);
-  color: var(--text-subtle);
+  color: var(--chrome-muted);
   pointer-events: none;
 }
 
@@ -264,12 +264,12 @@ body {
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-control);
-  color: var(--text-body);
+  color: var(--chrome-fg);
   font: var(--type-body-sm);
   text-decoration: none;
 }
 
-.app-topbar__user .dropdown-toggle:hover { background: var(--surface); text-decoration: none; }
+.app-topbar__user .dropdown-toggle:hover { background: var(--sidebar-hover); color: var(--chrome-fg); text-decoration: none; }
 
 /* Drawer toggle, mobile only. */
 .app-topbar__burger {
@@ -279,9 +279,9 @@ body {
   width: 36px; height: 36px;
   flex: none;
   background: none;
-  border: 1px solid var(--line);
+  border: 1px solid var(--chrome-border);
   border-radius: var(--radius-control);
-  color: var(--text-body);
+  color: var(--chrome-fg);
   cursor: pointer;
 }
 
@@ -373,4 +373,52 @@ footer, footer a {
 .app-topbar__user .dropdown-toggle:focus-visible {
   outline: 2px solid var(--red);
   outline-offset: -2px;
+}
+
+
+/* --- notification bell on the dark bar ------------------------------------ */
+
+.app-topbar .notification-drop .item i,
+.app-topbar .notification-drop .item svg { color: var(--chrome-muted); }
+.app-topbar .notification-drop .item:hover i,
+.app-topbar .notification-drop .item:hover svg { color: var(--chrome-fg); }
+
+/* The panel itself is a popover on the content ground, not the chrome. */
+.app-topbar .notification-drop .item > div {
+  background: var(--surface-card);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-popover);
+}
+
+
+/* --- theme toggle --------------------------------------------------------- */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  background: none;
+  border: 1px solid var(--chrome-border);
+  border-radius: var(--radius-control);
+  color: var(--chrome-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard);
+}
+
+.theme-toggle:hover { background: var(--sidebar-hover); color: var(--chrome-fg); }
+.theme-toggle:focus-visible { outline: 2px solid var(--red); outline-offset: 1px; }
+
+/* One button, two glyphs: show the mode you would switch TO. */
+.theme-toggle .icon-dark  { display: inline-flex; }
+.theme-toggle .icon-light { display: none; }
+[data-theme="dark"] .theme-toggle .icon-dark  { display: none; }
+[data-theme="dark"] .theme-toggle .icon-light { display: inline-flex; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-toggle .icon-dark  { display: none; }
+  :root:not([data-theme="light"]) .theme-toggle .icon-light { display: inline-flex; }
 }

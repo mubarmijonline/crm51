@@ -87,8 +87,13 @@ $(document).ajaxComplete(function (e, xhr) {
 });
 </script>
 <script>
-/* Applied before paint so a collapsed sidebar does not flash open on load. */
+/* Runs before first paint: no flash of the wrong theme, no flash of an
+   expanded sidebar. Both read localStorage; theme falls back to the OS. */
 try {
+  var t = localStorage.getItem('crm51.theme');
+  if (t === 'dark' || t === 'light') {
+    document.documentElement.setAttribute('data-theme', t);
+  }
   if (localStorage.getItem('crm51.sidebar.collapsed') === '1') {
     document.write('<style>.app-sidebar{width:64px}.app-main{margin-inline-start:64px}</style>');
   }
@@ -182,6 +187,12 @@ try {
       </div>
 
       <div class="app-topbar__right">
+        <button type="button" class="theme-toggle" id="theme_toggle"
+                aria-label="Switch to dark theme" title="Switch theme">
+          <span class="icon-dark"><i data-lucide="moon"></i></span>
+          <span class="icon-light"><i data-lucide="sun"></i></span>
+        </button>
+
         {# Bell ids are unchanged - notifications() writes into them by name. #}
         <ul class="notification-drop">
           <li class="item" id="{% if role == 'admin' %}x{% else %}xx{% endif %}">
@@ -401,6 +412,50 @@ $(document)
   // Show the right modifier for the platform.
   var kbd = document.querySelector('.app-topbar__search kbd');
   if (kbd && /Mac|iPod|iPhone|iPad/.test(navigator.platform)) kbd.textContent = '⌘ K';
+
+  /* --- theme -------------------------------------------------------------
+     No stored preference means follow the OS, which the CSS already does via
+     prefers-color-scheme. The first click writes an explicit choice. */
+  var THEME_KEY = 'crm51.theme';
+  var root = document.documentElement;
+  var themeBtn = document.getElementById('theme_toggle');
+
+  function effectiveTheme() {
+    var set = root.getAttribute('data-theme');
+    if (set) return set;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark' : 'light';
+  }
+
+  function labelTheme() {
+    if (!themeBtn) return;
+    var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    themeBtn.setAttribute('aria-label', 'Switch to ' + next + ' theme');
+    themeBtn.setAttribute('title', 'Switch to ' + next + ' theme');
+  }
+
+  labelTheme();
+
+  if (themeBtn) themeBtn.addEventListener('click', function () {
+    var next = effectiveTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+    labelTheme();
+    // Charts read colours at draw time, so tell any listener to restyle.
+    document.dispatchEvent(new CustomEvent('crm51:themechange', { detail: { theme: next } }));
+  });
+
+  // Follow the OS while the user has made no explicit choice.
+  if (window.matchMedia) {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onOS = function () {
+      try { if (localStorage.getItem(THEME_KEY)) return; } catch (e) {}
+      labelTheme();
+      document.dispatchEvent(new CustomEvent('crm51:themechange', { detail: { theme: effectiveTheme() } }));
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onOS);
+    else if (mq.addListener) mq.addListener(onOS);
+  }
 })();
 </script>
 

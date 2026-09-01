@@ -351,3 +351,56 @@ These change the work materially, so I have not started.
 6. **Global search (Ctrl/Cmd+K)** across students, applications, universities and
    leads. This schema has leads, courses, subjects, users — there are no
    universities or applications tables. I will scope the palette to what exists.
+
+
+---
+
+## 9. Theme and chrome (added after PR 2)
+
+**Top bar is black.** The brief specified a white top bar; the client asked for
+black. Sidebar and top bar now share one `--chrome` ground so the frame reads as
+a single dark surface with the content column light inside it.
+
+**Light and dark themes.** Both ship. Resolution order: an explicit choice in
+`localStorage` wins; with none stored the app follows `prefers-color-scheme`. The
+theme is applied to `<html>` by an inline script before first paint, so there is
+no flash of the wrong theme. Verified across all five combinations of stored
+preference and OS setting.
+
+The existing `user.theme` column was **not** used. It holds the legacy string
+`navbar-dark bg-dark` for all 15 users and no template reads it. Reusing it would
+follow a user across devices but needs a write endpoint, which is backend work
+nobody asked for. Left as a candidate.
+
+### What inverts and what does not
+
+Only the neutrals invert. The identity does not.
+
+| | Light | Dark |
+|---|---|---|
+| `--surface-app` | `#F6F5F4` | `#0F0F0F` |
+| `--surface-card` | `#FFFFFF` | `#1A1A1A` |
+| `--text-title` | `#121212` | `#F2F1EF` |
+| `--chrome` | `#121212` | `#000000` |
+| `--action-primary` (fill) | `#E0121B` | `#E0121B` |
+| `--action-primary-fg` | `#FFFFFF` | `#FFFFFF` |
+| `--text-brand` (red as text) | `#E0121B` | `#FF5A61` |
+
+Two findings came out of measuring rather than assuming:
+
+1. **Brand red fails as text on dark.** `#E0121B` on `#1A1A1A` is 3.54:1. So red
+   splits in two: it stays `#E0121B` as a *fill* (white on it is 4.92:1 in both
+   themes) and lifts to `#FF5A61` (5.71:1) when it carries *text*.
+
+2. **`--action-primary-fg` was `var(--paper)`, which inverts.** In dark that
+   would have put `#1A1A1A` text on a red button — 3.54:1, unreadable. It is now
+   `var(--on-accent)`, a constant white.
+
+That second one exposed a wider problem: the semantic colours lighten on dark so
+they can read as text, which makes them unusable as button fills. Text colours
+and fill colours are now separate tokens - `--success` (text, inverts) versus
+`--success-solid` (fill, constant). All six solid fills measure 4.92:1 or better
+with white text.
+
+**Every pair passes AA in both themes.** Zero failures across title, muted,
+brand text and chrome pairings on card, app and chrome grounds.

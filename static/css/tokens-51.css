@@ -40,6 +40,17 @@
   --sidebar-active: rgba(224, 18, 27, .16);   /* --red at 16% on --ink */
   --scrim:          rgba(18, 18, 18, .48);
 
+  /* Solid button fills. These do NOT invert: a filled button carries white
+     text in both themes, so the fill must stay dark enough for it. The
+     --success/--warning/etc above are TEXT colours and do lighten on dark,
+     which is why the two are separate. All six measure >=4.92:1 with white. */
+  --on-accent:      #FFFFFF;
+  --success-solid:  #1A7D4A;
+  --warning-solid:  #A35F0C;
+  --danger-solid:   #C0161E;
+  --info-solid:     #1F6FB2;
+  --dark-solid:     #262523;
+
   /* Chart series. Red carries series 1 only, so it stays meaningful. */
   --viz-1: var(--red);
   --viz-2: #1F6FB2;
@@ -87,12 +98,12 @@
   --action-primary:         var(--red);
   --action-primary-hover:   var(--red-deep);
   --action-primary-active:  var(--red-deep);
-  --action-primary-fg:      var(--paper);
+  --action-primary-fg:      var(--on-accent);   /* never var(--paper): that inverts */
   --action-secondary:       var(--paper);
   --action-secondary-hover: var(--surface);
   --action-secondary-active: var(--line);
   --action-ghost-hover:     var(--surface);
-  --action-danger:          var(--danger);
+  --action-danger:          var(--danger-solid);
   --action-danger-hover:    #9E1219;
 
   --status-success-fg: var(--success); --status-success-bg: var(--success-tint); --status-success-border: #BFE0CE;
@@ -143,10 +154,10 @@
   /* The bridge paints .btn-success/-warning/-info from the design system's own
      green/amber/blue ramps. Point those at the 51 semantic colours so no button
      escapes this file. */
-  --green-600: var(--success);
-  --amber-500: var(--warning);
-  --blue-500:  var(--info);
-  --blue-600:  var(--info);
+  --green-600: var(--success-solid);
+  --amber-500: var(--warning-solid);
+  --blue-500:  var(--info-solid);
+  --blue-600:  var(--info-solid);
   --gray-0:    var(--paper);
   --gray-25:   var(--surface);
   --gray-50:   var(--surface);
@@ -159,6 +170,17 @@
   --gray-700:  #3D3B38;
   --gray-800:  #262523;
   --gray-900:  var(--ink);
+
+  /* --- chrome: the sidebar and top bar share one dark ground ------------- */
+  --chrome:        var(--ink);
+  --chrome-fg:     var(--paper);
+  --chrome-muted:  var(--gray-400);
+  --chrome-border: var(--border-inverse);
+  --chrome-field:  var(--sidebar-hover);   /* search input on the dark bar    */
+
+  /* Red that carries TEXT. On light this is the brand red; on dark it lifts,
+     because #E0121B on a dark ground measures 3.54:1 and fails AA. */
+  --red-text: var(--red);
 
   /* --- density: 44px default, toggleable ---------------------------------- */
   --row-height: 44px;
@@ -180,4 +202,104 @@
     transition-duration: 0ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* ===========================================================================
+   Dark theme.
+
+   Only the neutrals invert. The identity does not: red stays #E0121B as a
+   FILL (white on it measures 4.92:1 either way), but red carrying TEXT lifts
+   to #FF5A61, because the brand red on a dark ground is 3.54:1 and fails AA.
+   Every pairing below is measured, not eyeballed.
+   =========================================================================== */
+
+[data-theme="dark"] {
+  --paper:      #1A1A1A;   /* cards, inputs, table rows                       */
+  --surface:    #0F0F0F;   /* app background - deeper, so cards lift          */
+  --ink:        #F2F1EF;   /* primary text - warm, matching the light palette */
+  --ink-muted:  #A3A099;   /* 6.67:1 on card, 7.34:1 on app                   */
+  --line:       #2E2E2C;
+
+  --red-text:   #FF5A61;   /* 5.71:1 on card. Links, icons, active nav text.  */
+  --red-tint:   #2A1214;   /* selected row, active nav wash                   */
+
+  --success: #5FD08D;  --success-tint: #12251A;
+  --warning: #E5A83C;  --warning-tint: #241C0E;
+  --danger:  #FF6B72;  --danger-tint:  #2A1214;
+  --info:    #5FA8E0;  --info-tint:    #0E1D2A;
+
+  /* Chrome goes deeper than the content so the frame still reads as a frame. */
+  --chrome:        #000000;
+  --chrome-fg:     var(--ink);
+  --chrome-muted:  var(--ink-muted);
+  --chrome-border: #242422;
+  --chrome-field:  #171717;
+
+  --sidebar-hover:  rgba(255, 255, 255, .07);
+  --sidebar-active: rgba(255, 90, 97, .16);
+  --scrim:          rgba(0, 0, 0, .64);
+
+  /* Neutral ramp inverts so the design-system greys stay sensible. */
+  --gray-0:   #1A1A1A;
+  --gray-25:  #171717;
+  --gray-50:  #141414;
+  --gray-100: #1F1F1F;
+  --gray-200: #2E2E2C;
+  --gray-300: #3A3A38;
+  --gray-400: #6E6B65;
+  --gray-500: #8A8781;
+  --gray-600: #A3A099;
+  --gray-700: #C9C6C0;
+  --gray-800: #E4E2DE;
+  --gray-900: #F2F1EF;
+
+  --border-strong: #3A3A38;
+  /* .btn-dark paints from --gray-800; keep it a fill, not the inverted ramp
+     value, or its white label would sit on a near-white ground. */
+  --gray-800:      var(--dark-solid);
+  --text-subtle:   #7C7973;
+  --text-disabled: #5C5A57;
+  --text-inverse:  #121212;
+
+  /* Text-bearing red uses the lifted value; fills keep the brand red. */
+  --text-brand:      var(--red-text);
+  --text-link:       var(--red-text);
+  --text-link-hover: #FF8087;
+
+  /* Borders carry more of the work on dark, shadows less. */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.5);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.55);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.6);
+}
+
+/* Follow the OS unless the user has chosen explicitly. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1A1A1A; --surface: #0F0F0F; --ink: #F2F1EF; --ink-muted: #A3A099;
+    --line: #2E2E2C; --red-text: #FF5A61; --red-tint: #2A1214;
+    --success: #5FD08D; --success-tint: #12251A;
+    --warning: #E5A83C; --warning-tint: #241C0E;
+    --danger:  #FF6B72; --danger-tint:  #2A1214;
+    --info:    #5FA8E0; --info-tint:    #0E1D2A;
+    --chrome: #000000; --chrome-fg: #F2F1EF; --chrome-muted: #A3A099;
+    --chrome-border: #242422; --chrome-field: #171717;
+    --sidebar-hover: rgba(255,255,255,.07);
+    --sidebar-active: rgba(255,90,97,.16);
+    --scrim: rgba(0,0,0,.64);
+    --gray-0:#1A1A1A; --gray-25:#171717; --gray-50:#141414; --gray-100:#1F1F1F;
+    --gray-200:#2E2E2C; --gray-300:#3A3A38; --gray-400:#6E6B65; --gray-500:#8A8781;
+    --gray-600:#A3A099; --gray-700:#C9C6C0; --gray-800:#E4E2DE; --gray-900:#F2F1EF;
+    --border-strong:#3A3A38; --text-subtle:#7C7973; --text-disabled:#5C5A57;
+    --text-inverse:#121212;
+    --text-brand: #FF5A61; --text-link: #FF5A61; --text-link-hover: #FF8087;
+  }
+}
+
+/* The page paints its own ground, so a theme switch never shows the browser
+   default behind it. */
+html { background: var(--surface); color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color-scheme: dark; }
 }
