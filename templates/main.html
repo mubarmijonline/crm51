@@ -23,6 +23,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='ds/styles.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/ds-bridge.css') }}">
+{# 51 Campus identity: redefines the design-system token values. THE single
+   source of colour, radius and type in this app. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens-51.css') }}">
 {# App-level overrides. Last, so they win over the bridge. #}
 <link rel="stylesheet" href="{{ url_for('static', filename='select2/select2.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
@@ -68,6 +71,10 @@
 <script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
 <script src="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.js') }}"></script>
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{# Google Charts backs the 10 ColumnCharts on profile and event_profile.
+   The old base loaded this; dropping it left google.charts undefined at
+   call time and every one of those charts dead. #}
+<script src="https://www.gstatic.com/charts/loader.js"></script>
 {# Icons — replaces Font Awesome 4.7 + both Font Awesome kit scripts #}
 <script src="{{ url_for('static', filename='vendor/lucide/lucide.js') }}"></script>
 {% block head_js %}{% endblock %}

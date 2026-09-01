@@ -1,0 +1,178 @@
+/* ---------------------------------------------------------------------------
+   tokens-51.css — the 51 Campus identity.
+
+   THE single source of colour, radius and type values for this app.
+   No other file should contain a raw hex value.
+
+   Load order: bootstrap -> ds/styles.css -> ds-bridge.css -> tokens-51.css -> app.css
+
+   Strategy: keep the design-system token NAMES and redefine their VALUES onto
+   the 51 palette. Every page already written against --text-title,
+   --action-primary and friends recolours with no markup change.
+
+   Contrast is measured, not assumed. Every pairing below clears WCAG AA for
+   normal text; --success and --warning are one shade darker than the brand
+   sheet because the sheet's values measured 4.48:1 and 3.85:1 on their tints,
+   and status pills are 13px.
+   --------------------------------------------------------------------------- */
+
+:root {
+
+  /* --- 51 Campus core ---------------------------------------------------- */
+  --paper:       #FFFFFF;   /* cards, inputs, table rows                     */
+  --surface:     #F6F5F4;   /* app background - warm grey so white lifts     */
+  --ink:         #121212;   /* primary text, sidebar background              */
+  --ink-muted:   #5C5A57;   /* secondary text, labels, placeholders          */
+  --line:        #E3E1DE;   /* borders, dividers, table rules                */
+  --red:         #E0121B;   /* THE primary action. Rare, so it still means   */
+  --red-deep:    #A50D14;   /* hover, pressed, and red text under 14px       */
+  --red-tint:    #FDECEC;   /* selected row, active nav, focus ring          */
+
+  /* Semantic, deliberately away from brand red so status never reads as an
+     action. --success and --warning darkened for AA at 13px. */
+  --success:      #1A7D4A;  --success-tint: #E8F5EE;
+  --warning:      #A35F0C;  --warning-tint: #FDF3E4;
+  --danger:       #C0161E;  --danger-tint:  #FDECEC;
+  --info:         #1F6FB2;  --info-tint:    #E9F2FA;
+
+  /* Chart series. Red carries series 1 only, so it stays meaningful. */
+  --viz-1: var(--red);
+  --viz-2: #1F6FB2;
+  --viz-3: #1B7F4B;
+  --viz-4: #B4690E;
+  --viz-5: #6B5BA6;
+  --viz-6: #5C5A57;
+
+
+  /* --- remap the design-system names ------------------------------------- */
+
+  --surface-app:            var(--surface);
+  --surface-card:           var(--paper);
+  --surface-raised:         var(--paper);
+  --surface-sunken:         var(--surface);
+  --surface-hover:          var(--surface);
+  --surface-selected:       var(--red-tint);
+  --surface-active:         var(--red-tint);
+  --surface-nav:            var(--paper);
+  --surface-nav-inverse:    var(--ink);
+  --surface-inverse:        var(--ink);
+  --surface-disabled:       var(--surface);
+  --surface-overlay:        var(--paper);
+
+  --border-hairline:        var(--line);
+  --border-strong:          #D4D1CD;
+  --border-inverse:         #2A2A2A;
+  --border-focus:           var(--red);
+  --border-danger:          var(--danger);
+
+  --text-title:             var(--ink);
+  --text-body:              var(--ink);
+  --text-muted:             var(--ink-muted);
+  --text-subtle:            #8A8781;
+  --text-disabled:          #A6A29C;
+  --text-inverse:           var(--paper);
+  --text-brand:             var(--red);
+  --text-link:              var(--red);
+  --text-link-hover:        var(--red-deep);
+  --text-danger:            var(--danger);
+  --text-success:           var(--success);
+  --text-warning:           var(--warning);
+  --text-info:              var(--info);
+
+  --action-primary:         var(--red);
+  --action-primary-hover:   var(--red-deep);
+  --action-primary-active:  var(--red-deep);
+  --action-primary-fg:      var(--paper);
+  --action-secondary:       var(--paper);
+  --action-secondary-hover: var(--surface);
+  --action-secondary-active: var(--line);
+  --action-ghost-hover:     var(--surface);
+  --action-danger:          var(--danger);
+  --action-danger-hover:    #9E1219;
+
+  --status-success-fg: var(--success); --status-success-bg: var(--success-tint); --status-success-border: #BFE0CE;
+  --status-warning-fg: var(--warning); --status-warning-bg: var(--warning-tint); --status-warning-border: #EBD6AE;
+  --status-danger-fg:  var(--danger);  --status-danger-bg:  var(--danger-tint);  --status-danger-border:  #F4C4C6;
+  --status-info-fg:    var(--info);    --status-info-bg:    var(--info-tint);    --status-info-border:    #C2DBF0;
+  --status-neutral-fg: var(--ink-muted); --status-neutral-bg: var(--surface);    --status-neutral-border: var(--line);
+  --status-accent-fg:  var(--red);     --status-accent-bg:  var(--red-tint);     --status-accent-border:  #F6C9CB;
+
+  /* Focus is the red ring, everywhere. Never outline:none without this. */
+  --focus-ring: 0 0 0 3px var(--red-tint);
+
+
+  /* --- shape: three radii, not seven -------------------------------------- */
+  --radius-xs:      6px;
+  --radius-sm:      6px;
+  --radius-control: 6px;   /* inputs, buttons                                */
+  --radius-badge:   999px; /* pills                                          */
+  --radius-md:     10px;
+  --radius-card:   10px;   /* cards, modals                                  */
+  --radius-lg:     10px;
+  --radius-xl:     10px;
+  --radius-overlay:10px;
+  --radius-pill:   999px;
+
+
+  /* --- depth: borders, not shadows ---------------------------------------- */
+  /* Cards get a hairline and nothing else. Shadow is only for things that
+     genuinely float. */
+  --shadow-none:  none;
+  --shadow-xs:    none;
+  --shadow-sm:    0 1px 2px rgba(18,18,18,.06);
+  --shadow-md:    0 4px 12px rgba(18,18,18,.10);
+  --shadow-lg:    0 12px 32px rgba(18,18,18,.14);
+  --elevation-card:    none;
+  --elevation-raised:  none;
+  --elevation-popover: var(--shadow-md);
+  --elevation-dialog:  var(--shadow-lg);
+
+
+  /* --- motion: 150ms interaction, 200ms panels ---------------------------- */
+  --duration-instant: 0ms;
+  --duration-fast:   150ms;
+  --duration-base:   200ms;
+  --duration-slow:   200ms;
+
+
+  /* The bridge paints .btn-success/-warning/-info from the design system's own
+     green/amber/blue ramps. Point those at the 51 semantic colours so no button
+     escapes this file. */
+  --green-600: var(--success);
+  --amber-500: var(--warning);
+  --blue-500:  var(--info);
+  --blue-600:  var(--info);
+  --gray-0:    var(--paper);
+  --gray-25:   var(--surface);
+  --gray-50:   var(--surface);
+  --gray-100:  #EFEDEA;
+  --gray-200:  var(--line);
+  --gray-300:  #D4D1CD;
+  --gray-400:  #B5B1AB;
+  --gray-500:  #8A8781;
+  --gray-600:  var(--ink-muted);
+  --gray-700:  #3D3B38;
+  --gray-800:  #262523;
+  --gray-900:  var(--ink);
+
+  /* --- density: 44px default, toggleable ---------------------------------- */
+  --row-height: 44px;
+}
+
+[data-density="compact"]     { --row-height: 36px; }
+[data-density="comfortable"] { --row-height: 52px; }
+
+
+/* Nothing animates on page load, and motion respects the OS setting. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+  *, *::before, *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}

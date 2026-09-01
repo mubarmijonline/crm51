@@ -75,14 +75,14 @@ hr{border:0;border-top:1px solid var(--border-hairline);margin:var(--space-6) 0}
 .btn-primary:hover{background:var(--action-primary-hover)!important;border-color:var(--action-primary-hover)!important}
 .btn-secondary,.btn-light,.btn-default{background:var(--action-secondary)!important;border-color:var(--border-strong)!important;color:var(--text-body)!important}
 .btn-secondary:hover,.btn-light:hover,.btn-default:hover{background:var(--action-secondary-hover)!important}
-.btn-success{background:var(--green-600)!important;border-color:var(--green-600)!important;color:#fff!important}
+.btn-success{background:var(--green-600)!important;border-color:var(--green-600)!important;color:var(--action-primary-fg)!important}
 .btn-success:hover{background:var(--green-700)!important;border-color:var(--green-700)!important}
-.btn-danger{background:var(--action-danger)!important;border-color:var(--action-danger)!important;color:#fff!important}
+.btn-danger{background:var(--action-danger)!important;border-color:var(--action-danger)!important;color:var(--action-primary-fg)!important}
 .btn-danger:hover{background:var(--action-danger-hover)!important;border-color:var(--action-danger-hover)!important}
-.btn-warning{background:var(--amber-500)!important;border-color:var(--amber-500)!important;color:#fff!important}
+.btn-warning{background:var(--amber-500)!important;border-color:var(--amber-500)!important;color:var(--action-primary-fg)!important}
 .btn-warning:hover{background:var(--amber-600)!important;border-color:var(--amber-600)!important}
-.btn-info{background:var(--blue-500)!important;border-color:var(--blue-500)!important;color:#fff!important}
-.btn-dark{background:var(--gray-800)!important;border-color:var(--gray-800)!important;color:#fff!important}
+.btn-info{background:var(--blue-500)!important;border-color:var(--blue-500)!important;color:var(--action-primary-fg)!important}
+.btn-dark{background:var(--gray-800)!important;border-color:var(--gray-800)!important;color:var(--action-primary-fg)!important}
 .btn-dark:hover{background:var(--gray-900)!important;border-color:var(--gray-900)!important}
 .btn-link{background:transparent!important;border-color:transparent!important;color:var(--text-link)!important;padding:0!important;height:auto}
 .btn-link:hover{text-decoration:underline}
@@ -204,7 +204,7 @@ div.dtsb-searchBuilder select,div.dtsb-searchBuilder input{height:var(--control-
 
 /* --- Datepicker --------------------------------------------------------- */
 .datepicker,.bootstrap-datetimepicker-widget{border:1px solid var(--border-hairline)!important;border-radius:var(--radius-card)!important;box-shadow:var(--elevation-popover)!important;font-family:var(--font-sans)!important;padding:var(--space-4)!important}
-.datepicker table tr td.active,.datepicker table tr td.active:hover,.datepicker table tr td span.active{background:var(--action-primary)!important;background-image:none!important;color:#fff!important;border-radius:var(--radius-xs)}
+.datepicker table tr td.active,.datepicker table tr td.active:hover,.datepicker table tr td span.active{background:var(--action-primary)!important;background-image:none!important;color:var(--action-primary-fg)!important;border-radius:var(--radius-xs)}
 .datepicker table tr td.today{background:var(--surface-selected)!important;background-image:none!important;color:var(--text-brand)!important;border-radius:var(--radius-xs)}
 .datepicker table tr td:hover{background:var(--action-ghost-hover)!important;border-radius:var(--radius-xs)}
 .datepicker table tr td.day{font:var(--type-body-sm)!important}
