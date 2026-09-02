@@ -2303,6 +2303,97 @@ def api_american_leads_detailed():
                               mimetype='application/json')
 
 
+# =============================================================================
+# Calendar.
+#
+# Ported from 51_education_nginx, which reads the same two tables out of the
+# 51_center database. Structure and data were copied into crm51_db; that
+# project and its database were only ever read, never written.
+#
+# Read-only for now: the page renders appointments and rooms. Creating and
+# editing them is a separate decision - the source project writes recurrence
+# by expanding it into one row per occurrence, which is worth reviewing before
+# it is carried over.
+#
+# `code` is the source system's tenant discriminator. Every row carries 51, so
+# it is pinned here rather than taken from the session, which has no such key.
+# =============================================================================
+
+CALENDAR_CODE = 51
+
+
+@app.route('/calendar', methods=["GET"])
+def calendar():
+    return render_template("calendar.html")
+
+
+@app.route('/appointment_data', methods=["GET", "POST"])
+def appointment_data():
+    """Unfinished appointments for one room."""
+    room = (request.values.get('room') or '').strip()
+    if not room:
+        return app.response_class(json.dumps([]), mimetype='application/json')
+
+    conn, cur = connection()
+    try:
+        cur.execute(
+            "SELECT appointment_id, instructor, class_name, description, username,"
+            " room, title, start, end, day, repeat_code, repeat_number,"
+            " total_repeat_number, repeat_frequency,"
+            " CONVERT(repeat_end_date, CHAR) AS repeat_end_date"
+            " FROM appointment"
+            " WHERE finished != TRUE AND room = %s AND code = %s",
+            (room, CALENDAR_CODE))
+        headers = [d[0] for d in cur.description]
+        rows = [dict(zip(headers, r)) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+    return app.response_class(json.dumps(rows, default=str),
+                              mimetype='application/json')
+
+
+@app.route('/appointment_data_finished', methods=["GET", "POST"])
+def appointment_data_finished():
+    """Finished appointments for one room."""
+    room = (request.values.get('room') or '').strip()
+    if not room:
+        return app.response_class(json.dumps([]), mimetype='application/json')
+
+    conn, cur = connection()
+    try:
+        cur.execute(
+            "SELECT appointment_id, instructor, class_name, description, username,"
+            " room, title, start, end, day, repeat_code, repeat_number,"
+            " total_repeat_number, repeat_frequency,"
+            " CONVERT(repeat_end_date, CHAR) AS repeat_end_date"
+            " FROM appointment"
+            " WHERE finished = TRUE AND room = %s AND code = %s",
+            (room, CALENDAR_CODE))
+        headers = [d[0] for d in cur.description]
+        rows = [dict(zip(headers, r)) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+    return app.response_class(json.dumps(rows, default=str),
+                              mimetype='application/json')
+
+
+@app.route('/room_data', methods=["GET", "POST"])
+def room_data():
+    conn, cur = connection()
+    try:
+        cur.execute("SELECT room_id, room_name FROM room WHERE code = %s"
+                    " ORDER BY room_id", (CALENDAR_CODE,))
+        headers = [d[0] for d in cur.description]
+        rows = [dict(zip(headers, r)) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+    return app.response_class(json.dumps(rows, default=str),
+                              mimetype='application/json')
+
+
 @app.route('/american_active_leads', methods=["GET","POST"])
 def american_active_leads():
     return render_template("american_active_leads.html")

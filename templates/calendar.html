@@ -1,0 +1,142 @@
+{% extends 'main.html' %}
+{% block title %}Calendar — 51 American CRM{% endblock %}
+
+{% from "_macros.html" import page_header %}
+
+{% block head_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/fullcalendar/fullcalendar.min.css') }}">
+{% endblock %}
+
+{% block body %}
+
+{{ page_header('Calendar', 'Room bookings, ported from the education system.') }}
+
+<div class="card_customized" style="margin-bottom:var(--space-7)">
+  <div style="display:flex;align-items:flex-end;gap:var(--space-6);flex-wrap:wrap">
+    <div class="form-group" style="max-width:280px;margin-bottom:0">
+      <label for="room_select">Room</label>
+      <select id="room_select" class="form-control"></select>
+      <small class="form-text">Appointments are booked per room.</small>
+    </div>
+
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Show</label>
+      <div class="crm-mode" role="group" aria-label="Which appointments to show">
+        <button type="button" id="show_open" class="is-on" style="width:auto;padding:0 var(--space-5)">Open</button>
+        <button type="button" id="show_finished" style="width:auto;padding:0 var(--space-5)">Finished</button>
+      </div>
+    </div>
+
+    <div style="margin-inline-start:auto;font:var(--type-body-sm);color:var(--text-muted)">
+      <span id="cal_count">—</span>
+    </div>
+  </div>
+</div>
+
+<div class="card_customized">
+  <div id="calendar_state" class="crm-state" hidden>
+    <i data-lucide="calendar-x"></i>
+    <p class="crm-state__title">Nothing booked</p>
+    <p class="crm-state__body">No appointments for this room yet.</p>
+  </div>
+  <div id="calendar"></div>
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='vendor/fullcalendar/fullcalendar.min.js') }}"></script>
+<script>
+  /* FullCalendar 3 needs jQuery and moment; the base already loads both, so
+     neither is bundled here - a second copy of either is what broke this app
+     before. */
+  (function () {
+    var $cal   = $('#calendar');
+    var $room  = $('#room_select');
+    var $count = $('#cal_count');
+    var $empty = $('#calendar_state');
+    var showFinished = false;
+
+    function paint(events) {
+      $cal.fullCalendar('removeEvents');
+      $cal.fullCalendar('addEventSource', events);
+      $count.text(events.length + (events.length === 1 ? ' appointment' : ' appointments'));
+      $empty.prop('hidden', events.length > 0);
+    }
+
+    function load() {
+      var room = $room.val();
+      if (!room) { paint([]); return; }
+      var url = showFinished ? '/appointment_data_finished' : '/appointment_data';
+      $.post(url, { room: room })
+        .done(function (rows) {
+          if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch (e) { rows = []; } }
+          paint((rows || []).map(function (r) {
+            return {
+              id: r.appointment_id,
+              title: r.title || (r.instructor || '') + ' — ' + (r.class_name || ''),
+              start: r.start,
+              end: r.end,
+              // The record carries more than the grid shows; keep it for the
+              // click handler rather than cramming it into the title.
+              extendedProps: r
+            };
+          }));
+        })
+        .fail(function () {
+          paint([]);
+          $count.text('Could not load appointments');
+        });
+    }
+
+    $cal.fullCalendar({
+      header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek,agendaDay,listWeek' },
+      defaultView: 'agendaWeek',
+      height: 'auto',
+      nowIndicator: true,
+      slotDuration: '00:30:00',
+      minTime: '08:00:00',
+      maxTime: '23:00:00',
+      firstDay: 6,                 // the working week here starts on Saturday
+      eventClick: function (ev) {
+        var p = ev.extendedProps || {};
+        Swal.fire({
+          title: ev.title,
+          html:
+            '<div style="text-align:start;font:var(--type-body-sm)">' +
+              '<p><b>Room</b>: ' + (p.room || '—') + '</p>' +
+              '<p><b>Instructor</b>: ' + (p.instructor || '—') + '</p>' +
+              '<p><b>Class</b>: ' + (p.class_name || '—') + '</p>' +
+              '<p><b>Day</b>: ' + (p.day || '—') + '</p>' +
+              '<p><b>Repeats</b>: ' + (p.repeat_frequency || 'No Repeat') +
+                (p.total_repeat_number > 1
+                  ? ' (' + p.repeat_number + ' of ' + p.total_repeat_number + ')' : '') + '</p>' +
+              (p.description ? '<p><b>Notes</b>: ' + $('<div>').text(p.description).html() + '</p>' : '') +
+              '<p><b>Added by</b>: ' + (p.username || '—') + '</p>' +
+            '</div>',
+          confirmButtonText: 'Close'
+        });
+      }
+    });
+
+    $.getJSON('/room_data').done(function (rooms) {
+      $room.empty();
+      (rooms || []).forEach(function (r) {
+        $room.append($('<option></option>').val(r.room_name).text(r.room_name));
+      });
+      load();
+    });
+
+    $room.on('change', load);
+    $('#show_open').on('click', function () {
+      showFinished = false;
+      $(this).addClass('is-on'); $('#show_finished').removeClass('is-on'); load();
+    });
+    $('#show_finished').on('click', function () {
+      showFinished = true;
+      $(this).addClass('is-on'); $('#show_open').removeClass('is-on'); load();
+    });
+  })();
+</script>
+{% endblock %}
