@@ -104,12 +104,18 @@
               esc(initials(who)) + '</span>' +
             '<div class="note__body">' +
               '<div class="note__bubble">' +
-                '<span class="note__author">' + esc(who) + '</span>' +
+                // Header carries who and when, separated from the note itself
+                // by a rule. Author and note were both dark text two pixels
+                // apart, so the eye had nothing to latch onto.
+                '<div class="note__head">' +
+                  '<span class="note__author" style="color:var(' + tintFor(who) + ')">' +
+                    esc(who) + '</span>' +
+                  '<span class="note__when">' +
+                    '<time title="' + esc(absolute(d) || row.added_date || '') + '">' +
+                      esc(relative(d)) + '</time>' +
+                  '</span>' +
+                '</div>' +
                 '<p class="note__text">' + esc(row.notes) + '</p>' +
-              '</div>' +
-              '<div class="note__meta">' +
-                '<time title="' + esc(row.added_date || '') + '">' + esc(relative(d)) + '</time>' +
-                (absolute(d) ? '<span aria-hidden="true">·</span><span>' + esc(absolute(d)) + '</span>' : '') +
               '</div>' +
             '</div>' +
           '</div>';

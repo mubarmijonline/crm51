@@ -55,7 +55,7 @@
   --viz-1: var(--red);
   --viz-2: #1F6FB2;
   --viz-3: #1B7F4B;
-  --viz-4: #B4690E;
+  --viz-4: #A15E0C;   /* was #B4690E: 3.88:1 on the light strip, fails AA */
   --viz-5: #6B5BA6;
   --viz-6: #5C5A57;
 
@@ -245,6 +245,17 @@
   --chrome-border: #242422;
   --chrome-field:  #171717;
 
+  /* Chart/author palette lifted for a dark ground. Measured against the
+     #0F0F0F header strip: the light values sit between 2.79:1 and 3.90:1 and
+     fail AA as text. All six clear 4.6:1 here. Fills are unaffected - this
+     is the text-bearing set. */
+  --viz-1: #E53C44;
+  --viz-2: #3E83BC;
+  --viz-3: #368E60;
+  --viz-4: #AC7129;
+  --viz-5: #8275B4;
+  --viz-6: #7F7E7B;
+
   --sidebar-hover:  rgba(255, 255, 255, .07);
   --sidebar-active: rgba(255, 90, 97, .16);
   --scrim:          rgba(0, 0, 0, .64);
@@ -293,6 +304,8 @@
     --info:    #5FA8E0; --info-tint:    #0E1D2A;
     --chrome: #000000; --chrome-fg: #F2F1EF; --chrome-muted: #A3A099;
     --chrome-border: #242422; --chrome-field: #171717;
+    --viz-1: #E53C44; --viz-2: #3E83BC; --viz-3: #368E60;
+    --viz-4: #AC7129; --viz-5: #8275B4; --viz-6: #7F7E7B;
     --sidebar-hover: rgba(255,255,255,.07);
     --sidebar-active: rgba(255,90,97,.16);
     --scrim: rgba(0,0,0,.64);

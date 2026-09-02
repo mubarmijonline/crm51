@@ -71,12 +71,17 @@
     });
 
     // 4. Strip the inline colour and font declarations the old pages carry.
-    //    Layout properties (width, display, grid) are left alone.
-    var KILL = /(^|;)\s*(color|background|background-color|font|font-family|font-size|font-weight|text-align|border)\s*:[^;]*/gi;
+    //    Layout properties (width, display, grid) are left alone, and so is
+    //    anything whose value is a token: those are deliberate - the notes
+    //    timeline sets each author's colour inline from the palette, and this
+    //    was quietly flattening all of them to the same ink.
+    var PROPS = /(^|;)\s*(color|background|background-color|font|font-family|font-size|font-weight|text-align|border)\s*:([^;]*)/gi;
     root.querySelectorAll('form [style], .crm-formish [style]').forEach(function (el) {
       var v = el.getAttribute('style');
       if (!v || !/color|font|background|text-align/i.test(v)) return;
-      var cleaned = v.replace(KILL, '$1').replace(/^;+|;+$/g, '').trim();
+      var cleaned = v.replace(PROPS, function (whole, sep, prop, value) {
+        return /var\(\s*--/.test(value) ? whole : sep;   // keep token values
+      }).replace(/^;+|;+$/g, '').trim();
       if (cleaned) el.setAttribute('style', cleaned); else el.removeAttribute('style');
     });
 

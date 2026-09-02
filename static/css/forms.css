@@ -317,6 +317,7 @@ small.form-text {
   display: block;
   min-width: 280px;
   padding: var(--space-5) var(--space-6);
+  overflow: hidden;            /* clips the header strip to the rounded corner */
   background: var(--surface-card);
   border: 1px solid var(--border-hairline);
   border-inline-start: 3px solid var(--border-hairline);
@@ -332,15 +333,46 @@ small.form-text {
 .notes__day.d4 ~ .note .note__bubble { border-inline-start-color: var(--viz-1); }
 .notes__day.d5 ~ .note .note__bubble { border-inline-start-color: var(--viz-6); }
 
-.note__author {
-  display: block;
-  margin-bottom: var(--space-2);
-  font: var(--weight-semibold) 13px/1.4 var(--font-sans);
-  color: var(--text-title);
+/* --- header: who and when, ruled off from the note ------------------------
+   The author and the note used to be two dark lines two pixels apart, which
+   gave the eye nothing to separate them by. The header now differs in four
+   ways at once - it carries the author's own avatar colour, it is smaller and
+   uppercase, it sits on a tinted strip, and a hairline closes it off. */
+
+.note__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  margin: calc(var(--space-5) * -1) calc(var(--space-6) * -1) var(--space-5);
+  padding: var(--space-3) var(--space-6);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-hairline);
+  border-start-start-radius: var(--radius-xs);
+  border-start-end-radius: var(--radius-card);
 }
+
+.note__author {
+  font: var(--weight-semibold) 12px/1.5 var(--font-sans);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  /* colour is set inline, per author, matching their avatar */
+}
+
+.note__when {
+  font: var(--type-caption);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.note__when time { cursor: help; }
+
+/* --- the note itself ------------------------------------------------------ */
 
 .note__text {
   margin: 0;
+  padding-block: var(--space-2);
   font: var(--type-body);
   color: var(--text-body);
   white-space: pre-wrap;
@@ -350,17 +382,6 @@ small.form-text {
 /* Arabic and Latin notes sit side by side, so let the browser pick direction
    per note rather than forcing one. */
 .note__text { unicode-bidi: plaintext; text-align: start; }
-
-.note__meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-3);
-  padding-inline-start: var(--space-2);
-  font: var(--type-caption);
-  color: var(--text-muted);
-}
-.note__meta time { cursor: help; font-variant-numeric: tabular-nums; }
 
 .notes__empty {
   padding: var(--space-9) var(--space-6);
