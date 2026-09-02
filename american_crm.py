@@ -102,17 +102,34 @@ def _inject_dated_url_for():
     return dict(url_for=dated_url_for)
 
 
+# Endpoints a member of the public may reach: the external course form and the
+# two lookups it needs to render.
+PUBLIC_ENDPOINTS = {'login', 'register', 'static', 'course_form',
+                    'get_form_course_data', 'get_educational_system_data'}
+
+
 @app.before_request
 def before_request():
-    #print("Wakanda")
-    #print(request.endpoint)
-    if 'name' not in session and request.endpoint != 'login' and request.endpoint != 'register' and request.endpoint != 'static' and request.endpoint != 'course_form' and request.endpoint != 'get_form_course_data' and request.endpoint != 'get_educational_system_data':
+    if request.endpoint in PUBLIC_ENDPOINTS:
+        return
 
-        print(request.endpoint)
-        print(request.method)
-        print(request.data)
+    if 'name' not in session:
         session.clear()
+        return redirect(url_for('login'))
 
+    # Submitting the public course form assigns a session - name
+    # 'External Course Form', id 0, role 'ExternalUser' - so that
+    # creating_american_lead has an author to record. Only four routes ever
+    # checked for it, which left the rest of the CRM open to anyone who had
+    # filled in that form once: /american_db rendered, and /api/american_leads
+    # returned every lead with names, mobiles and emails.
+    #
+    # That pseudo-session is now treated as no session at all outside the
+    # public endpoints above.
+    if (session.get('role') == 'ExternalUser'
+            or session.get('name') == 'External Course Form'
+            or session.get('id') == 0):
+        session.clear()
         return redirect(url_for('login'))
 
 
