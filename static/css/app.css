@@ -372,17 +372,6 @@ td .btn-group > .btn + .btn {
 }
 .crm-search__clear:hover { background: var(--surface-hover); color: var(--text-body); }
 
-.crm-search__spinner {
-  position: absolute; inset-inline-end: var(--space-4); top: 50%;
-  width: 14px; height: 14px; margin-top: -7px;
-  border: 2px solid var(--border-hairline);
-  border-top-color: var(--action-primary);
-  border-radius: var(--radius-pill);
-  animation: crm-spin .6s linear infinite;
-}
-@keyframes crm-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .crm-search__spinner { animation: none; } }
-
 /* --- filter chips --------------------------------------------------------- */
 
 .crm-chips { display: flex; flex-wrap: wrap; gap: var(--space-3); padding: var(--space-4) var(--space-6) 0; }

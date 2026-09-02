@@ -242,20 +242,9 @@ small.form-text {
 .form-actions__note { margin-inline-end: auto; font: var(--type-body-sm); color: var(--text-muted); }
 
 /* Submitting: the button never goes disabled for being invalid, only while
-   the request is in flight. */
+   the request is in flight. No spinner - crmFormBusy() already disables it and
+   swaps the label to "Saving…", which says the same thing in words. */
 .btn.is-busy { pointer-events: none; opacity: .75; }
-.btn.is-busy::before {
-  content: "";
-  display: inline-block;
-  width: 13px; height: 13px;
-  margin-inline-end: var(--space-3);
-  border: 2px solid currentColor;
-  border-top-color: transparent;
-  border-radius: var(--radius-pill);
-  animation: crm-spin .6s linear infinite;
-  vertical-align: -2px;
-}
-@media (prefers-reduced-motion: reduce) { .btn.is-busy::before { animation: none; } }
 
 /* --- mobile --------------------------------------------------------------- */
 

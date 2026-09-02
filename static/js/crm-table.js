@@ -274,7 +274,6 @@
                'placeholder="' + (opts.placeholder || 'Search') + '" aria-label="Search this table">' +
         '<button type="button" class="crm-search__clear" aria-label="Clear search" hidden>' +
           '<i data-lucide="x"></i></button>' +
-        '<span class="crm-search__spinner" hidden></span>' +
       '</div>' +
       '<div class="crm-toolbar__right">' +
         '<div class="crm-density" role="group" aria-label="Row density">' +
@@ -304,7 +303,6 @@
 
     var $input   = $tools.find('.crm-search__input');
     var $clear   = $tools.find('.crm-search__clear');
-    var $spinner = $tools.find('.crm-search__spinner');
     var $chips   = $('<div class="crm-chips" hidden></div>').insertAfter($tools);
 
     $input.val(urlState.q);
@@ -340,7 +338,6 @@
       var value = $input.val();
       $clear.prop('hidden', !value);
       clearTimeout(timer);
-      $spinner.removeAttr('hidden');
       timer = setTimeout(function () {
         terms = value.split(/\s+/).filter(Boolean);
         renderChips();
@@ -350,9 +347,13 @@
 
     $clear.on('click', function () { $input.val('').trigger('input').focus(); });
 
-    // Hide the spinner only once the response has actually landed.
-    $table.on('xhr.dt', function () { $spinner.attr('hidden', true); });
-    $table.on('preXhr.dt', function () { $spinner.removeAttr('hidden'); });
+    /* Every fetch gets the skeleton, not just the first. A search or a page
+       change replaces the rows wholesale, so standing placeholders in their
+       place is honest - and it is the only feedback left now that the search
+       spinner is gone. */
+    $table.on('preXhr.dt', function () {
+      $table.find('tbody').html(skeleton(columns.length, 8));
+    });
 
     /* --- density --------------------------------------------------------- */
     function applyDensity(v) {
@@ -583,9 +584,11 @@
       URL.revokeObjectURL(a.href);
     });
 
-    /* --- skeleton on the very first load --------------------------------- */
+    /* --- skeleton before the first fetch ---------------------------------
+       preXhr covers every fetch after this one; this call covers the gap
+       between the table being built and its first request going out. */
     $table.find('tbody').html(skeleton(columns.length, 8));
-    $table.one('draw.dt', function () { $table.find('.crm-skel-row').remove(); });
+    $table.on('draw.dt', function () { $table.find('.crm-skel-row').remove(); });
 
     $wrap.on('click', '.crm-retry', function () { table.ajax.reload(); });
 
