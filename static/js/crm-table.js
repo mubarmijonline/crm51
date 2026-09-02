@@ -440,12 +440,38 @@
 
     var table = $table.DataTable();
     var $wrap = $table.closest('.dataTables_wrapper');
-    if ($wrap.data('crm-enhanced')) return table;
+    var already = $wrap.data('crm-enhanced');
     $wrap.data('crm-enhanced', true);
+
+    /* --- mobile card labels --------------------------------------------- */
+    function relabel() {
+      var api = table;
+      var labels = api.columns(':visible').header().toArray().map(function (th) {
+        return $(th).text().trim();
+      });
+      $table.find('tbody tr').each(function () {
+        $(this).children('td').each(function (i) {
+          var l = labels[i] || '';
+          if (l) this.setAttribute('data-label', l);
+          else this.classList.add('crm-cell-actions');
+        });
+      });
+    }
+    table.on('draw', relabel);
+    relabel();
 
     /* --- drag to scroll ------------------------------------------------- */
     var scroller = $wrap.find('.dataTables_scrollBody').get(0) || $wrap.get(0);
     scroller.classList.add('crm-scroll');
+
+    if (already) {
+      // Called again - typically because a modal just made the table visible
+      // and it can finally measure itself. Re-label and re-measure, but do not
+      // bind the listeners a second time.
+      relabel();
+      table.columns.adjust();
+      return table;
+    }
 
     var drag = null;
     scroller.addEventListener('pointerdown', function (e) {
@@ -479,23 +505,6 @@
     scroller.addEventListener('scroll', function () {
       scroller.classList.toggle('is-scrolled', scroller.scrollLeft > 0);
     });
-
-    /* --- mobile card labels --------------------------------------------- */
-    function label() {
-      var api = table;
-      var labels = api.columns(':visible').header().toArray().map(function (th) {
-        return $(th).text().trim();
-      });
-      $table.find('tbody tr').each(function () {
-        $(this).children('td').each(function (i) {
-          var l = labels[i] || '';
-          if (l) this.setAttribute('data-label', l);
-          else this.classList.add('crm-cell-actions');
-        });
-      });
-    }
-    table.on('draw', label);
-    label();
 
     /* --- one search field, replacing the stock one ----------------------- */
     if (opts.search !== false) {

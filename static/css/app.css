@@ -726,3 +726,10 @@ table.dataTable tbody td { padding: var(--space-4) var(--space-5); }
 @media (max-width: 767px) {
   table.dataTable tbody td { border-inline-end: 0; }
 }
+
+
+/* A DataTable inside a modal measures itself while hidden, so it settles at
+   whatever width it guessed. Let it fill the dialog. */
+.modal .dataTables_wrapper,
+.modal table.dataTable { width: 100% !important; }
+.modal .dataTables_wrapper .crm-toolbar { padding-inline: 0; }

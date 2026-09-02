@@ -962,4 +962,22 @@
  })
 </script>
 
+
+{# The Course Status table sits in a modal, so it is built after page load and
+   has zero width until the modal is shown. Enhance on both events: once it is
+   drawn, and again when the modal opens and it can finally measure itself. #}
+<script>
+  $(document).on('init.dt draw.dt', function (e, settings) {
+    if (settings.nTable && settings.nTable.id === 'course_status_table') {
+      crmEnhance('#course_status_table', { search: false });
+    }
+  });
+  $(document).on('shown.bs.modal', '#course_status_modal', function () {
+    var t = $('#course_status_table');
+    if ($.fn.DataTable.isDataTable(t)) {
+      crmEnhance('#course_status_table', { search: false });
+      t.DataTable().columns.adjust();
+    }
+  });
+</script>
 {% endblock %}
