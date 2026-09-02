@@ -2394,6 +2394,222 @@ def room_data():
                               mimetype='application/json')
 
 
+# --- calendar writes ---------------------------------------------------------
+#
+# A room cannot hold two appointments at once. That is enforced here, on every
+# write, not only in the calendar UI - a client-side guard is a convenience,
+# and anything that posts directly would walk straight past it.
+#
+# It is enforced going forward only. The data carries 154 overlapping pairs
+# across 287 rows, dating from 2021 to 2027 and 27 of them still in the future,
+# so a database constraint would reject real bookings that already exist. Those
+# are reported by /api/calendar/conflicts instead of being deleted.
+
+ISO_MINUTE = "%Y-%m-%dT%H:%M"
+
+
+def _valid_slot(start, end):
+    """Both parse, same day, and start is before end."""
+    try:
+        s = datetime.datetime.strptime(start, ISO_MINUTE)
+        e = datetime.datetime.strptime(end, ISO_MINUTE)
+    except (TypeError, ValueError):
+        return None, None, 'bad_format'
+    if e <= s:
+        return None, None, 'end_before_start'
+    if s.date() != e.date():
+        return None, None, 'spans_days'
+    return s, e, None
+
+
+def _conflicts(cur, room, start, end, exclude_id=None):
+    """Rows in the same room whose time range intersects [start, end).
+
+    Touching at an edge is not an overlap: 18:00-19:00 and 19:00-20:00 are
+    back to back, which is normal scheduling. The comparison is a plain string
+    compare, which is correct because every value is a zero-padded
+    YYYY-MM-DDTHH:MM - verified across all 7,740 rows.
+    """
+    sql = ("SELECT appointment_id, title, room, start, end FROM appointment"
+           " WHERE room = %s AND code = %s AND finished != TRUE"
+           " AND start < %s AND %s < end")
+    params = [room, CALENDAR_CODE, end, start]
+    if exclude_id is not None:
+        sql += " AND appointment_id <> %s"
+        params.append(exclude_id)
+    cur.execute(sql, tuple(params))
+    return [dict(zip([d[0] for d in cur.description], r)) for r in cur.fetchall()]
+
+
+def _conflict_response(rows):
+    return jsonify({
+        'state': 'conflict',
+        'message': ('That slot is already booked in this room.' if len(rows) == 1
+                    else 'That slot clashes with %d bookings in this room.' % len(rows)),
+        'conflicts': [{'id': r['appointment_id'], 'title': r['title'],
+                       'start': r['start'], 'end': r['end']} for r in rows],
+    }), 409
+
+
+@app.route('/api/calendar/move', methods=["POST"])
+def api_calendar_move():
+    """Drag or resize: a new start/end, and possibly a new room."""
+    if 'name' not in session:
+        return jsonify({'state': 'not_authenticated'}), 401
+
+    try:
+        appointment_id = int(request.form['id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'bad_id'}), 400
+
+    start = (request.form.get('start') or '').strip()
+    end = (request.form.get('end') or '').strip()
+    room = (request.form.get('room') or '').strip()
+
+    s, e, err = _valid_slot(start, end)
+    if err:
+        return jsonify({'state': err}), 400
+
+    conn, cur = connection()
+    try:
+        found = cur.execute("SELECT room, start, end FROM appointment"
+                            " WHERE appointment_id = %s AND code = %s",
+                            (appointment_id, CALENDAR_CODE))
+        if not int(found):
+            return jsonify({'state': 'not_found'}), 404
+        (current_room, _, _) = cur.fetchone()
+        room = room or current_room
+
+        clash = _conflicts(cur, room, start, end, exclude_id=appointment_id)
+        if clash:
+            return _conflict_response(clash)
+
+        cur.execute("UPDATE appointment SET start = %s, end = %s, room = %s,"
+                    " day = %s WHERE appointment_id = %s AND code = %s",
+                    (start, end, room, s.strftime('%A'), appointment_id, CALENDAR_CODE))
+        conn.commit()
+        return jsonify({'state': 'success', 'id': appointment_id,
+                        'start': start, 'end': end, 'room': room})
+    except Exception as exc:
+        conn.rollback()
+        print('calendar move failed:', exc)
+        return jsonify({'state': 'error'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route('/api/calendar/create', methods=["POST"])
+def api_calendar_create():
+    """One appointment in one slot. Recurrence is not created here."""
+    if 'name' not in session:
+        return jsonify({'state': 'not_authenticated'}), 401
+
+    room = (request.form.get('room') or '').strip()
+    instructor = (request.form.get('instructor') or '').strip()
+    class_name = (request.form.get('class_name') or '').strip()
+    description = (request.form.get('description') or '').strip()
+    start = (request.form.get('start') or '').strip()
+    end = (request.form.get('end') or '').strip()
+
+    if not room:
+        return jsonify({'state': 'room_required'}), 400
+    if not instructor and not class_name:
+        return jsonify({'state': 'title_required'}), 400
+
+    s, e, err = _valid_slot(start, end)
+    if err:
+        return jsonify({'state': err}), 400
+
+    conn, cur = connection()
+    try:
+        exists = cur.execute("SELECT room_id FROM room WHERE room_name = %s AND code = %s",
+                             (room, CALENDAR_CODE))
+        if not int(exists):
+            return jsonify({'state': 'unknown_room'}), 400
+
+        clash = _conflicts(cur, room, start, end)
+        if clash:
+            return _conflict_response(clash)
+
+        title = ' - '.join([p for p in (instructor, class_name) if p])
+        repeat_code = datetime.datetime.now().strftime('%y%m%d%H%M%S')
+        cur.execute(
+            "INSERT INTO appointment (instructor, class_name, description, room,"
+            " repeat_frequency, start, end, day, appointment_date, username, title,"
+            " repeat_code, repeat_number, total_repeat_number, repeat_end_date, code)"
+            " VALUES (%s,%s,%s,%s,'No Repeat',%s,%s,%s,%s,%s,%s,%s,1,1,%s,%s)",
+            (instructor, class_name, description, room, start, end,
+             s.strftime('%A'), s.strftime('%Y-%m-%d %H:%M:%S'),
+             session['name'], title, repeat_code, s.strftime('%Y-%m-%d'), CALENDAR_CODE))
+        conn.commit()
+        return jsonify({'state': 'success', 'id': cur.lastrowid, 'title': title})
+    except Exception as exc:
+        conn.rollback()
+        print('calendar create failed:', exc)
+        return jsonify({'state': 'error'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route('/api/calendar/delete', methods=["POST"])
+def api_calendar_delete():
+    if 'name' not in session:
+        return jsonify({'state': 'not_authenticated'}), 401
+    try:
+        appointment_id = int(request.form['id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'bad_id'}), 400
+
+    conn, cur = connection()
+    try:
+        cur.execute("DELETE FROM appointment WHERE appointment_id = %s AND code = %s",
+                    (appointment_id, CALENDAR_CODE))
+        conn.commit()
+        return jsonify({'state': 'success', 'deleted': cur.rowcount})
+    except Exception as exc:
+        conn.rollback()
+        print('calendar delete failed:', exc)
+        return jsonify({'state': 'error'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
+@app.route('/api/calendar/conflicts', methods=["GET", "POST"])
+def api_calendar_conflicts():
+    """Overlaps already in the data, so they can be seen and resolved."""
+    if 'name' not in session:
+        return jsonify({'state': 'not_authenticated'}), 401
+    room = (request.values.get('room') or '').strip()
+
+    sql = ("SELECT a.appointment_id AS id, a.title, a.room, a.start, a.end,"
+           " b.appointment_id AS other_id, b.title AS other_title,"
+           " b.start AS other_start, b.end AS other_end"
+           " FROM appointment a JOIN appointment b"
+           "  ON a.room = b.room AND a.code = b.code"
+           " AND a.appointment_id < b.appointment_id"
+           " AND a.finished != TRUE AND b.finished != TRUE"
+           " AND a.start < b.end AND b.start < a.end"
+           " WHERE a.code = %s")
+    params = [CALENDAR_CODE]
+    if room:
+        sql += " AND a.room = %s"
+        params.append(room)
+    sql += " ORDER BY a.start DESC LIMIT 500"
+
+    conn, cur = connection()
+    try:
+        cur.execute(sql, tuple(params))
+        rows = [dict(zip([d[0] for d in cur.description], r)) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+    return app.response_class(json.dumps({'count': len(rows), 'conflicts': rows}, default=str),
+                              mimetype='application/json')
+
+
 @app.route('/american_active_leads', methods=["GET","POST"])
 def american_active_leads():
     return render_template("american_active_leads.html")

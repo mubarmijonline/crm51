@@ -9,36 +9,44 @@
 
 {% block body %}
 
-{{ page_header('Calendar', 'Room bookings, ported from the education system.') }}
+{% call page_header('Calendar', 'Room bookings. Drag to move, drag an edge to resize, drag an empty slot to book.') %}
+  <button type="button" id="cal_conflicts" class="btn btn-secondary btn-sm">
+    <i data-lucide="triangle-alert"></i>Conflicts
+  </button>
+{% endcall %}
 
 <div class="card_customized" style="margin-bottom:var(--space-7)">
   <div style="display:flex;align-items:flex-end;gap:var(--space-6);flex-wrap:wrap">
-    <div class="form-group" style="max-width:280px;margin-bottom:0">
+    <div class="form-group" style="min-width:220px;max-width:280px;margin-bottom:0">
       <label for="room_select">Room</label>
       <select id="room_select" class="form-control"></select>
-      <small class="form-text">Appointments are booked per room.</small>
     </div>
 
     <div class="form-group" style="margin-bottom:0">
       <label class="form-label">Show</label>
-      <div class="crm-mode" role="group" aria-label="Which appointments to show">
+      <div class="crm-mode" role="group" aria-label="Which bookings to show">
         <button type="button" id="show_open" class="is-on" style="width:auto;padding:0 var(--space-5)">Open</button>
         <button type="button" id="show_finished" style="width:auto;padding:0 var(--space-5)">Finished</button>
       </div>
     </div>
 
-    <div style="margin-inline-start:auto;font:var(--type-body-sm);color:var(--text-muted)">
-      <span id="cal_count">—</span>
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Editing</label>
+      <div class="crm-mode" role="group" aria-label="Editing mode">
+        <button type="button" id="edit_on" style="width:auto;padding:0 var(--space-5)"><i data-lucide="move"></i>On</button>
+        <button type="button" id="edit_off" class="is-on" style="width:auto;padding:0 var(--space-5)"><i data-lucide="lock"></i>Off</button>
+      </div>
+      <small class="form-text">Off by default, so nothing moves by accident.</small>
+    </div>
+
+    <div style="margin-inline-start:auto;text-align:end">
+      <div id="cal_count" style="font:var(--type-body-sm);color:var(--text-muted)">—</div>
+      <div id="cal_conflict_note" style="font:var(--type-caption);color:var(--status-danger-fg)" hidden></div>
     </div>
   </div>
 </div>
 
 <div class="card_customized">
-  <div id="calendar_state" class="crm-state" hidden>
-    <i data-lucide="calendar-x"></i>
-    <p class="crm-state__title">Nothing booked</p>
-    <p class="crm-state__body">No appointments for this room yet.</p>
-  </div>
   <div id="calendar"></div>
 </div>
 
@@ -48,95 +56,262 @@
 {% block scripts %}
 <script src="{{ url_for('static', filename='vendor/fullcalendar/fullcalendar.min.js') }}"></script>
 <script>
-  /* FullCalendar 3 needs jQuery and moment; the base already loads both, so
-     neither is bundled here - a second copy of either is what broke this app
-     before. */
-  (function () {
-    var $cal   = $('#calendar');
-    var $room  = $('#room_select');
-    var $count = $('#cal_count');
-    var $empty = $('#calendar_state');
-    var showFinished = false;
+/* FullCalendar 3 needs jQuery and moment; the base loads both already, so
+   neither is bundled here - a second copy of either has broken this app twice.
 
-    function paint(events) {
-      $cal.fullCalendar('removeEvents');
-      $cal.fullCalendar('addEventSource', events);
-      $count.text(events.length + (events.length === 1 ? ' appointment' : ' appointments'));
-      $empty.prop('hidden', events.length > 0);
-    }
+   Overlap is refused in two places. The calendar refuses to drop or draw onto
+   a busy slot, which keeps the interaction honest; and every write is checked
+   again in SQL, because a client-side guard is a convenience and anything
+   posting directly would walk past it. The server is the one that decides. */
+(function () {
+  var $cal = $('#calendar');
+  var $room = $('#room_select');
+  var $count = $('#cal_count');
+  var $note = $('#cal_conflict_note');
+  var showFinished = false;
+  var editing = false;
+  var conflictIds = {};
 
-    function load() {
+  // The T must be bracketed. Moment treats unescaped letters in a format
+  // string as tokens, so 'YYYY-MM-DDTHH:mm' emitted "2021-11-21P14:00" and
+  // every drag was rejected as bad_format.
+  function toIso(m) { return m.format('YYYY-MM-DD[T]HH:mm'); }
+
+  function say(icon, title, text) {
+    return Swal.fire({ icon: icon, title: title, text: text,
+                       timer: icon === 'success' ? 1400 : undefined,
+                       showConfirmButton: icon !== 'success' });
+  }
+
+  function conflictDialog(payload) {
+    var list = (payload.conflicts || []).map(function (c) {
+      return '<li style="margin-bottom:4px"><b>' + $('<div>').text(c.title || 'Untitled').html() +
+             '</b><br><span style="font:var(--type-caption)">' +
+             c.start.replace('T', ' ') + ' – ' + c.end.replace('T', ' ') + '</span></li>';
+    }).join('');
+    Swal.fire({
+      icon: 'warning',
+      title: 'Slot already booked',
+      html: '<p style="font:var(--type-body-sm)">' + payload.message + '</p>' +
+            '<ul style="text-align:start;font:var(--type-body-sm);padding-inline-start:18px">' + list + '</ul>',
+      confirmButtonText: 'Close'
+    });
+  }
+
+  /* --- loading ---------------------------------------------------------- */
+
+  function paint(events) {
+    $cal.fullCalendar('removeEvents');
+    $cal.fullCalendar('addEventSource', events);
+    $count.text(events.length + (events.length === 1 ? ' booking' : ' bookings'));
+  }
+
+  function load(then) {
+    var room = $room.val();
+    if (!room) { paint([]); return; }
+    var url = showFinished ? '/appointment_data_finished' : '/appointment_data';
+
+    $.when($.post(url, { room: room }), $.post('/api/calendar/conflicts', { room: room }))
+      .done(function (a, b) {
+        var rows = a[0]; if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch (e) { rows = []; } }
+        var conf = b[0]; if (typeof conf === 'string') { try { conf = JSON.parse(conf); } catch (e) { conf = {}; } }
+
+        conflictIds = {};
+        (conf.conflicts || []).forEach(function (c) { conflictIds[c.id] = true; conflictIds[c.other_id] = true; });
+        var n = (conf.conflicts || []).length;
+        $note.prop('hidden', n === 0)
+             .text(n ? n + (n === 1 ? ' existing clash in this room' : ' existing clashes in this room') : '');
+
+        paint((rows || []).map(function (r) {
+          var clash = !!conflictIds[r.appointment_id];
+          return {
+            id: r.appointment_id,
+            title: r.title || ((r.instructor || '') + ' - ' + (r.class_name || '')),
+            start: r.start, end: r.end,
+            editable: editing && !showFinished,
+            classNames: (clash ? 'is-conflict ' : '') + (showFinished ? 'is-finished' : ''),
+            className: (clash ? 'is-conflict ' : '') + (showFinished ? 'is-finished' : ''),
+            extendedProps: r, raw: r
+          };
+        }));
+        if (then) then();
+      })
+      .fail(function () { paint([]); $count.text('Could not load bookings'); });
+  }
+
+  /* --- the calendar ----------------------------------------------------- */
+
+  $cal.fullCalendar({
+    header: { left: 'prev,next today', center: 'title',
+              right: 'month,agendaWeek,agendaDay,listWeek' },
+    views: { listWeek: { buttonText: 'list' } },
+    defaultView: 'agendaWeek',
+    height: 'auto',
+    nowIndicator: true,
+    slotDuration: '00:30:00',
+    snapDuration: '00:15:00',      // quarter-hour snapping, like Google
+    minTime: '08:00:00',
+    maxTime: '23:00:00',
+    firstDay: 6,                   // the working week starts Saturday here
+    allDaySlot: false,
+    selectable: true,
+    selectHelper: true,
+    editable: false,               // switched on by the Editing toggle
+    eventDurationEditable: true,
+    // The two that make overlap impossible in the UI.
+    eventOverlap: false,
+    selectOverlap: false,
+    eventConstraint: { start: '00:00', end: '24:00' },
+
+    /* drag an empty range to book it */
+    select: function (start, end) {
+      if (!editing) { $cal.fullCalendar('unselect'); return; }
       var room = $room.val();
-      if (!room) { paint([]); return; }
-      var url = showFinished ? '/appointment_data_finished' : '/appointment_data';
-      $.post(url, { room: room })
-        .done(function (rows) {
-          if (typeof rows === 'string') { try { rows = JSON.parse(rows); } catch (e) { rows = []; } }
-          paint((rows || []).map(function (r) {
-            return {
-              id: r.appointment_id,
-              title: r.title || (r.instructor || '') + ' — ' + (r.class_name || ''),
-              start: r.start,
-              end: r.end,
-              // The record carries more than the grid shows; keep it for the
-              // click handler rather than cramming it into the title.
-              extendedProps: r
-            };
-          }));
-        })
-        .fail(function () {
-          paint([]);
-          $count.text('Could not load appointments');
-        });
-    }
-
-    $cal.fullCalendar({
-      header: { left: 'prev,next today', center: 'title', right: 'month,agendaWeek,agendaDay,listWeek' },
-      defaultView: 'agendaWeek',
-      height: 'auto',
-      nowIndicator: true,
-      slotDuration: '00:30:00',
-      minTime: '08:00:00',
-      maxTime: '23:00:00',
-      firstDay: 6,                 // the working week here starts on Saturday
-      eventClick: function (ev) {
-        var p = ev.extendedProps || {};
-        Swal.fire({
-          title: ev.title,
-          html:
-            '<div style="text-align:start;font:var(--type-body-sm)">' +
-              '<p><b>Room</b>: ' + (p.room || '—') + '</p>' +
-              '<p><b>Instructor</b>: ' + (p.instructor || '—') + '</p>' +
-              '<p><b>Class</b>: ' + (p.class_name || '—') + '</p>' +
-              '<p><b>Day</b>: ' + (p.day || '—') + '</p>' +
-              '<p><b>Repeats</b>: ' + (p.repeat_frequency || 'No Repeat') +
-                (p.total_repeat_number > 1
-                  ? ' (' + p.repeat_number + ' of ' + p.total_repeat_number + ')' : '') + '</p>' +
-              (p.description ? '<p><b>Notes</b>: ' + $('<div>').text(p.description).html() + '</p>' : '') +
-              '<p><b>Added by</b>: ' + (p.username || '—') + '</p>' +
-            '</div>',
-          confirmButtonText: 'Close'
-        });
-      }
-    });
-
-    $.getJSON('/room_data').done(function (rooms) {
-      $room.empty();
-      (rooms || []).forEach(function (r) {
-        $room.append($('<option></option>').val(r.room_name).text(r.room_name));
+      Swal.fire({
+        title: 'New booking',
+        html:
+          '<div style="text-align:start">' +
+            '<label class="form-label" for="sw_inst">Instructor</label>' +
+            '<input id="sw_inst" class="swal2-input" style="margin:0 0 10px;width:100%" placeholder="Instructor">' +
+            '<label class="form-label" for="sw_class">Class</label>' +
+            '<input id="sw_class" class="swal2-input" style="margin:0 0 10px;width:100%" placeholder="Class name">' +
+            '<label class="form-label" for="sw_desc">Notes</label>' +
+            '<textarea id="sw_desc" class="swal2-textarea" style="margin:0;width:100%" placeholder="Optional"></textarea>' +
+            '<p style="font:var(--type-caption);color:var(--text-muted);margin-top:10px">' +
+              room + ' · ' + start.format('ddd DD MMM, HH:mm') + ' – ' + end.format('HH:mm') + '</p>' +
+          '</div>',
+        showCancelButton: true,
+        confirmButtonText: 'Create booking',
+        focusConfirm: false,
+        preConfirm: function () {
+          var i = document.getElementById('sw_inst').value.trim();
+          var c = document.getElementById('sw_class').value.trim();
+          if (!i && !c) { Swal.showValidationMessage('Give it an instructor or a class name.'); return false; }
+          return { instructor: i, class_name: c, description: document.getElementById('sw_desc').value.trim() };
+        }
+      }).then(function (res) {
+        $cal.fullCalendar('unselect');
+        if (!res.isConfirmed) return;
+        $.post('/api/calendar/create', {
+          room: room, instructor: res.value.instructor, class_name: res.value.class_name,
+          description: res.value.description, start: toIso(start), end: toIso(end)
+        }).done(function () { say('success', 'Booked'); load(); })
+          .fail(function (xhr) {
+            var p = xhr.responseJSON || {};
+            if (xhr.status === 409) conflictDialog(p);
+            else say('error', 'Not booked', 'The booking was refused (' + (p.state || xhr.status) + ').');
+          });
       });
-      load();
-    });
+    },
 
-    $room.on('change', load);
-    $('#show_open').on('click', function () {
-      showFinished = false;
-      $(this).addClass('is-on'); $('#show_finished').removeClass('is-on'); load();
+    /* drag to move */
+    eventDrop: function (ev, delta, revert) { persist(ev, revert); },
+    /* drag an edge to resize */
+    eventResize: function (ev, delta, revert) { persist(ev, revert); },
+
+    eventClick: function (ev) {
+      var p = ev.extendedProps || ev.raw || {};
+      var clash = conflictIds[ev.id];
+      Swal.fire({
+        title: ev.title,
+        html:
+          '<div style="text-align:start;font:var(--type-body-sm)">' +
+            (clash ? '<p style="color:var(--status-danger-fg)"><b>This booking clashes with another in the same room.</b></p>' : '') +
+            '<p><b>Room</b>: ' + (p.room || '—') + '</p>' +
+            '<p><b>When</b>: ' + ev.start.format('ddd DD MMM YYYY, HH:mm') +
+              (ev.end ? ' – ' + ev.end.format('HH:mm') : '') + '</p>' +
+            '<p><b>Instructor</b>: ' + (p.instructor || '—') + '</p>' +
+            '<p><b>Class</b>: ' + (p.class_name || '—') + '</p>' +
+            '<p><b>Repeats</b>: ' + (p.repeat_frequency || 'No Repeat') +
+              (p.total_repeat_number > 1 ? ' (' + p.repeat_number + ' of ' + p.total_repeat_number + ')' : '') + '</p>' +
+            (p.description ? '<p><b>Notes</b>: ' + $('<div>').text(p.description).html() + '</p>' : '') +
+            '<p><b>Added by</b>: ' + (p.username || '—') + '</p>' +
+          '</div>',
+        showCancelButton: editing,
+        cancelButtonText: 'Delete booking',
+        confirmButtonText: 'Close'
+      }).then(function (res) {
+        if (res.dismiss !== Swal.DismissReason.cancel || !editing) return;
+        Swal.fire({
+          title: 'Delete this booking?',
+          text: 'It is removed immediately. This cannot be undone.',
+          icon: 'warning', showCancelButton: true,
+          confirmButtonText: 'Delete booking', cancelButtonText: 'Keep it'
+        }).then(function (c) {
+          if (!c.isConfirmed) return;
+          $.post('/api/calendar/delete', { id: ev.id })
+            .done(function () { say('success', 'Deleted'); load(); })
+            .fail(function () { say('error', 'Not deleted', 'The request failed.'); });
+        });
+      });
+    }
+  });
+
+  function persist(ev, revert) {
+    $.post('/api/calendar/move', {
+      id: ev.id, room: $room.val(), start: toIso(ev.start),
+      end: toIso(ev.end || ev.start.clone().add(1, 'hour'))
+    }).done(function () { load(); })
+      .fail(function (xhr) {
+        revert();                                  // put it back where it was
+        var p = xhr.responseJSON || {};
+        if (xhr.status === 409) conflictDialog(p);
+        else say('error', 'Not moved', 'The change was refused (' + (p.state || xhr.status) + ').');
+      });
+  }
+
+  /* --- controls --------------------------------------------------------- */
+
+  function setEditing(on) {
+    editing = on;
+    $('#edit_on').toggleClass('is-on', on);
+    $('#edit_off').toggleClass('is-on', !on);
+    $cal.fullCalendar('option', 'editable', on && !showFinished);
+    load();
+  }
+
+  $('#edit_on').on('click', function () { setEditing(true); });
+  $('#edit_off').on('click', function () { setEditing(false); });
+
+  $('#show_open').on('click', function () {
+    showFinished = false; $(this).addClass('is-on'); $('#show_finished').removeClass('is-on');
+    $cal.fullCalendar('option', 'editable', editing); load();
+  });
+  $('#show_finished').on('click', function () {
+    showFinished = true; $(this).addClass('is-on'); $('#show_open').removeClass('is-on');
+    $cal.fullCalendar('option', 'editable', false); load();
+  });
+
+  $('#cal_conflicts').on('click', function () {
+    $.post('/api/calendar/conflicts', { room: $room.val() }).done(function (d) {
+      if (typeof d === 'string') { try { d = JSON.parse(d); } catch (e) { d = {}; } }
+      var rows = d.conflicts || [];
+      if (!rows.length) { say('success', 'No clashes', 'Nothing in this room double-books.'); return; }
+      Swal.fire({
+        icon: 'warning',
+        title: rows.length + (rows.length === 1 ? ' clash' : ' clashes') + ' in ' + $room.val(),
+        html: '<div style="text-align:start;max-height:340px;overflow:auto;font:var(--type-body-sm)">' +
+          rows.map(function (c) {
+            return '<div style="padding:8px 0;border-bottom:1px solid var(--border-hairline)">' +
+              '<b>' + $('<div>').text(c.title || 'Untitled').html() + '</b> ' +
+              c.start.replace('T', ' ') + ' – ' + c.end.replace('T', ' ') +
+              '<br><span style="color:var(--text-muted)">clashes with</span> <b>' +
+              $('<div>').text(c.other_title || 'Untitled').html() + '</b> ' +
+              c.other_start.replace('T', ' ') + ' – ' + c.other_end.replace('T', ' ') + '</div>';
+          }).join('') + '</div>',
+        confirmButtonText: 'Close'
+      });
     });
-    $('#show_finished').on('click', function () {
-      showFinished = true;
-      $(this).addClass('is-on'); $('#show_open').removeClass('is-on'); load();
+  });
+
+  $.getJSON('/room_data').done(function (rooms) {
+    $room.empty();
+    (rooms || []).forEach(function (r) {
+      $room.append($('<option></option>').val(r.room_name).text(r.room_name));
     });
-  })();
+    load();
+  });
+  $room.on('change', function () { load(); });
+})();
 </script>
 {% endblock %}
