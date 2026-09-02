@@ -1,0 +1,84 @@
+{# ============================================================================
+   _assets.html — every stylesheet and script the app uses, in one place.
+
+   Included by main.html AND by the standalone pages (login, register,
+   course_form) which do not extend it. Before this, those three loaded their
+   own ad-hoc set, so nothing central reached them: register's inputs sat at
+   38px while the rest of the app was at 40px, and course_form pulled Font
+   Awesome from a kit URL the browser blocks.
+
+   Add an asset here and it reaches every page at once.
+   ========================================================================= #}
+{# --- Bootstrap grid + components, then design system tokens, then the bridge.
+     Order matters: the bridge must win over Bootstrap. --- #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='ds/styles.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ds-bridge.css') }}">
+{# 51 Campus identity: redefines the design-system token values. THE single
+   source of colour, radius and type in this app. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tokens-51.css') }}">
+{# The application frame: sidebar, top bar, page header. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/shell.css') }}">
+{# App-level overrides. Last, so they win over the bridge. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='select2/select2.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forms.css') }}">
+{# Makes every un-migrated page use the same form language, with no template
+   edit: adapts the old table layouts, cards and inline styles in place. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/legacy-forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+{# Forces the light-only vendor stack (Bootstrap, DataTables, select2,
+   datepicker, SweetAlert) onto our tokens. Must load last. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vendor-theme.css') }}">
+
+{# --- Vendor CSS still in use --- #}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/select.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/buttons.dataTables.min.css') }}">
+{# SearchPanes / SearchBuilder / DateTime — vendored locally at the versions the
+   lead tables were built against. They used to come from cdn.datatables.net in
+   each page template, alongside a third copy of jQuery. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/searchPanes.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/searchBuilder.dataTables.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/datatables/dataTables.dateTime.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='datepicker/css/bootstrap-datepicker.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='sweetalert/dist/sweetalert2.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.css') }}">
+
+{# --- Scripts: jQuery ONCE, then everything that depends on it --- #}
+<script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/popper.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.select.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.searchPanes.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.searchBuilder.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.dateTime.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.buttons.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/jszip.min.js') }}"></script>
+{# pdfmake + its font file back the 'pdf'/'pdfHtml5' export button, which seven
+   live templates use. Must load before buttons.html5, which reads them. #}
+<script src="{{ url_for('static', filename='vendor/datatables/pdfmake.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/vfs_fonts.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/buttons.print.min.js') }}"></script>
+{# select2 backs every multi-select in the lead and course forms. The old
+   base loaded it from cdnjs; dropping it left those pages calling
+   .select2() on an undefined plugin. Vendored copy is 4.1.0. #}
+<script src="{{ url_for('static', filename='select2/select2.js') }}"></script>
+<script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
+<script src="{{ url_for('static', filename='datepicker/js/bootstrap-datepicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
+<script src="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{# The one table component: server-side search, URL state, real states. #}
+<script src="{{ url_for('static', filename='js/crm-table.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crm-form.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crm-notes.js') }}"></script>
+{# Applies the form language to every page, including un-migrated ones. #}
+<script src="{{ url_for('static', filename='js/crm-autoform.js') }}"></script>
+{# Google Charts backs the 10 ColumnCharts on profile and event_profile.
+   The old base loaded this; dropping it left google.charts undefined at
+   call time and every one of those charts dead. #}
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+{# Icons — replaces Font Awesome 4.7 + both Font Awesome kit scripts #}
+<script src="{{ url_for('static', filename='vendor/lucide/lucide.js') }}"></script>

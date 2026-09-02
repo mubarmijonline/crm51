@@ -1,0 +1,226 @@
+/* ---------------------------------------------------------------------------
+   legacy-forms.css — makes every un-migrated page look like a migrated one.
+
+   Loaded from the base, so it applies everywhere at once. Nothing here needs a
+   template edit: it adapts the markup those pages already have.
+
+   Three jobs:
+     1. Turn the old <table cellpadding> form layouts into the same grid the
+        new pages use, without touching their HTML.
+     2. Give .card_customized the .form-section treatment.
+     3. Neutralise the inline font/colour styles those pages carry, which
+        otherwise beat every stylesheet.
+   --------------------------------------------------------------------------- */
+
+
+/* --- 1. table-as-layout becomes the form grid ----------------------------- */
+
+/* display:contents removes the table boxes from the layout tree, so the cells'
+   children become direct grid items. The markup is untouched.
+
+   Only tables crm-autoform.js has positively identified as form layout carry
+   .crm-layout-table. Guessing in CSS was wrong: admin_settings has a real
+   <table class="table"> of content that matched the old selector and collapsed
+   to 2px-tall rows. A layout table has form controls and no <thead>; a content
+   table has a <thead>. That test lives in JS, where it can be exact. */
+table.crm-layout-table {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-7) var(--space-8);
+  width: 100%;
+  align-items: start;
+  border-collapse: separate;
+}
+
+@media (min-width: 640px) {
+  table.crm-layout-table { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  table.crm-layout-table { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+table.crm-layout-table > tbody,
+table.crm-layout-table > tbody > tr { display: contents; }
+
+table.crm-layout-table > tbody > tr > td {
+  display: block;
+  padding: 0 !important;
+  vertical-align: top;
+  min-width: 0;
+}
+
+/* A <br> straight after a label is table-era spacing; the label is already a
+   block. Same for a rule dropped between rows. */
+form label + br { display: none; }
+table.crm-layout-table > tbody > tr > td > hr { display: none; }
+
+
+/* --- 2. the old card becomes the section card ----------------------------- */
+
+.card_customized {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-hairline) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: none !important;
+  background-image: none !important;
+  padding: var(--space-8) !important;
+  margin: 0 0 var(--space-7) !important;   /* kills margin-left:10%/right:5% */
+  width: auto !important;
+  max-width: none !important;
+}
+
+/* Pages wrap their table in a padded card; a table inside one needs no padding
+   of its own. */
+.card_customized > .dataTables_wrapper { margin: calc(var(--space-8) * -1); }
+
+
+/* --- 3. neutralise the inline styling those pages carry ------------------- */
+
+/* An inline style beats any stylesheet, so these need !important. They are
+   scoped to form context so nothing else is caught. */
+
+form label[style],
+form .form-group > label[style],
+form span[style] > label {
+  font: var(--weight-medium) 13px/1.4 var(--font-sans) !important;
+  color: var(--text-body) !important;
+  display: block !important;
+  margin-bottom: var(--space-3) !important;
+  text-align: start !important;
+}
+
+form input[style],
+form select[style],
+form textarea[style] {
+  font: var(--type-body) !important;
+  color: var(--text-body) !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-control) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  box-shadow: none !important;
+  text-align: start !important;
+}
+
+form input[style]:not([type=checkbox]):not([type=radio]),
+form select[style] { height: 40px !important; padding: 0 12px !important; }
+
+form textarea[style] { height: auto !important; padding: 10px 12px !important; }
+
+form input[style]:focus,
+form select[style]:focus,
+form textarea[style]:focus {
+  border-color: var(--red) !important;
+  box-shadow: var(--focus-ring) !important;
+  outline: none !important;
+}
+
+/* Readonly stays white even when the page inlined a grey. */
+form input[readonly][style],
+form textarea[readonly][style] {
+  background: var(--surface-card) !important;
+  color: var(--text-body) !important;
+}
+
+/* Centred headings from the table era. */
+form center, .card_customized > center { display: block; text-align: start; }
+
+form h1[style], form h2[style], form h3[style],
+.card_customized > center > h3[style],
+.card_customized > h3[style] {
+  font: var(--weight-semibold) 17px/1.4 var(--font-sans) !important;
+  color: var(--text-title) !important;
+  text-align: start !important;
+  margin: 0 0 var(--space-7) !important;
+}
+form h1[style] u, form h2[style] u, form h3[style] u,
+.card_customized h3[style] u { text-decoration: none; }
+
+/* The old submit rows. */
+form .text-center > button[type=submit],
+form > center > button[type=submit] { min-width: 160px; }
+
+
+/* --- 4. quick-add pills --------------------------------------------------- */
+
+/* Several pages style these as solid colour blocks with the label inside an
+   <i>. Solid red especially cannot stay: it is reserved for the one primary
+   action per page. */
+form .btn-warning[data-toggle=modal],
+form .btn-info[data-toggle=modal],
+form .btn-success[data-toggle=modal],
+form .btn-danger[data-toggle=modal] {
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  color: var(--text-body) !important;
+  height: auto !important;
+  font: var(--weight-medium) var(--text-sm)/1 var(--font-sans) !important;
+  padding: var(--space-4) var(--space-5) !important;
+}
+form .btn-warning[data-toggle=modal]:hover,
+form .btn-info[data-toggle=modal]:hover,
+form .btn-success[data-toggle=modal]:hover,
+form .btn-danger[data-toggle=modal]:hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--text-subtle) !important;
+}
+/* the label is inside the <i> on those buttons */
+form .btn[data-toggle=modal] > i { font-style: normal; }
+
+
+/* --- 5. pages with inputs but no <form> ----------------------------------- */
+
+/* Eight pages - register, admin_users, admin_settings, account_settings,
+   user_add_task, profile, event_profile, historical_notification - collect
+   input and post a hand-assembled payload, with no <form> element at all.
+   Every rule above is scoped to "form ...", so none of it reached them.
+   .crm-formish is put on their container by crm-autoform.js. */
+
+table.crm-layout-table {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-7) var(--space-8);
+  width: 100%;
+  align-items: start;
+}
+@media (min-width: 640px) {
+  table.crm-layout-table { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1200px) {
+  table.crm-layout-table { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+
+.crm-formish label + br { display: none; }
+.crm-formish center { display: block; text-align: start; }
+
+.crm-formish label[style] {
+  font: var(--weight-medium) 13px/1.4 var(--font-sans) !important;
+  color: var(--text-body) !important;
+  display: block !important;
+  margin-bottom: var(--space-3) !important;
+  text-align: start !important;
+}
+
+.crm-formish input[style],
+.crm-formish select[style],
+.crm-formish textarea[style] {
+  font: var(--type-body) !important;
+  color: var(--text-body) !important;
+  background: var(--surface-card) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-control) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-shadow: none !important;
+}
+
+.crm-formish h1[style], .crm-formish h2[style], .crm-formish h3[style] {
+  font: var(--weight-semibold) 17px/1.4 var(--font-sans) !important;
+  color: var(--text-title) !important;
+  text-align: start !important;
+  margin: 0 0 var(--space-7) !important;
+}
+.crm-formish h1[style] u, .crm-formish h2[style] u, .crm-formish h3[style] u { text-decoration: none; }

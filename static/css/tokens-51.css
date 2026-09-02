@@ -117,6 +117,15 @@
   --focus-ring: 0 0 0 3px var(--red-tint);
 
 
+  /* Control heights. The design system declares --control-height-md three
+     times (40/34/30) across its density and breakpoint blocks, and ds-bridge
+     applies it to .form-control with !important - so a plain 40px rule in
+     forms.css could never win. Pinning it here sets every control in the app,
+     migrated or not, from one place. 44px on touch, per the brief. */
+  --control-height-sm: 32px;
+  --control-height-md: 40px;
+  --control-height-lg: 44px;
+
   /* --- shape: three radii, not seven -------------------------------------- */
   --radius-xs:      6px;
   --radius-sm:      6px;
@@ -302,4 +311,10 @@ html { background: var(--surface); color-scheme: light; }
 [data-theme="dark"] { color-scheme: dark; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) { color-scheme: dark; }
+}
+
+/* Touch targets on small screens, applied to the token so every control
+   follows without a per-component rule. */
+@media (max-width: 767px) {
+  :root { --control-height-sm: 38px; --control-height-md: 44px; --control-height-lg: 48px; }
 }

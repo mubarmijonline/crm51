@@ -7,9 +7,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in | 51 American CRM</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='ds/styles.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ds-bridge.css') }}">
 <style>
 body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;background:var(--surface-card)}
 .pane-form{display:flex;align-items:center;justify-content:center;padding:var(--space-11)}
@@ -21,6 +18,7 @@ body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;backgr
 .field{display:flex;flex-direction:column;gap:var(--space-3)}
 @media (max-width:900px){body{grid-template-columns:1fr}.pane-brand{display:none}.pane-form{padding:var(--space-8)}.form-wrap{width:100%;max-width:360px}}
 </style>
+{% include "_assets.html" %}
 </head>
 <body>
 <div class="pane-form">
@@ -64,7 +62,5 @@ body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;backgr
     <p style="font:var(--type-body);color:var(--text-muted)">Education and event leads, recall dates, course database and user management in one place.</p>
   </div>
 </div>
-
-<script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
 </body>
 </html>

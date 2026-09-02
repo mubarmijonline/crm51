@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en" id="HTML"
 <head>
+{% include "_assets.html" %}
+
     <title>51 Campus || Courses Form</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=0.7, maximum-scale=0.7, user-scalable=no" />
@@ -247,31 +249,7 @@ border-radius: 50%;
 
   <!------------------- BEGIN  CSS -------------------------------->	
 <!--<link href="https://fonts.googleapis.com/css?family=Lato:300,400,700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   -->	
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.googleapis.css.lato.css') }}" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.googleapis.icon.material.css') }}" rel="stylesheet">
-
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-  
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}">
-  <link href="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.css') }}" rel="stylesheet"
-  type="text/css">
- <link href="{{ url_for('static', filename='vendor/datatables/select.dataTables.min.css') }}" rel="stylesheet"
-  type="text/css">
-  <link href="{{ url_for('static', filename='vendor/datatables/buttons.dataTables.min.css') }}" rel="stylesheet"
-  type="text/css">
-
-
-    <link href="{{ url_for('static', filename='datepicker/css/bootstrap-datepicker.css') }}" rel="stylesheet" type="text/css">
-
-    <link href="{{ url_for('static', filename='sweetalert/dist/sweetalert2.min.css') }}" rel="stylesheet"
-    type="text/css">
-
-    <link href="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.css') }}" rel="stylesheet"
-    type="text/css">
-    
-    <link rel="stylesheet" href="https://kit.fontawesome.com/f139ce70b0.css" crossorigin="anonymous">
   
 
 <!-- 	  <link href="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker-ltie9.css') }}" rel="stylesheet"
@@ -279,41 +257,10 @@ border-radius: 50%;
   <!------------------- END   CSS -------------------------------->	
 
   <!------------------- BEGINING  SCRIPTS -------------------------------->
-  <script src="{{url_for('static', filename='js/popper.js')}}"></script>
-  <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
-  <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js') }}"></script>
-  <script src="{{url_for('static', filename='js/main.js')}}"></script>
-  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/jquery-3.3.1.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/dataTables.select.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/dataTables.buttons.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/buttons.flash.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/jszip.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/pdfmake.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/vfs_fonts.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/buttons.html5.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/datatables/buttons.print.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.all.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='sweetalert/dist/sweetalert2.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='datepicker/js/bootstrap-datepicker.js') }}"></script>
   <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment-with-locales.min.js"></script> -->
-  <script src="{{ url_for('static', filename='js/moment-with-locales.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='DateTimePicker-2/src/DateTimePicker.js') }}"></script>
-  <script src="https://kit.fontawesome.com/f139ce70b0.js" crossorigin="anonymous"></script>
-
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<!-- 	<script src="{{ url_for('static', filename='select2/select2.js') }}"></script>
-  <link href="{{ url_for('static', filename='select2/select2.css') }}" rel="stylesheet"
-  type="text/css"> -->
-
-
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1-rc.1/js/select2.min.js" integrity="sha512-sltpIB7K+Ax4jQFs7oXsasf/kb6Dcd3PteRrST+K+ItlcHY2KYF3wrbNQxzQIV8Pk7my5b/JfpPcPiiXxn2hJA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.1-rc.1/css/select2.min.css" integrity="sha512-YHJ091iDoDM1PZZA9QLuBvpo0VXBBiGHsvdezDoc3p56S3SOMPRjX+zlCbfkOV5k3BmH5O9FqrkKxBRhkdtOkQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<!-- 	<script src="{{ url_for('static', filename='select2/select2.js') }}"></script> -->
 
 <!--	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.js"></script>
   -->
 
   <!------------------- END SCRIPTS --------------------------------------->
@@ -690,40 +637,10 @@ border-radius: 50%;
 	<script>
 
 		//var $loading = $('#loadMe').modal('hide');  
-		$(document)
-		
-		  .ajaxStart(function () {
-			var checkFunction = localStorage.getItem("isFunctionRunning");
-			   
-			   if(checkFunction != 1){
+		/* The page's own loading overlay lived here. It clicked ".swal2-close",
+   a button this popup never renders, so it never closed. The fixed one
+   now comes from _assets.html, shared with every other page. */
 
-      
-   
-			Swal.fire({
-	
-			  imageUrl: "{{ url_for('static', filename='images/loading__.gif') }}",
-			  imageWidth: 150,
-			  imageHeight: 150,
-	
-	
-			  background: 'transparent',
-			  allowOutsideClick: false,
-			  showConfirmButton: false,
-	
-			  customClass: {
-				container: 'loading-container-class',
-				popup: 'popup-class',
-				backdrop: 'true'
-			  },
-	
-	
-			});
-		}
-		
-		  })
-		  .ajaxStop(function () {
-			$(".loading-container-class .swal2-close").click();
-		  });
 	
 	  </script>
     <script>

@@ -50,6 +50,14 @@
     return d.toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  function absolute(d) {
+    if (!d) return '';
+    return d.toLocaleString(undefined, {
+      day: '2-digit', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
   function dayLabel(d) {
     if (!d) return 'Undated';
     var today = new Date(); today.setHours(0, 0, 0, 0);
@@ -77,13 +85,17 @@
         return (db ? db.getTime() : 0) - (da ? da.getTime() : 0);
       });
 
-      var html = '', lastDay = null;
+      var html = '', lastDay = null, dayIndex = 0;
       rows.forEach(function (row) {
         var d = parseDate(row);
         var day = dayLabel(d);
         if (day !== lastDay) {
-          html += '<div class="notes__day">' + esc(day) + '</div>';
+          // Cycle six accents so two consecutive days never share one. The
+          // date is always spelled out, so colour is never the only signal.
+          html += '<div class="notes__day d' + (dayIndex % 6) + '">' +
+                    '<span>' + esc(day) + '</span></div>';
           lastDay = day;
+          dayIndex++;
         }
         var who = row.added_by || 'Unknown';
         html +=
@@ -97,6 +109,7 @@
               '</div>' +
               '<div class="note__meta">' +
                 '<time title="' + esc(row.added_date || '') + '">' + esc(relative(d)) + '</time>' +
+                (absolute(d) ? '<span aria-hidden="true">·</span><span>' + esc(absolute(d)) + '</span>' : '') +
               '</div>' +
             '</div>' +
           '</div>';
