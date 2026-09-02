@@ -20,6 +20,22 @@
 
   var SEARCH_DEBOUNCE_MS = 300;
 
+  /* Row actions are icons, not a row of word-buttons. Each carries an
+     aria-label and a title, and data-label so the mobile card view can put the
+     word back where there is room for it. */
+  window.crmAction = function (opts) {
+    return '<button type="button" class="crm-iconbtn' +
+      (opts.danger ? ' crm-iconbtn--danger' : '') + '"' +
+      ' aria-label="' + opts.label + '" title="' + opts.label + '"' +
+      ' data-label="' + opts.label + '"' +
+      ' onclick="' + opts.onclick + '">' +
+      '<i data-lucide="' + opts.icon + '"></i></button>';
+  };
+
+  window.crmActions = function (buttons) {
+    return '<div class="crm-actions">' + buttons.join('') + '</div>';
+  };
+
   function store(key, value) {
     try {
       if (value === undefined) return localStorage.getItem(key);
@@ -322,6 +338,159 @@
     $table.one('draw.dt', function () { $table.find('.crm-skel-row').remove(); });
 
     $wrap.on('click', '.crm-retry', function () { table.ajax.reload(); });
+
+    /* --- drag to scroll ---------------------------------------------------
+       Wide tables are hard to reach with a trackpad and impossible with a
+       mouse that has no horizontal wheel. Grab anywhere that is not a control
+       and drag. A few pixels of movement before we claim the gesture, so a
+       plain click on a row still behaves like a click. */
+    var scroller = $wrap.find('.dataTables_scrollBody').get(0) || $wrap.get(0);
+    scroller.classList.add('crm-scroll');
+
+    var drag = null;
+    var DRAG_THRESHOLD = 4;
+
+    scroller.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      if (e.target.closest('button, a, input, select, textarea, label, .dropdown')) return;
+      drag = { x: e.clientX, left: scroller.scrollLeft, active: false, id: e.pointerId };
+    });
+
+    scroller.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var dx = e.clientX - drag.x;
+      if (!drag.active) {
+        if (Math.abs(dx) < DRAG_THRESHOLD) return;
+        drag.active = true;
+        scroller.classList.add('is-dragging');
+        try { scroller.setPointerCapture(drag.id); } catch (err) {}
+      }
+      scroller.scrollLeft = drag.left - dx;
+      e.preventDefault();
+    });
+
+    function endDrag() {
+      if (!drag) return;
+      if (drag.active) {
+        scroller.classList.remove('is-dragging');
+        try { scroller.releasePointerCapture(drag.id); } catch (err) {}
+      }
+      drag = null;
+    }
+    scroller.addEventListener('pointerup', endDrag);
+    scroller.addEventListener('pointercancel', endDrag);
+    scroller.addEventListener('pointerleave', endDrag);
+
+    // The pinned column only needs its edge once the body has actually moved.
+    scroller.addEventListener('scroll', function () {
+      scroller.classList.toggle('is-scrolled', scroller.scrollLeft > 0);
+    });
+
+    if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14 } });
+    return table;
+  };
+})(window, jQuery);
+
+
+/* ---------------------------------------------------------------------------
+   crmEnhance — for tables that stay client-side.
+
+   Some views are inherently small: a recall list is one date's call-backs, the
+   user list is fifteen rows. Those do not need a server-side endpoint, but they
+   should still drag-scroll, pin their first column, label their cells on mobile
+   and get the same search field. Call this instead of crmTable.
+
+     crmEnhance('#recall_date_table', { placeholder: 'Search this list' });
+   --------------------------------------------------------------------------- */
+(function (window, $) {
+  'use strict';
+
+  window.crmEnhance = function (selector, opts) {
+    opts = opts || {};
+    var $table = $(selector);
+    if (!$table.length || !$.fn.DataTable.isDataTable(selector)) return null;
+
+    var table = $table.DataTable();
+    var $wrap = $table.closest('.dataTables_wrapper');
+    if ($wrap.data('crm-enhanced')) return table;
+    $wrap.data('crm-enhanced', true);
+
+    /* --- drag to scroll ------------------------------------------------- */
+    var scroller = $wrap.find('.dataTables_scrollBody').get(0) || $wrap.get(0);
+    scroller.classList.add('crm-scroll');
+
+    var drag = null;
+    scroller.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      if (e.target.closest('button, a, input, select, textarea, label, .dropdown')) return;
+      drag = { x: e.clientX, left: scroller.scrollLeft, active: false, id: e.pointerId };
+    });
+    scroller.addEventListener('pointermove', function (e) {
+      if (!drag) return;
+      var dx = e.clientX - drag.x;
+      if (!drag.active) {
+        if (Math.abs(dx) < 4) return;
+        drag.active = true;
+        scroller.classList.add('is-dragging');
+        try { scroller.setPointerCapture(drag.id); } catch (err) {}
+      }
+      scroller.scrollLeft = drag.left - dx;
+      e.preventDefault();
+    });
+    function endDrag() {
+      if (!drag) return;
+      if (drag.active) {
+        scroller.classList.remove('is-dragging');
+        try { scroller.releasePointerCapture(drag.id); } catch (err) {}
+      }
+      drag = null;
+    }
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
+      scroller.addEventListener(ev, endDrag);
+    });
+    scroller.addEventListener('scroll', function () {
+      scroller.classList.toggle('is-scrolled', scroller.scrollLeft > 0);
+    });
+
+    /* --- mobile card labels --------------------------------------------- */
+    function label() {
+      var api = table;
+      var labels = api.columns(':visible').header().toArray().map(function (th) {
+        return $(th).text().trim();
+      });
+      $table.find('tbody tr').each(function () {
+        $(this).children('td').each(function (i) {
+          var l = labels[i] || '';
+          if (l) this.setAttribute('data-label', l);
+          else this.classList.add('crm-cell-actions');
+        });
+      });
+    }
+    table.on('draw', label);
+    label();
+
+    /* --- one search field, replacing the stock one ----------------------- */
+    if (opts.search !== false) {
+      var $filter = $wrap.find('.dataTables_filter');
+      $filter.hide();
+      var $bar = $('<div class="crm-toolbar"><div class="crm-search">' +
+        '<span class="crm-search__icon"><i data-lucide="search"></i></span>' +
+        '<input type="search" class="crm-search__input" autocomplete="off" ' +
+               'placeholder="' + (opts.placeholder || 'Search') + '" aria-label="Search this table">' +
+        '<button type="button" class="crm-search__clear" aria-label="Clear search" hidden>' +
+          '<i data-lucide="x"></i></button>' +
+        '</div></div>');
+      $wrap.prepend($bar);
+      var $in = $bar.find('.crm-search__input');
+      var $clear = $bar.find('.crm-search__clear');
+      var t = null;
+      $in.on('input', function () {
+        $clear.prop('hidden', !$in.val());
+        clearTimeout(t);
+        t = setTimeout(function () { table.search($in.val()).draw(); }, 300);
+      });
+      $clear.on('click', function () { $in.val('').trigger('input').focus(); });
+    }
 
     if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14 } });
     return table;

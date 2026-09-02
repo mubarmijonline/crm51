@@ -308,4 +308,12 @@ Swal.fire({
 </script>
       
 </body> 
+
+<script>
+// Same drag-scroll, pinned first column, mobile card labels and search field
+// as every other table in the app.
+$(document).on('init.dt', function (e, settings) {
+  if (settings.nTable && settings.nTable.id === 'crm_excel_sheets_table') crmEnhance('#crm_excel_sheets_table', { placeholder: 'Search files' });
+});
+</script>
 {% endblock %}

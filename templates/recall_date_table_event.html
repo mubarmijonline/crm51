@@ -80,17 +80,16 @@
           }
         },
         {
+          className: 'crm-cell-actions',
           mRender: function (data, type, row) {
             // Arguments are quoted: a mobile with a leading zero would
             // otherwise be emitted as a bare, invalid numeric literal.
-            return '<div class="btn-group">' +
-              '<button id="add_notes" name="add_notes" class="btn btn-secondary btn-sm" ' +
-              'onclick="add_notes_swal(\'' + row.client_id + '\',\'' + row.client_mobile + '\')">' +
-              '<i data-lucide="notebook-pen"></i>Add notes</button>' +
-              '<button id="visit_profile" name="visit_profile" class="btn btn-secondary btn-sm" ' +
-              'onclick="window.location.assign(\'/update_event_lead?client_data=' +
-              row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name + '\');">Profile</button>' +
-              '</div>';
+            return crmActions([
+              crmAction({ icon: 'notebook-pen', label: 'Add notes',
+                onclick: "add_notes_swal(\'" + row.client_id + "\',\'" + row.client_mobile + "\')" }),
+              crmAction({ icon: 'user-round', label: 'Profile',
+                onclick: "window.location.assign(\'/update_event_lead?client_data=" + row.client_id + " - " + row.client_mobile + " - " + row.client_name + "\')" })
+            ]);
           }
         }
       ],
@@ -153,6 +152,10 @@
 
   $(document).ready(function () {
     get_recall_date();
+    // The table is rebuilt on every date change, so enhance after each build.
+    $('#recall_date_table').on('init.dt draw.dt', function () {
+      crmEnhance('#recall_date_table', { placeholder: 'Search this day\u2019s list' });
+    });
   });
 </script>
 {% endblock %}

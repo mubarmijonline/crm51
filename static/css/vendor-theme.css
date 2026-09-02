@@ -313,3 +313,12 @@ div.dtsb-searchBuilder select, div.dtsb-searchBuilder input {
     color: var(--text-body) !important;
   }
 }
+
+/* Readonly keeps the record's real value legible on a white ground, in both
+   themes and regardless of which stylesheet painted the control first. */
+input[readonly], textarea[readonly], .form-control[readonly] {
+  background-color: var(--surface-card) !important;
+  color: var(--text-body) !important;
+  -webkit-text-fill-color: var(--text-body);
+  opacity: 1;
+}

@@ -57,17 +57,18 @@
     order: [[1, 'desc']],
     columns: [
       {
-        data: null, orderable: false, searchable: false,
+        data: null, orderable: false, searchable: false, className: 'crm-cell-actions',
         render: function (data, type, row) {
           var myrole = "{{ session['role'] }}";
-          var profile =
-            '<button name="edit_client" class="btn btn-secondary btn-sm" ' +
-            'onclick="window.location.assign(\'/update_event_lead?client_data=' +
-            row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name + '\');">Profile</button>';
-          if (myrole !== 'admin') return '<div class="btn-group">' + profile + '</div>';
-          return '<div class="btn-group">' + profile +
-            '<button type="button" class="btn btn-danger btn-sm dt-delete" ' +
-            'onclick="delete_event(' + row.client_id + ')"><i data-lucide="trash-2"></i>Delete</button></div>';
+          var acts = [crmAction({
+            icon: 'user-round', label: 'Profile',
+            onclick: "window.location.assign(\'/update_event_lead?client_data=' + row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name + '\')"
+          })];
+          if (myrole === 'admin') acts.push(crmAction({
+            icon: 'trash-2', label: 'Delete', danger: true,
+            onclick: 'delete_event(' + row.client_id + ')'
+          }));
+          return crmActions(acts);
         }
       },
       { data: 'client_id',             className: 'mono' },

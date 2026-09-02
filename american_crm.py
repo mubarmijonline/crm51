@@ -2063,7 +2063,7 @@ def _build_search(term, columns, phone_columns):
     return '(' + ' OR '.join(parts) + ')', params
 
 
-def _datatables_query(table, columns, phone_columns, request):
+def _datatables_query(table, columns, phone_columns, request, base_where=None):
     """Shared server-side handler. Returns the DataTables response dict."""
     draw   = int(request.values.get('draw', 1))
     start  = max(0, int(request.values.get('start', 0)))
@@ -2080,6 +2080,9 @@ def _datatables_query(table, columns, phone_columns, request):
         if frag:
             where_parts.append(frag)
             params.extend(frag_params)
+    # base_where is set by the route, never by the request.
+    if base_where:
+        where_parts.insert(0, '(' + base_where + ')')
     where_sql = (' WHERE ' + ' AND '.join(where_parts)) if where_parts else ''
 
     # --- ORDER BY: identifiers come from the allowlist, never from input ---
@@ -2098,7 +2101,10 @@ def _datatables_query(table, columns, phone_columns, request):
 
     conn, cur = connection()
     try:
-        cur.execute('SELECT COUNT(*) FROM `%s`' % table)
+        if base_where:
+            cur.execute('SELECT COUNT(*) FROM `%s` WHERE %s' % (table, base_where))
+        else:
+            cur.execute('SELECT COUNT(*) FROM `%s`' % table)
         total = cur.fetchone()[0]
 
         if where_sql:
@@ -2160,6 +2166,30 @@ def api_event_leads():
         return jsonify({'error': 'not_authenticated'}), 401
     payload = _datatables_query('event_leads', EVENT_LEAD_COLUMNS,
                                 EVENT_PHONE_COLUMNS, request)
+    return app.response_class(json.dumps(payload, default=str),
+                              mimetype='application/json')
+
+
+# Active-lead views are the same tables filtered to open leads, so they reuse
+# the column maps and add a fixed WHERE the caller cannot influence.
+@app.route('/api/american_active_leads', methods=["GET", "POST"])
+def api_american_active_leads():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    payload = _datatables_query('american_leads', AMERICAN_LEAD_COLUMNS,
+                                PHONE_COLUMNS, request,
+                                base_where="`status` = 'pending'")
+    return app.response_class(json.dumps(payload, default=str),
+                              mimetype='application/json')
+
+
+@app.route('/api/event_active_leads', methods=["GET", "POST"])
+def api_event_active_leads():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    payload = _datatables_query('event_leads', EVENT_LEAD_COLUMNS,
+                                EVENT_PHONE_COLUMNS, request,
+                                base_where="`status` IN ('pending','not_contacted')")
     return app.response_class(json.dumps(payload, default=str),
                               mimetype='application/json')
 

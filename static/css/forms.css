@@ -103,8 +103,32 @@ textarea.form-control { height: auto; padding: 10px 12px; line-height: var(--lea
   box-shadow: var(--focus-ring);
 }
 
+/* Readonly is not disabled. The value is still the record's real value and
+   must read as such - white ground, normal text. Only the caret and the edit
+   affordance go away. Disabled is the greyed-out one. */
+.form-control[readonly],
+input[readonly],
+textarea[readonly] {
+  background: var(--surface-card) !important;
+  color: var(--text-body) !important;
+  cursor: default;
+}
+
+.form-control[readonly]:focus,
+input[readonly]:focus {
+  border-color: var(--border-strong);
+  box-shadow: none;
+}
+
+/* A readonly field that is only ever filled by a picker still shows it is
+   interactive on hover. */
+.form-control[readonly]:not([disabled]):hover { border-color: var(--border-strong); }
+
 .form-control:disabled,
-.form-control[readonly] {
+.form-control[disabled],
+input:disabled,
+select:disabled,
+textarea:disabled {
   background: var(--surface-app);
   color: var(--text-muted);
   cursor: not-allowed;

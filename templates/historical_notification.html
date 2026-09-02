@@ -550,4 +550,13 @@
 
 </body>
 
+
+<script>
+// Same drag-scroll, pinned first column, mobile card labels and search field
+// as every other table in the app.
+$(document).on('init.dt', function (e, settings) {
+  if (settings.nTable && settings.nTable.id === 'course_status_table') crmEnhance('#course_status_table', { placeholder: 'Search notifications' });
+  if (settings.nTable && settings.nTable.id === 'notification_center_table') crmEnhance('#notification_center_table', { placeholder: 'Search notifications' });
+});
+</script>
 {% endblock %}

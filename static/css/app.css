@@ -558,3 +558,103 @@ table.dataTable thead th {
   table.dataTable tbody td { white-space: nowrap; }
   table.dataTable tbody td.crm-wrap { white-space: normal; min-width: 220px; }
 }
+
+
+/* ===========================================================================
+   Table: pinned action column, drag-to-scroll, icon row actions.
+   =========================================================================== */
+
+/* The scroll container. grab/grabbing tells you it can be dragged. */
+.crm-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  cursor: grab;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+.crm-scroll.is-dragging { cursor: grabbing; user-select: none; scroll-behavior: auto; }
+.crm-scroll::-webkit-scrollbar { height: 10px; }
+.crm-scroll::-webkit-scrollbar-track { background: var(--surface-sunken); }
+.crm-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong); border-radius: var(--radius-pill);
+  border: 2px solid var(--surface-sunken);
+}
+.crm-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-subtle); }
+
+/* Never hijack a drag that starts on something interactive. */
+.crm-scroll button, .crm-scroll a, .crm-scroll input,
+.crm-scroll select, .crm-scroll label { cursor: auto; }
+
+/* --- pinned first column -------------------------------------------------- */
+
+@media (min-width: 768px) {
+  table.dataTable thead th:first-child,
+  table.dataTable tbody td:first-child {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 3;
+    background: var(--surface-card);
+  }
+  table.dataTable thead th:first-child { z-index: 4; background: var(--surface-sunken); }
+  table.dataTable tbody tr:hover td:first-child { background: var(--surface-hover); }
+  table.dataTable tbody tr.selected td:first-child { background: var(--surface-selected); }
+
+  /* A hairline that reads as an edge once the body has scrolled under it. */
+  .crm-scroll.is-scrolled table.dataTable thead th:first-child::after,
+  .crm-scroll.is-scrolled table.dataTable tbody td:first-child::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: -1px;
+    width: 1px;
+    background: var(--border-strong);
+  }
+}
+
+/* --- icon row actions ----------------------------------------------------- */
+
+.crm-actions { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+.crm-iconbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard),
+              border-color var(--duration-fast) var(--ease-standard),
+              background var(--duration-fast) var(--ease-standard);
+}
+
+.crm-iconbtn:hover {
+  background: var(--surface-hover);
+  border-color: var(--text-subtle);
+  color: var(--text-body);
+}
+
+.crm-iconbtn:focus-visible { outline: none; border-color: var(--red); box-shadow: var(--focus-ring); }
+
+/* Destructive never takes a solid red fill - it would look like Save. */
+.crm-iconbtn--danger { color: var(--text-danger); border-color: var(--status-danger-border); }
+.crm-iconbtn--danger:hover {
+  background: var(--status-danger-bg);
+  border-color: var(--text-danger);
+  color: var(--text-danger);
+}
+
+.crm-iconbtn svg, .crm-iconbtn i { width: 15px; height: 15px; }
+
+@media (max-width: 767px) {
+  /* In the card view the actions get labels back - an icon strip with no
+     context is worse on a phone, where there is room for the word. */
+  .crm-iconbtn { width: auto; padding: 0 var(--space-5); height: 36px; gap: var(--space-2); }
+  .crm-iconbtn::after { content: attr(data-label); font: var(--type-body-sm); }
+  .crm-actions { width: 100%; gap: var(--space-3); }
+  .crm-actions .crm-iconbtn { flex: 1 1 auto; }
+}

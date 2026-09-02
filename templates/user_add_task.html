@@ -319,4 +319,12 @@ else
   })
 </script>
 
+
+<script>
+// Same drag-scroll, pinned first column, mobile card labels and search field
+// as every other table in the app.
+$(document).on('init.dt', function (e, settings) {
+  if (settings.nTable && settings.nTable.id === 'users_table') crmEnhance('#users_table', { placeholder: 'Search users' });
+});
+</script>
 {% endblock %}

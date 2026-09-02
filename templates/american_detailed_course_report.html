@@ -290,4 +290,12 @@ function delete_student(id)
 
 </body>
 
+
+<script>
+// Same drag-scroll, pinned first column, mobile card labels and search field
+// as every other table in the app.
+$(document).on('init.dt', function (e, settings) {
+  if (settings.nTable && settings.nTable.id === 'students_table') crmEnhance('#students_table', { placeholder: 'Search the report' });
+});
+</script>
 {% endblock %}
