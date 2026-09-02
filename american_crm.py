@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, url_for, redirect, flash, session, app,jsonify
+from flask import url_for as flask_url_for
 from dbconnection import connection
 from flask_pymongo import PyMongo
 from pymongo import MongoClient
@@ -70,6 +71,35 @@ def get_event_mongo():
 
 
 #mycollection = get_mongo()
+
+
+# =============================================================================
+# Cache busting for static assets.
+#
+# nginx serves /static/ with "Cache-Control: public, max-age=31536000,
+# immutable". immutable means the browser will not revalidate at all, so an
+# edited stylesheet stays invisible until someone clears their cache - which is
+# exactly what happened during this revamp.
+#
+# The header is correct as long as the URL changes when the file does, so
+# url_for('static', ...) now appends the file's mtime. Same filename on disk,
+# new URL after every edit, and the year-long cache stays valid per version.
+# =============================================================================
+def dated_url_for(endpoint, **values):
+    if endpoint == 'static':
+        filename = values.get('filename')
+        if filename:
+            try:
+                values['v'] = int(os.stat(
+                    os.path.join(app.static_folder, filename)).st_mtime)
+            except OSError:
+                pass          # missing file: let url_for build the plain URL
+    return flask_url_for(endpoint, **values)
+
+
+@app.context_processor
+def _inject_dated_url_for():
+    return dict(url_for=dated_url_for)
 
 
 @app.before_request
