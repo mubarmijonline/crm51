@@ -336,17 +336,16 @@ html.sidebar-collapsed .app-main { margin-inline-start: 64px; }
 
 /* --- content -------------------------------------------------------------- */
 
+/* Full width everywhere. This used to cap at 1600px so long rows stayed
+   readable, with an .is-wide opt-out for the calendar. On the wide screens the
+   team actually works on, that cap left a band of empty page beside every
+   table while the table itself scrolled sideways, so the cap is gone and the
+   opt-out with it. */
 main {
   flex: 1 0 auto;
   width: 100%;
-  max-width: 1600px;                /* caps so rows stay readable on wide screens */
-  margin-inline: auto;
   padding: var(--space-9) var(--space-8);
 }
-
-/* Pages that are a grid rather than a document: the calendar week view gets
-   more useful with every extra column pixel, so the reading cap comes off. */
-main.is-wide { max-width: none; }
 
 footer {
   flex: none;

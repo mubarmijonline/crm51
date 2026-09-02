@@ -204,8 +204,14 @@ table.crm-layout-table {
   text-align: start !important;
 }
 
+/* :not(.select2-hidden-accessible) matters. select2 leaves the original
+   <select> in the DOM for screen readers and hides it by clipping it to 1px.
+   This rule is more specific than select2's own, so it was stretching that
+   hidden element back to full width - and because it is absolutely positioned
+   past the right edge, every select2 field added horizontal scroll to the page
+   (766px of it on admin_settings) plus an invisible hit target. */
 .crm-formish input[style],
-.crm-formish select[style],
+.crm-formish select[style]:not(.select2-hidden-accessible),
 .crm-formish textarea[style] {
   font: var(--type-body) !important;
   color: var(--text-body) !important;

@@ -341,3 +341,23 @@ div.dataTables_scrollBody > table.dataTable > thead > tr > td {
   overflow: hidden !important;
 }
 div.dataTables_scrollHead table.dataTable thead th { position: static; }
+
+
+/* select2 keeps the original <select> in the DOM for accessibility and hides it
+   with .select2-hidden-accessible. Our own `.form-control { width: 100% }` was
+   winning over select2's `width: 1px`, so every select2 field left a
+   full-width, full-height element sitting off the right edge of the page -
+   766px of horizontal scroll on admin_settings, and a stray hit target on
+   every other form. Put select2's clipping back, and make it stick. */
+.select2-hidden-accessible {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}

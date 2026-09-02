@@ -155,6 +155,16 @@
 
     // A select column, only when the caller says which field identifies a row.
     if (opts.rowId) {
+      // DataTables matches its column definitions against the <th> cells that
+      // are already in the markup, one for one. Unshifting a definition without
+      // adding the matching header cell left every table with one more cell per
+      // row than it had headers, so from that point on each value sat under the
+      // heading for the column before it - the ID showed under "Name", the
+      // status under "Payment status", and so on.
+      $table.find('thead tr').each(function () {
+        $(this).prepend('<th class="crm-cell-select"></th>');
+      });
+
       columns.unshift({
         data: null, orderable: false, searchable: false, className: 'crm-cell-select',
         // Set as the column title, not prepended to the DOM: DataTables
