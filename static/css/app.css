@@ -1129,3 +1129,21 @@ table.dataTable tbody tr.selected:hover > td { background: var(--surface-selecte
   .crm-skel, .crm-skel-cal > div { animation: none; }
   .crm-busy__spin { animation-duration: 2.4s; }
 }
+
+
+/* Profile charts: two up on a wide screen, one up on a narrow one. The old
+   markup stacked five full-width chart cards, which meant scrolling past four
+   of them to reach the fifth. */
+.crm-chart-grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  padding: var(--space-6);
+}
+.crm-chart {
+  min-height: 260px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  padding: var(--space-4);
+  background: var(--surface-raised);
+}

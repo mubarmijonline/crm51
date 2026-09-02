@@ -158,7 +158,7 @@ input:checked + .slider:before {
 }
 </style>
 
-<body onload="get_edu()">
+
 
 
   <br>
@@ -287,280 +287,44 @@ value="{{total_assigned_lead_unfinished}}"></div>
       </div>  
       
       <hr>
-      <div class="card_customized" hidden>
-
-        <div class="card-body" id="course_analysis_section1" style="display: show;">
-          <div class="chart-area">
-              <div id="course_analysis1" data-skeleton="chart" style="width:auto; height:100%;"></div>
-          </div>
+      {# These five containers used to carry the education charts, hidden.
+         They query american_leads, assignation and course_status, so on an
+         event user's profile they were the wrong numbers and `hidden` was a
+         blunt way of saying so. Replaced with the event equivalents, which is
+         why the panel can now be shown. #}
+      <div class="card_customized">
+        <div class="crm-chart-grid">
+          <div class="crm-chart" id="chart_status"      data-skeleton="chart"></div>
+          <div class="crm-chart" id="chart_payment"     data-skeleton="chart"></div>
+          <div class="crm-chart" id="chart_temperature" data-skeleton="chart"></div>
+          <div class="crm-chart" id="chart_deposit"     data-skeleton="chart"></div>
         </div>
-
-        <div class="card-body" id="course_analysis_section2" style="display: show;">
-          <div class="chart-area">
-              <div id="course_analysis2" data-skeleton="chart" style="width:auto; height:100%;"></div>
-          </div>
-        </div>
-        <div class="card-body" id="course_analysis_section3" style="display: show;">
-          <div class="chart-area">
-              <div id="course_analysis3" data-skeleton="chart" style="width:auto; height:100%;"></div>
-          </div>
-        </div>
-
-        <div class="card-body" id="course_analysis_section" style="display: show;">
-          <div class="chart-area">
-              <div id="course_analysis" data-skeleton="chart" style="width:auto; height:100%;"></div>
-          </div>
-        </div>
-
-
-
-        
-
-      <div class="card-body" id="educational_chart_section" style="display: show;">
-        <div class="chart-area">
-            <div id="educational_chart" data-skeleton="chart" style="width:auto; height:100%;"></div>
-        </div>
-      </div>
-        
     </div>
 
     
-    {# Only these two pages chart anything. In the shared head this was a
-   render-blocking script on all 27 pages, and it held up DOMContentLoaded
-   here too, so the chart skeletons could not paint before the charts did.
-   It sits after the chart containers and before the code that uses it:
-   kept synchronous, because the inline draw code calls google.charts.load
-   directly and cannot tolerate async. #}
+    {# Only these two pages chart anything, so the loader lives here rather
+       than in the shared head, where it was a render-blocking script on all
+       27 pages. It stays synchronous: crm-chart.js calls google.charts.load
+       right below. #}
 <script src="https://www.gstatic.com/charts/loader.js"></script>
+<script src="{{ url_for('static', filename='js/crm-chart.js') }}"></script>
 <script>
-      function get_course_analysis1() {
-    
-        username_profile = "{{username_profile}}"
-    
-        
-        google.charts.load('visualization', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(drawLineChart);
-          function drawLineChart() {
-            $.ajax({
-                url: "/course_analysis1?username_profile="+username_profile,
-                dataType: "json",
-                type: "GET",
-                contentType: "application/json; charset=utf-8",
-                success: function (data) {
-                    var arrSales = [['Course','Count of Courses']];    // Define an array and assign columns for the chart.
-    
-                    // Loop through each data and populate the array.
-                    $.each(data, function (index, value) {
-                        arrSales.push([value.status,value.course_count]);
-                    });
-    
-                    // Set chart Options.
-                    var options = {
-                        title: 'Categorization of Courses Status',
-                        curveType: 'function',
-                        
-                        legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
-                    };
-    
-                    // Create DataTable and add the array to it.
-                    var figures = google.visualization.arrayToDataTable(arrSales)
-    
-                    // Define the chart type (LineChart) and the container (a DIV in our case).
-                    var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis1'));
-                    chart.draw(figures, options);      // Draw the chart with Options.
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    alert('Got an Error, A');
-                }
-            });
-        }
+  google.charts.load('current', { packages: ['corechart'] });
+
+  (function () {
+    var who = {{ username_profile | tojson }};
+
+    function chart(el, dim, title) {
+      crmChart(el, '/api/event_profile_chart?dim=' + dim +
+                   '&username_profile=' + encodeURIComponent(who),
+               { title: title, categoryLabel: title, valueLabel: 'Leads' });
     }
-    
-    </script>
 
-
-    <script>
-      function get_course_analysis() {
-    
-        username_profile = "{{username_profile}}"
-    
-        
-        google.charts.load('visualization', { packages: ['corechart'] });
-        google.charts.setOnLoadCallback(drawLineChart);
-          function drawLineChart() {
-            $.ajax({
-                url: "/course_analysis?username_profile="+username_profile,
-                dataType: "json",
-                type: "GET",
-                contentType: "application/json; charset=utf-8",
-                success: function (data) {
-                    var arrSales = [['Course','Count of Enrolled Courses']];    // Define an array and assign columns for the chart.
-    
-                    // Loop through each data and populate the array.
-                    $.each(data, function (index, value) {
-                        arrSales.push([value.course,value.course_count]);
-                    });
-    
-                    // Set chart Options.
-                    var options = {
-                        title: 'Categorization of Enrolled Courses',
-                        curveType: 'function',
-                        
-                        legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
-                    };
-    
-                    // Create DataTable and add the array to it.
-                    var figures = google.visualization.arrayToDataTable(arrSales)
-    
-                    // Define the chart type (LineChart) and the container (a DIV in our case).
-                    var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis'));
-                    chart.draw(figures, options);      // Draw the chart with Options.
-                },
-                error: function (XMLHttpRequest, textStatus, errorThrown) {
-                    alert('Got an Error, A');
-                }
-            });
-        }
-    }
-    
-    </script>
-
-<script>
-  function get_course_analysis2() {
-
-    username_profile = "{{username_profile}}"
-
-    
-    google.charts.load('visualization', { packages: ['corechart'] });
-    google.charts.setOnLoadCallback(drawLineChart);
-      function drawLineChart() {
-        $.ajax({
-            url: "/course_analysis2?username_profile="+username_profile,
-            dataType: "json",
-            type: "GET",
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                var arrSales = [['Course','Count of Pending Courses']];    // Define an array and assign columns for the chart.
-
-                // Loop through each data and populate the array.
-                $.each(data, function (index, value) {
-                    arrSales.push([value.course,value.course_count]);
-                });
-
-                // Set chart Options.
-                var options = {
-                    title: 'Categorization of Pending Courses',
-                    curveType: 'function',
-                    
-                    legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
-                };
-
-                // Create DataTable and add the array to it.
-                var figures = google.visualization.arrayToDataTable(arrSales)
-
-                // Define the chart type (LineChart) and the container (a DIV in our case).
-                var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis2'));
-                chart.draw(figures, options);      // Draw the chart with Options.
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert('Got an Error, A');
-            }
-        });
-    }
-}
-
-</script>
-
-<script>
-  function get_course_analysis3() {
-
-    username_profile = "{{username_profile}}"
-
-    
-    google.charts.load('visualization', { packages: ['corechart'] });
-    google.charts.setOnLoadCallback(drawLineChart);
-      function drawLineChart() {
-        $.ajax({
-            url: "/course_analysis3?username_profile="+username_profile,
-            dataType: "json",
-            type: "GET",
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                var arrSales = [['Course','Count of Not Interested Courses']];    // Define an array and assign columns for the chart.
-
-                // Loop through each data and populate the array.
-                $.each(data, function (index, value) {
-                    arrSales.push([value.course,value.course_count]);
-                });
-
-                // Set chart Options.
-                var options = {
-                    title: 'Categorization of Not Interested Courses',
-                    curveType: 'function',
-                    
-                    legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
-                };
-
-                // Create DataTable and add the array to it.
-                var figures = google.visualization.arrayToDataTable(arrSales)
-
-                // Define the chart type (LineChart) and the container (a DIV in our case).
-                var chart = new google.visualization.ColumnChart(document.getElementById('course_analysis3'));
-                chart.draw(figures, options);      // Draw the chart with Options.
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert('Got an Error, A');
-            }
-        });
-    }
-}
-
-</script>
-
-<script>
-  function get_edu() {
-
-    username_profile = "{{username_profile}}"
-
-    
-    google.charts.load('visualization', { packages: ['corechart'] });
-    google.charts.setOnLoadCallback(drawLineChart);
-      function drawLineChart() {
-        $.ajax({
-            url: "/edu_count?username_profile="+username_profile,
-            dataType: "json",
-            type: "GET",
-            contentType: "application/json; charset=utf-8",
-            success: function (data) {
-                var arrSales = [['Educational System','Number of Assigned Lead']];    // Define an array and assign columns for the chart.
-
-                // Loop through each data and populate the array.
-                $.each(data, function (index, value) {
-                    arrSales.push([value.educational_system,value.educational_system_count]);
-                });
-
-                // Set chart Options.
-                var options = {
-                    title: 'Educational Sytems VS Total Assigned leads',
-                    curveType: 'function',
-                    
-                    legend: { position: 'side', textStyle: { color: '#555', fontSize: 14} }  // You can position the legend on 'top' or at the 'bottom'.
-                };
-
-                // Create DataTable and add the array to it.
-                var figures = google.visualization.arrayToDataTable(arrSales)
-
-                // Define the chart type (LineChart) and the container (a DIV in our case).
-                var chart = new google.visualization.ColumnChart(document.getElementById('educational_chart'));
-                chart.draw(figures, options);      // Draw the chart with Options.
-            },
-            error: function (XMLHttpRequest, textStatus, errorThrown) {
-                alert('Got an Error, A');
-            }
-        });
-    }
-}
-
+    chart('#chart_status',      'status',      'Lead status');
+    chart('#chart_payment',     'payment',     'Payment status');
+    chart('#chart_temperature', 'temperature', 'Temperature');
+    chart('#chart_deposit',     'deposit',     'Deposit taken');
+  })();
 </script>
 
 
@@ -678,18 +442,6 @@ value="{{total_assigned_lead_unfinished}}"></div>
   }
 </script>
 
-<script>
-  $( document ).ready(function() {
- 
-   get_edu();
-/*    get_course_analysis();
-   get_course_analysis1();
-   get_course_analysis2();
-   get_course_analysis3(); */
-  })
- </script>
 
-
-</body>
 
 {% endblock %}

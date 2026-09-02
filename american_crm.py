@@ -1662,6 +1662,85 @@ def course_analysis1():
         return (json.dumps(json_data))
 
 
+# =============================================================================
+# Event profile charts.
+#
+# The panel on event_profile.html was carrying the five education charts,
+# hidden. They query american_leads, assignation and course_status - education
+# tables - so on an event user's profile they were the wrong numbers, and
+# `hidden` was a blunt way of saying so. These are the event equivalents.
+#
+# One endpoint rather than four near-identical ones. The dimension is an
+# allowlist key, never interpolated user input, and it maps to a column and a
+# label rather than being pasted into SQL.
+#
+# Money is deliberately not charted: SUM(client_total) does not reconcile with
+# SUM(client_deposit) + SUM(client_remaining) in the data as it stands, so a
+# revenue chart would render numbers that contradict each other.
+# =============================================================================
+
+EVENT_CHART_DIMENSIONS = {
+    'status':      ('status',                'Lead status'),
+    'payment':     ('client_payment_status', 'Payment status'),
+    'temperature': ('temperature',           'Temperature'),
+    'deposit':     ('client_deposit_flag',   'Deposit taken'),
+}
+
+# The deposit column is a flag, so it needs labels rather than 0 and 1.
+DEPOSIT_LABELS = {0: 'No deposit', 1: 'Deposit taken'}
+
+
+@app.route('/api/event_profile_chart')
+def event_profile_chart():
+    username_profile = request.args.get('username_profile', '')
+    dimension        = request.args.get('dim', '')
+
+    if dimension not in EVENT_CHART_DIMENSIONS:
+        return json.dumps({'error': 'unknown dimension'}), 400
+
+    # The page itself checks this; the education chart endpoints never did, so
+    # any signed-in user could read any other user's figures by changing the
+    # query string. Same check here.
+    if username_profile != session.get('name') and session.get('role') != 'admin':
+        return json.dumps({'error': 'not authorised'}), 403
+
+    column, label = EVENT_CHART_DIMENSIONS[dimension]
+
+    conn, cur = connection()
+    try:
+        cur.execute("select role from user where username=%s", (username_profile,))
+        row = cur.fetchone()
+        if row is None:
+            return json.dumps({'error': 'no such user'}), 404
+        (username_role,) = row
+
+        # Column name comes from the allowlist above, never from the request.
+        select = ("select count(*) as lead_count, %s as bucket from event_leads" % column)
+        if username_role == 'admin':
+            cur.execute(select + " group by bucket order by lead_count desc")
+        else:
+            cur.execute(
+                select + " where client_id in"
+                         " (select client_id from event_assignation where username=%s)"
+                         " group by bucket order by lead_count desc",
+                (username_profile,))
+
+        rows = cur.fetchall()
+    finally:
+        cur.close()
+        conn.close()
+
+    out = []
+    for count, bucket in rows:
+        if dimension == 'deposit':
+            name = DEPOSIT_LABELS.get(bucket, 'Unknown')
+        else:
+            name = (bucket or '').replace('_', ' ').strip().capitalize() or 'Unspecified'
+        out.append({'bucket': name, 'lead_count': int(count)})
+
+    return json.dumps({'title': label, 'data': out})
+
+
 @app.route('/get_recall_date', methods=["GET","POST"])
 def get_recall_date():
         date = request.args['date']
