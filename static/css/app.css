@@ -578,6 +578,13 @@ table.dataTable thead th {
   -webkit-overflow-scrolling: touch;
 }
 .crm-scroll.is-dragging { cursor: grabbing; user-select: none; scroll-behavior: auto; }
+
+/* Select mode: a normal text cursor and selectable cells. In drag mode the
+   grab cursor and the drag handler own the pointer, which is why copying a
+   value was impossible until now. */
+.crm-scroll.is-select-mode { cursor: auto; }
+.crm-scroll.is-select-mode td,
+.crm-scroll.is-select-mode th { cursor: text; user-select: text; -webkit-user-select: text; }
 .crm-scroll::-webkit-scrollbar { height: 10px; }
 .crm-scroll::-webkit-scrollbar-track { background: var(--surface-sunken); }
 .crm-scroll::-webkit-scrollbar-thumb {
@@ -834,3 +841,19 @@ table.dataTable tbody tr.selected:hover > td { background: var(--surface-selecte
 .crm-views__empty { color: var(--text-muted); font: var(--type-body-sm); }
 .crm-views__save { display: flex; align-items: center; gap: var(--space-3); cursor: pointer; width: 100%; text-align: start; border: 0; background: none; }
 .crm-views__save:hover { background: var(--surface-hover); }
+
+
+/* --- pointer mode toggle -------------------------------------------------- */
+
+.crm-mode { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius-control); overflow: hidden; }
+.crm-mode button {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: var(--control-height-sm);
+  background: var(--surface-card); border: 0; color: var(--text-muted); cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+.crm-mode button + button { border-inline-start: 1px solid var(--border-hairline); }
+.crm-mode button:hover { background: var(--surface-hover); color: var(--text-body); }
+.crm-mode button.is-on { background: var(--surface-selected); color: var(--text-brand); }
+.crm-mode button:focus-visible { outline: 2px solid var(--red); outline-offset: -2px; }

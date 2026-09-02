@@ -51,7 +51,19 @@ body {
 }
 
 .app-sidebar__brand:hover { color: var(--chrome-fg); text-decoration: none; }
-.app-sidebar__brand img   { width: 26px; height: 26px; object-fit: contain; flex: none; }
+/* The mark is roughly a third near-black, so on the --chrome ground it
+   disappeared. It sits on a white plate instead - the brand is white, red and
+   black, so a white chip is the honest way to carry it onto a dark bar rather
+   than recolouring someone's logo. */
+.app-sidebar__brand img {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  object-fit: contain;
+  padding: 3px;
+  background: var(--paper);
+  border-radius: var(--radius-control);
+}
 .app-sidebar__brand span  { font: var(--weight-semibold) var(--text-md)/1 var(--font-sans); }
 
 .app-sidebar__nav {

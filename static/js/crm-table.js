@@ -282,6 +282,12 @@
           '<button type="button" data-density="" title="Default rows" aria-label="Default rows"><i data-lucide="rows-2"></i></button>' +
           '<button type="button" data-density="comfortable" title="Comfortable rows" aria-label="Comfortable rows"><i data-lucide="rows"></i></button>' +
         '</div>' +
+        '<div class="crm-mode" role="group" aria-label="Pointer mode">' +
+          '<button type="button" data-mode="drag" title="Drag to scroll the table" aria-label="Drag to scroll">' +
+            '<i data-lucide="hand"></i></button>' +
+          '<button type="button" data-mode="select" title="Select and copy text" aria-label="Select text">' +
+            '<i data-lucide="text-cursor"></i></button>' +
+        '</div>' +
         '<div class="dropdown crm-views">' +
           '<button type="button" class="btn btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">' +
             '<i data-lucide="bookmark"></i>Views</button>' +
@@ -522,7 +528,6 @@
         '<span class="crm-bulk__scope">on this page</span>' +
         '<div class="crm-bulk__actions">' +
           '<button type="button" class="btn btn-secondary btn-sm crm-bulk__export"><i data-lucide="download"></i>Export selected</button>' +
-          (opts.bulkDelete ? '<button type="button" class="btn btn-secondary btn-sm crm-bulk__delete crm-bulk__danger"><i data-lucide="trash-2"></i>Delete selected</button>' : '') +
           '<button type="button" class="btn btn-secondary btn-sm crm-bulk__clear">Clear</button>' +
         '</div>' +
       '</div>');
@@ -578,47 +583,6 @@
       URL.revokeObjectURL(a.href);
     });
 
-    $bar.on('click', '.crm-bulk__delete', function () {
-      var ids = Object.keys(selected);
-      if (!ids.length) return;
-      // Irreversible, so it states the consequence and the count, and the
-      // number has to be typed back before the button unlocks.
-      Swal.fire({
-        title: 'Delete ' + ids.length + (ids.length === 1 ? ' row?' : ' rows?'),
-        html: 'This removes the ' + (ids.length === 1 ? 'record' : 'records') +
-              ' and their assignations and course history immediately. ' +
-              'It cannot be undone.<br><br>Type <b>' + ids.length + '</b> to confirm.',
-        input: 'text',
-        inputAttributes: { autocomplete: 'off', 'aria-label': 'Type the number of rows to confirm' },
-        showCancelButton: true,
-        confirmButtonText: 'Delete ' + (ids.length === 1 ? 'row' : 'rows'),
-        cancelButtonText: 'Cancel',
-        preConfirm: function (typed) {
-          if (String(typed).trim() !== String(ids.length)) {
-            Swal.showValidationMessage('Type ' + ids.length + ' to confirm.');
-            return false;
-          }
-          return true;
-        }
-      }).then(function (res) {
-        if (!res.isConfirmed) return;
-        $.post('/api/bulk_delete', { target: opts.bulkDelete, 'ids[]': ids })
-          .done(function (r) {
-            if (r.state === 'success') {
-              Swal.fire({ icon: 'success', title: r.deleted + ' deleted', showConfirmButton: false, timer: 1600 });
-              selected = {}; table.ajax.reload(null, false);
-            } else if (r.state === 'no_access') {
-              Swal.fire('Not authorised', 'Your account cannot delete records.', 'warning');
-            } else {
-              Swal.fire('Nothing was deleted', 'The request failed, so no records were removed.', 'error');
-            }
-          })
-          .fail(function () {
-            Swal.fire('Nothing was deleted', 'The request failed, so no records were removed.', 'error');
-          });
-      });
-    });
-
     /* --- skeleton on the very first load --------------------------------- */
     $table.find('tbody').html(skeleton(columns.length, 8));
     $table.one('draw.dt', function () { $table.find('.crm-skel-row').remove(); });
@@ -638,7 +602,29 @@
     var drag = null;
     var DRAG_THRESHOLD = 4;
 
+    /* Drag-to-scroll and selecting text are mutually exclusive: a drag that
+       starts on a cell is either panning the table or highlighting a value,
+       and the browser cannot tell which was meant. So it is a mode, with a
+       toggle, remembered per table. */
+    var MODE = 'crm51.' + key + '.mode';
+    var mode = store(MODE) || 'drag';
+
+    function applyMode(next) {
+      mode = next;
+      scroller.classList.toggle('is-select-mode', mode === 'select');
+      $tools.find('.crm-mode button').each(function () {
+        this.classList.toggle('is-on', this.getAttribute('data-mode') === mode);
+      });
+      store(MODE, mode);
+    }
+
+    $tools.on('click', '.crm-mode button', function () {
+      applyMode(this.getAttribute('data-mode'));
+    });
+    applyMode(mode);
+
     scroller.addEventListener('pointerdown', function (e) {
+      if (mode !== 'drag') return;          // let the browser select instead
       if (e.button !== 0) return;
       if (e.target.closest('button, a, input, select, textarea, label, .dropdown')) return;
       drag = { x: e.clientX, left: scroller.scrollLeft, active: false, id: e.pointerId };
@@ -734,7 +720,21 @@
     }
 
     var drag = null;
+
+    // Same mode toggle as the server-side tables: pan, or select text.
+    var MODE = 'crm51.' + (opts.key || selector.replace(/\W/g,'')) + '.mode';
+    var mode = (function () { try { return localStorage.getItem(MODE) || 'drag'; } catch (e) { return 'drag'; } })();
+    function setMode(next) {
+      mode = next;
+      scroller.classList.toggle('is-select-mode', mode === 'select');
+      $wrap.find('.crm-mode button').each(function () {
+        this.classList.toggle('is-on', this.getAttribute('data-mode') === mode);
+      });
+      try { localStorage.setItem(MODE, mode); } catch (e) {}
+    }
+
     scroller.addEventListener('pointerdown', function (e) {
+      if (mode !== 'drag') return;
       if (e.button !== 0) return;
       if (e.target.closest('button, a, input, select, textarea, label, .dropdown')) return;
       drag = { x: e.clientX, left: scroller.scrollLeft, active: false, id: e.pointerId };
@@ -776,8 +776,15 @@
                'placeholder="' + (opts.placeholder || 'Search') + '" aria-label="Search this table">' +
         '<button type="button" class="crm-search__clear" aria-label="Clear search" hidden>' +
           '<i data-lucide="x"></i></button>' +
+        '</div>' +
+        '<div class="crm-toolbar__right">' +
+          '<div class="crm-mode" role="group" aria-label="Pointer mode">' +
+            '<button type="button" data-mode="drag" title="Drag to scroll the table" aria-label="Drag to scroll"><i data-lucide="hand"></i></button>' +
+            '<button type="button" data-mode="select" title="Select and copy text" aria-label="Select text"><i data-lucide="text-cursor"></i></button>' +
+          '</div>' +
         '</div></div>');
       $wrap.prepend($bar);
+      $bar.on('click', '.crm-mode button', function () { setMode(this.getAttribute('data-mode')); });
       var $in = $bar.find('.crm-search__input');
       var $clear = $bar.find('.crm-search__clear');
       var t = null;
@@ -789,6 +796,7 @@
       $clear.on('click', function () { $in.val('').trigger('input').focus(); });
     }
 
+    setMode(mode);
     if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide', attrs: { width: 14, height: 14 } });
     return table;
   };
