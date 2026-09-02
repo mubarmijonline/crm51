@@ -274,7 +274,7 @@ def add_event_notifications(username,user_id,client_id,title,notification):
         added_datetime_mongo = date_now_mongo.strftime("%Y-%m-%d %I:%M %p")
         conn,cur=connection()
         client_mobile='Client Profile Deleted'
-        tt=cur.execute("SELECT client_mobile FROM event_leads WHERE client_id=%s",(client_id,))
+        tt=cur.execute("SELECT client_mobile FROM event_client WHERE client_id=%s",(client_id,))
         if int(tt) ==1:
             (client_mobile,)=cur.fetchone()
 
@@ -457,7 +457,8 @@ def go_to_lead():
 
                 elif section == 'event':
                     client_id = request.args['client_id']
-                    x=cur.execute('select client_id, client_name, client_mobile from event_leads where client_id=%s',(client_id,))
+                    x=cur.execute('select client_id, client_name, client_mobile'
+                                  ' from event_client where client_id=%s',(client_id,))
 
                     if int(x) ==1:
                         (client_id_q,client_name,client_mobile,)=cur.fetchone()
@@ -570,9 +571,10 @@ def suggesion_data_event():
         role = session['role']
         user_id=session['id']
         
-        Query="SELECT client_id, client_mobile, client_name FROM event_leads"
+        # Clients, not leads. A client with three events is still one entry
+        # in the search box; the events live on the page you land on.
+        Query = "SELECT client_id, client_mobile, client_name FROM event_client"
 
-        
         cur.execute(Query)
         records=cur.fetchall()
         json_data = []
@@ -620,17 +622,16 @@ def change_done_event():
         conn, cur = connection()
         try:
             
-            client_id = request.form['client_id']
+            event_id = request.form.get('event_id') or request.form['client_id']
 
-            cur.execute("select done from event_leads where client_id=%s",(client_id,))
-            (done,)=cur.fetchone()
-            if str(done) == "1":
-                done = "0"
-            else:
-                done="1"
+            cur.execute("select done from event_event where event_id=%s", (event_id,))
+            row = cur.fetchone()
+            if row is None:
+                return jsonify({"state": "failed", "reason": "No such event"})
+            done = "0" if str(row[0]) == "1" else "1"
 
-            Query="update event_leads set done = "+str(done)+" where client_id="+client_id
-            cur.execute(Query)
+            cur.execute("update event_event set done = %s where event_id = %s",
+                        (done, event_id))
             conn.commit()
             cur.close()
             conn.close()     
@@ -887,32 +888,53 @@ def creating_event_lead(client_mobile, client_name, client_email, status, not_in
             return {'state':'error','reason':error}
         else:
             
-            client_count  = cur.execute("select client_id from event_leads where client_mobile=%s",(int(client_mobile),))
-            if int(client_count) > 0 :
-                (exist_client_id,)=cur.fetchone()
-                cur.close()
-                conn.close()
-
-                return {'state':'error','reason':'client already exists in DB with ID = '+str(exist_client_id)}
-
+            # A client is identified by their mobile. Booking a second event for
+            # someone already on file adds an event to them rather than being
+            # refused as a duplicate, which is the whole point of the split.
+            client_count = cur.execute(
+                "select client_id from event_client where client_mobile=%s",
+                (int(client_mobile),))
+            if int(client_count) > 0:
+                (client_id,) = cur.fetchone()
+                cur.execute("SELECT COUNT(*) FROM event_event WHERE client_id=%s", (client_id,))
+                event_name = 'Event %d' % (int(cur.fetchone()[0]) + 1)
             else:
+                cur.execute(
+                    "INSERT INTO event_client (client_mobile, client_name, client_email,"
+                    " added_date, added_by) VALUES (%s,%s,%s,NOW(),%s)",
+                    (client_mobile, client_name, client_email, str(session['name'])))
+                client_id = cur.lastrowid
+                event_name = 'Event 1'
 
-                cur.execute("INSERT INTO event_leads(client_mobile, client_name, client_email, status, client_not_interested_notes, recall_date, client_deposit_flag, client_deposit, client_assets_list, added_by, client_payment_status) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, %s)",(client_mobile, client_name, client_email, status, str(not_interested_notes), recall_date, client_deposit_flag, client_deposit, assets_list, str(session['name']),client_payment_status,))
+            if True:
+                cur.execute(
+                    "INSERT INTO event_event (client_id, event_name, status,"
+                    " not_interested_notes, recall_date, deposit_flag, deposit,"
+                    " assets_list, payment_status, temperature, done, added_date, added_by)"
+                    " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,'hot',0,NOW(),%s)",
+                    (client_id, event_name, status, str(not_interested_notes), recall_date,
+                     client_deposit_flag, client_deposit, assets_list,
+                     client_payment_status, str(session['name'])))
+                event_id = cur.lastrowid
                 conn.commit()
-                cur.execute("select client_id from event_leads where client_mobile=%s and client_id=(SELECT LAST_INSERT_ID())",(client_mobile,))
-                (client_id,)=cur.fetchone()
 
-                assi_feedback=add_event_assignation(assigned_to,client_id,client_mobile, True)
+                assi_feedback = add_event_assignation(assigned_to, client_id, client_mobile,
+                                                      True, event_id)
 
                 for item in check_list:
-                    cur.execute("INSERT INTO event_check_list (client_id, item, checked) VALUES (%s, %s, %s)",(client_id, item, 1))
+                    cur.execute("INSERT INTO event_check_list (client_id, event_id, item, checked)"
+                                " VALUES (%s, %s, %s, %s)", (client_id, event_id, item, 1))
                 for item in check_list_hidden:
-                    cur.execute("INSERT INTO event_check_list (client_id, item, checked) VALUES (%s, %s, %s)",(client_id, item, 0))
+                    cur.execute("INSERT INTO event_check_list (client_id, event_id, item, checked)"
+                                " VALUES (%s, %s, %s, %s)", (client_id, event_id, item, 0))
 
                 if assi_feedback != 'success':
-                    cur.execute("delete from event_leads where client_id=%s and client_mobile=%s",(client_id,client_mobile,))
-                    cur.execute("delete from event_assignation where client_id=%s and client_mobile=%s",(client_id,client_mobile,))
-                    cur.execute("delete from event_check_list where client_id=%s",(client_id,))
+                    cur.execute("delete from event_event where event_id=%s", (event_id,))
+                    cur.execute("delete from event_assignation where event_id=%s", (event_id,))
+                    cur.execute("delete from event_check_list where event_id=%s", (event_id,))
+                    cur.execute("delete from event_client where client_id=%s"
+                                " and not exists (select 1 from event_event where client_id=%s)",
+                                (client_id, client_id))
 
                     collection,client = get_notification_mongo()
                     collection.delete_many({"client_id":client_id,"section":"event"})
@@ -933,8 +955,11 @@ def creating_event_lead(client_mobile, client_name, client_email, status, not_in
         print(e)
         return {'state':'error','reason':'Fatal Error in assignation'}
 
-def add_event_assignation(assigned_to, client_id, client_mobile, create_notifcation_flag):
-    
+def add_event_assignation(assigned_to, client_id, client_mobile, create_notifcation_flag,
+                          event_id=None):
+    """Assign an event. The duplicate check is per event now: the same person
+    can own two different events for one client, which the old check by mobile
+    alone would have refused."""
     if len(assigned_to) == 0:
 
         return 'failed'
@@ -942,13 +967,22 @@ def add_event_assignation(assigned_to, client_id, client_mobile, create_notifcat
     try:
 
         for username in assigned_to:
-            check_if_already_assigend = cur.execute("select client_id from event_assignation where client_mobile=%s AND username = %s",(int(client_mobile), username,))
+            if event_id is not None:
+                check_if_already_assigend = cur.execute(
+                    "select id from event_assignation where event_id=%s AND username=%s",
+                    (event_id, username,))
+            else:
+                check_if_already_assigend = cur.execute(
+                    "select id from event_assignation where client_mobile=%s AND username=%s",
+                    (int(client_mobile), username,))
             if int(check_if_already_assigend) > 0:
                 continue # already assigned
 
             cur.execute("select user_id from user where username=%s",(username,))
             (user_id,)=cur.fetchone()
-            cur.execute("INSERT into event_assignation(user_id, client_id, client_mobile, username) VALUES (%s,%s,%s,%s)",(user_id,client_id,int(client_mobile),username,))
+            cur.execute("INSERT into event_assignation(user_id, client_id, event_id,"
+                        " client_mobile, username) VALUES (%s,%s,%s,%s,%s)",
+                        (user_id, client_id, event_id, int(client_mobile), username,))
             conn.commit()
             if create_notifcation_flag:
                 add_event_notifications(username,user_id,client_id,"New Event Lead Added","New Event lead added & assigned to you")
@@ -990,44 +1024,56 @@ def get_all_event_lead_data():
 
 @app.route('/delete_event',methods=["GET", "POST"])
 def delete_event():
-    client_id = request.form['client_id']
+    """Delete one event, and the client with it if that was their last.
+
+    Was: delete the whole lead by client_id, with the id concatenated straight
+    into the SQL. Now an event is the unit, and the id is bound.
+    """
+    event_id = request.form.get('event_id') or request.form.get('client_id')
+    try:
+        event_id = int(event_id)
+    except (TypeError, ValueError):
+        return jsonify({'state': 'failed'})
 
     conn, cur = connection()
     try:
-        x=cur.execute("select role from user where username=%s",(session['name'],))
-        if int(x) == 0:
-            return jsonify({'state':'failed'})
-        else:
-            (role,)=cur.fetchone()
-            if role.lower() == 'admin':
-                Query="DELETE FROM event_leads WHERE client_id = "+str(client_id)+";"
-                cur.execute(Query)
+        if cur.execute("select role from user where username=%s", (session['name'],)) == 0:
+            return jsonify({'state': 'failed'})
+        (role,) = cur.fetchone()
+        if role.lower() != 'admin':
+            return jsonify({'state': 'no_access'})
 
-                Query="DELETE FROM event_assignation WHERE client_id = "+str(client_id)+";"
-                cur.execute(Query)
+        cur.execute("SELECT client_id FROM event_event WHERE event_id = %s", (event_id,))
+        row = cur.fetchone()
+        if row is None:
+            return jsonify({'state': 'failed'})
+        client_id = int(row[0])
 
-                Query="DELETE FROM event_check_list WHERE client_id = "+str(client_id)+";"
-                cur.execute(Query)
+        cur.execute("DELETE FROM event_check_list  WHERE event_id = %s", (event_id,))
+        cur.execute("DELETE FROM event_assignation WHERE event_id = %s", (event_id,))
+        cur.execute("DELETE FROM event_event       WHERE event_id = %s", (event_id,))
 
-                conn.commit()
+        # A client with no events left is not a lead any more.
+        cur.execute("SELECT COUNT(*) FROM event_event WHERE client_id = %s", (client_id,))
+        (remaining,) = cur.fetchone()
+        if int(remaining) == 0:
+            cur.execute("DELETE FROM event_client WHERE client_id = %s", (client_id,))
 
-                cur.close()
-                conn.close()
-
-                return jsonify({'state':'success'})
-            else:
-                cur.close()
-                conn.close()
-
-                return jsonify({'state':'no_access'})
-
-    except Exception as e:
-        print(e)
+        conn.commit()
+    finally:
         cur.close()
         conn.close()
-        return jsonify({'state':'failed'})
 
-#### END EVENT #######
+    # The notes belong to the event, so they go with it.
+    try:
+        notes, mclient = get_event_mongo()
+        notes.delete_many({'event_id': event_id})
+        mclient.close()
+    except Exception:
+        pass
+
+    return jsonify({'state': 'success', 'client_deleted': int(remaining) == 0})
+
 
 @app.route('/historical_notification',methods=["GET", "POST"])
 def historical_notification():
@@ -1087,10 +1133,23 @@ def get_american_notes():
 
 @app.route('/get_events_notes',methods=["GET", "POST"])
 def get_events_notes():
-    client_id = request.args['id']  
-    json_data=[]
-    collection,client = get_event_mongo()
-    for x in collection.find({"client_id":int(client_id)}).sort("added_date_standard",-1):
+    # Notes hang off the event now. `id` stays accepted so nothing that still
+    # passes a client id breaks, but event_id is what the page sends.
+    event_id = request.args.get('event_id')
+    if event_id:
+        try:
+            query = {"event_id": int(event_id)}
+        except (TypeError, ValueError):
+            return "{ \"data\" : [] }"
+    else:
+        try:
+            query = {"client_id": int(request.args['id'])}
+        except (TypeError, ValueError, KeyError):
+            return "{ \"data\" : [] }"
+
+    json_data = []
+    collection, client = get_event_mongo()
+    for x in collection.find(query).sort("added_date_standard", -1):
         x['_id']=(x['_id'])
         json_data.append(x)
     client.close()
@@ -1385,31 +1444,31 @@ def event_profile():
         else:
             (username_role,) = cur.fetchone()
 
+        # Counts are over events, since an event is the unit of work now.
+        #
+        # The non-admin versions also had a precedence bug: `where client_id in
+        # (...) and status = 'pending' or status = 'not_contacted'` parses as
+        # `(assigned AND pending) OR not_contacted`, so every not_contacted lead
+        # in the system was counted no matter who it belonged to. Bracketed now.
+        def count(where='', params=()):
+            cur.execute("select ifnull(count(*),0) from event_event" + where, params)
+            return cur.fetchone()[0]
+
         if username_role == 'admin':
-            cur.execute("select count(*) as total_assigned_lead from event_leads ")
-            (total_assigned_lead,)=cur.fetchone()
-
-            cur.execute("select ifnull(count(*),0) as total_assigned_lead_unfinished from event_leads where status = 'pending' or status = 'not_contacted' ")
-            (total_assigned_lead_unfinished,)=cur.fetchone()
-
-            cur.execute("select ifnull(count(*),0) as total_assigned_lead_finished from event_leads where status = 'not_interested' ")
-            (total_assigned_lead_finished,)=cur.fetchone()
-
-            cur.execute("select ifnull(count(*),0) as total_assigned_lead_finished_enrol from event_leads  where status = 'enrol' ")
-            (total_assigned_lead_finished_enrol,)=cur.fetchone()
+            total_assigned_lead                = count()
+            total_assigned_lead_unfinished     = count(" where status in ('pending','not_contacted')")
+            total_assigned_lead_finished       = count(" where status = 'not_interested'")
+            total_assigned_lead_finished_enrol = count(" where status = 'enrol'")
         else:
-
-            cur.execute("select count(*) as total_assigned_lead from event_leads where client_id in ( select client_id from event_assignation where username=%s)",(username_profile,))
-            (total_assigned_lead,)=cur.fetchone()
-
-            cur.execute("select ifnull(count(*),0) as total_assigned_lead_unfinished from event_leads where client_id in ( select client_id from event_assignation where username=%s) and status = 'pending' or status = 'not_contacted' ",(username_profile,))
-            (total_assigned_lead_unfinished,)=cur.fetchone()
-
-            cur.execute("select ifnull(count(*),0) as total_assigned_lead_finished from event_leads where client_id in ( select client_id from event_assignation where username=%s) and status = 'not_interested' ",(username_profile,))
-            (total_assigned_lead_finished,)=cur.fetchone()
-
-            cur.execute("select ifnull(count(*),0) as total_assigned_lead_finished_enrol from event_leads where client_id in ( select client_id from event_assignation where username=%s) and status = 'enrol' ",(username_profile,))
-            (total_assigned_lead_finished_enrol,)=cur.fetchone()
+            mine = (" where event_id in (select event_id from event_assignation"
+                    " where username=%s)")
+            total_assigned_lead                = count(mine, (username_profile,))
+            total_assigned_lead_unfinished     = count(
+                mine + " and status in ('pending','not_contacted')", (username_profile,))
+            total_assigned_lead_finished       = count(
+                mine + " and status = 'not_interested'", (username_profile,))
+            total_assigned_lead_finished_enrol = count(
+                mine + " and status = 'enrol'", (username_profile,))
 
         cur.close()
         conn.close()
@@ -1479,11 +1538,27 @@ def get_recall_date_event():
         username=session['name']
         user_id = session['id']
         if myrole == 'admin':
-            Query= "select client_id, client_mobile, client_name, if(done, 'yes', 'no') as done , (select GROUP_CONCAT(username)  from event_assignation where a.client_id=client_id) as assigned_username from event_leads as a where  recall_date = '"+date+"'"
+            Query = ("select e.event_id, e.client_id, c.client_mobile, c.client_name,"
+                     " e.event_name, if(e.done, 'yes', 'no') as done,"
+                     " (select GROUP_CONCAT(username) from event_assignation"
+                     "  where event_id = e.event_id) as assigned_username"
+                     " from event_event as e"
+                     " join event_client as c on c.client_id = e.client_id"
+                     " where e.recall_date = %s")
+            params = (date,)
         else:
-            Query= "select client_id, client_mobile, client_name, if(done, 'yes', 'no') as done, (select GROUP_CONCAT(username)  from event_assignation where a.client_id=client_id) as assigned_username from event_leads as a where client_id in (select client_id from event_assignation where user_id="+str(user_id)+") and  recall_date = '"+date+"'"
+            Query = ("select e.event_id, e.client_id, c.client_mobile, c.client_name,"
+                     " e.event_name, if(e.done, 'yes', 'no') as done,"
+                     " (select GROUP_CONCAT(username) from event_assignation"
+                     "  where event_id = e.event_id) as assigned_username"
+                     " from event_event as e"
+                     " join event_client as c on c.client_id = e.client_id"
+                     " where e.event_id in (select event_id from event_assignation"
+                     "                      where user_id = %s)"
+                     " and e.recall_date = %s")
+            params = (user_id, date)
 
-        cur.execute(Query)
+        cur.execute(Query, params)
         row_headers=[x[0] for x in cur.description] #this will extract row headers
         rv = cur.fetchall()
         json_data=[]
@@ -1680,10 +1755,10 @@ def course_analysis1():
 # =============================================================================
 
 EVENT_CHART_DIMENSIONS = {
-    'status':      ('status',                'Lead status'),
-    'payment':     ('client_payment_status', 'Payment status'),
-    'temperature': ('temperature',           'Temperature'),
-    'deposit':     ('client_deposit_flag',   'Deposit taken'),
+    'status':      ('status',         'Event status'),
+    'payment':     ('payment_status', 'Payment status'),
+    'temperature': ('temperature',    'Temperature'),
+    'deposit':     ('deposit_flag',   'Deposit taken'),
 }
 
 # The deposit column is a flag, so it needs labels rather than 0 and 1.
@@ -1715,13 +1790,13 @@ def event_profile_chart():
         (username_role,) = row
 
         # Column name comes from the allowlist above, never from the request.
-        select = ("select count(*) as lead_count, %s as bucket from event_leads" % column)
+        select = ("select count(*) as lead_count, %s as bucket from event_event" % column)
         if username_role == 'admin':
             cur.execute(select + " group by bucket order by lead_count desc")
         else:
             cur.execute(
-                select + " where client_id in"
-                         " (select client_id from event_assignation where username=%s)"
+                select + " where event_id in"
+                         " (select event_id from event_assignation where username=%s)"
                          " group by bucket order by lead_count desc",
                 (username_profile,))
 
@@ -1739,6 +1814,136 @@ def event_profile_chart():
         out.append({'bucket': name, 'lead_count': int(count)})
 
     return json.dumps({'title': label, 'data': out})
+
+
+# =============================================================================
+# The event client page.
+#
+# One request returns the client and every event they have booked, each with its
+# own checklist and assignation. The page used to fetch a single lead, because a
+# lead was a client and an event welded together.
+# =============================================================================
+
+@app.route('/api/event_client')
+def api_event_client():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.args.get('client_id', ''))
+    except (TypeError, ValueError):
+        return jsonify({'error': 'bad_client_id'}), 400
+
+    conn, cur = connection()
+    try:
+        cur.execute(
+            "SELECT client_id, client_name, client_mobile, client_email,"
+            " CONVERT(added_date, CHAR) AS added_date, added_by,"
+            " CONVERT(modified_date, CHAR) AS modified_date, modified_by"
+            " FROM event_client WHERE client_id = %s", (client_id,))
+        row = cur.fetchone()
+        if row is None:
+            return jsonify({'error': 'not_found'}), 404
+        heads = [d[0] for d in cur.description]
+        client = dict(zip(heads, row))
+
+        cur.execute(
+            "SELECT event_id, client_id, event_name, status, temperature,"
+            " CONVERT(recall_date, CHAR) AS recall_date, not_interested_notes,"
+            " payment_status, deposit_flag, deposit, total, remaining,"
+            " assets_list, done, file_name,"
+            " CONVERT(added_date, CHAR) AS added_date, added_by,"
+            " CONVERT(modified_date, CHAR) AS modified_date, modified_by"
+            " FROM event_event WHERE client_id = %s ORDER BY event_id", (client_id,))
+        heads = [d[0] for d in cur.description]
+        events = [dict(zip(heads, r)) for r in cur.fetchall()]
+
+        if events:
+            ids = tuple(e['event_id'] for e in events)
+            marks = ','.join(['%s'] * len(ids))
+
+            cur.execute("SELECT event_id, item, checked FROM event_check_list"
+                        " WHERE event_id IN (%s) ORDER BY id" % marks, ids)
+            checks = {}
+            for ev, item, checked in cur.fetchall():
+                checks.setdefault(int(ev), []).append({'item': item, 'checked': int(checked)})
+
+            cur.execute("SELECT event_id, username FROM event_assignation"
+                        " WHERE event_id IN (%s)" % marks, ids)
+            assigned = {}
+            for ev, username in cur.fetchall():
+                assigned.setdefault(int(ev), []).append(username)
+
+            for e in events:
+                e['check_list']  = checks.get(int(e['event_id']), [])
+                e['assigned_to'] = assigned.get(int(e['event_id']), [])
+    finally:
+        cur.close()
+        conn.close()
+
+    return app.response_class(
+        json.dumps({'client': client, 'events': events}, default=str),
+        mimetype='application/json')
+
+
+@app.route('/api/event_add', methods=["POST"])
+def api_event_add():
+    """Add another event to a client. Named for them, or numbered if not."""
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.form.get('client_id', ''))
+    except (TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+
+    name = (request.form.get('event_name') or '').strip()
+
+    conn, cur = connection()
+    try:
+        cur.execute("SELECT COUNT(*) FROM event_client WHERE client_id = %s", (client_id,))
+        if int(cur.fetchone()[0]) == 0:
+            return jsonify({'state': 'failed', 'reason': 'no such client'}), 404
+
+        if not name:
+            cur.execute("SELECT COUNT(*) FROM event_event WHERE client_id = %s", (client_id,))
+            name = 'Event %d' % (int(cur.fetchone()[0]) + 1)
+
+        cur.execute(
+            "INSERT INTO event_event (client_id, event_name, status, temperature,"
+            " payment_status, deposit_flag, deposit, total, remaining, done,"
+            " added_date, added_by)"
+            " VALUES (%s, %s, 'not_contacted', 'hot', 'pending', 0, 0, 0, 0, 0, NOW(), %s)",
+            (client_id, name[:128], session['name']))
+        event_id = cur.lastrowid
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
+    return jsonify({'state': 'success', 'event_id': event_id, 'event_name': name})
+
+
+@app.route('/api/event_rename', methods=["POST"])
+def api_event_rename():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        event_id = int(request.form.get('event_id', ''))
+    except (TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+    name = (request.form.get('event_name') or '').strip()
+    if not name:
+        return jsonify({'state': 'failed', 'reason': 'name required'}), 400
+
+    conn, cur = connection()
+    try:
+        cur.execute("UPDATE event_event SET event_name = %s, modified_date = NOW(),"
+                    " modified_by = %s WHERE event_id = %s",
+                    (name[:128], session['name'], event_id))
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+    return jsonify({'state': 'success', 'event_name': name[:128]})
 
 
 @app.route('/get_recall_date', methods=["GET","POST"])
@@ -2282,23 +2487,35 @@ def api_american_leads():
                               mimetype='application/json')
 
 
+# A row in these lists is an event, not a client. A client with three events
+# appears three times, once per event, which is what the team is actually
+# working through. The client's own details ride along from the join.
+EVENT_FROM = ('`event_event` AS e '
+              'JOIN `event_client` AS c ON c.client_id = e.client_id')
+
 EVENT_LEAD_COLUMNS = {
-    'client_id':             (True,  True),
-    'client_name':           (True,  True),
-    'client_mobile':         (True,  True),
-    'client_email':          (True,  True),
-    'status':                (True,  True),
-    'client_payment_status': (True,  True),
-    'client_deposit_flag':   (False, True),
-    'client_deposit':        (False, True),
-    'done':                  (False, True),
-    'added_by':              (True,  True),
-    'added_date':            (False, True),
-    'modified_by':           (True,  True),
-    'modified_date':         (False, True),
+    'event_id':       (False, True,  'e.event_id'),
+    'client_id':      (True,  True,  'e.client_id'),
+    'event_name':     (True,  True,  'e.event_name'),
+    'client_name':    (True,  True,  'c.client_name'),
+    'client_mobile':  (True,  True,  'c.client_mobile'),
+    'client_email':   (True,  True,  'c.client_email'),
+    'status':         (True,  True,  'e.status'),
+    'payment_status': (True,  True,  'e.payment_status'),
+    'temperature':    (True,  True,  'e.temperature'),
+    'deposit_flag':   (False, True,  'e.deposit_flag'),
+    'deposit':        (False, True,  'e.deposit'),
+    'total':          (False, True,  'e.total'),
+    'remaining':      (False, True,  'e.remaining'),
+    'done':           (False, True,  'e.done'),
+    'recall_date':    (False, True,  'e.recall_date'),
+    'added_by':       (True,  True,  'e.added_by'),
+    'added_date':     (False, True,  'e.added_date'),
+    'modified_by':    (True,  True,  'e.modified_by'),
+    'modified_date':  (False, True,  'e.modified_date'),
 }
 
-EVENT_PHONE_COLUMNS = ('client_mobile',)
+EVENT_PHONE_COLUMNS = ('c.client_mobile',)
 
 
 @app.route('/api/event_leads', methods=["GET", "POST"])
@@ -2306,8 +2523,9 @@ def api_event_leads():
     # Same visibility as /get_all_event_lead_data.
     if 'name' not in session:
         return jsonify({'error': 'not_authenticated'}), 401
-    payload = _datatables_query('event_leads', EVENT_LEAD_COLUMNS,
-                                EVENT_PHONE_COLUMNS, request)
+    payload = _datatables_query(None, EVENT_LEAD_COLUMNS,
+                                EVENT_PHONE_COLUMNS, request,
+                                from_sql=EVENT_FROM)
     return app.response_class(json.dumps(payload, default=str),
                               mimetype='application/json')
 
@@ -2329,9 +2547,10 @@ def api_american_active_leads():
 def api_event_active_leads():
     if 'name' not in session:
         return jsonify({'error': 'not_authenticated'}), 401
-    payload = _datatables_query('event_leads', EVENT_LEAD_COLUMNS,
+    payload = _datatables_query(None, EVENT_LEAD_COLUMNS,
                                 EVENT_PHONE_COLUMNS, request,
-                                base_where="`status` IN ('pending','not_contacted')")
+                                base_where="e.`status` IN ('pending','not_contacted')",
+                                from_sql=EVENT_FROM)
     return app.response_class(json.dumps(payload, default=str),
                               mimetype='application/json')
 
@@ -3643,174 +3862,137 @@ def create_course_lead():
 
     return render_template("create_course.html")
 
-@app.route('/update_event_lead', methods=["GET","POST"])
+@app.route('/update_event_lead', methods=["GET", "POST"])
 def update_event_lead():
-    if request.method == 'POST' and 'update_event_lead' in request.args :
+    """Save one event, or render the client page.
+
+    A lead used to be a client and a single event in one row, so this handler
+    wrote both at once. Now the client's own details and each event are saved
+    separately, and this is the event half.
+    """
+    if request.method == 'POST' and 'update_event_lead' in request.args:
         try:
-            print(request.form)
-            
-            client_id=request.form['client_id']
-            client_mobile=int(request.form['client_mobile'])
-            client_name=request.form['client_name']
+            event_id  = int(request.form['event_id'])
+            client_id = int(request.form['client_id'])
+        except (KeyError, TypeError, ValueError):
+            return jsonify({'state': 'error', 'reason': 'Missing event.'})
 
-            client_email = request.form['email']
+        status = request.form.get('status', '')
 
-            try:
-                deposit=request.form['deposit']
-            except:
-                deposit = 0
+        # Only the field the status calls for is read; the other is not posted
+        # at all, because the page disables it.
+        recall_date = None
+        not_interested_notes = ""
+        if status == 'not_interested':
+            not_interested_notes = request.form.get('not_interested_notes', '')
+            if not not_interested_notes:
+                return jsonify({'state': 'error', 'reason': 'A reason is required to close a lead.'})
+        elif status in ('pending', 'not_contacted'):
+            recall_date = request.form.get('recall_date') or None
+            if recall_date is None:
+                return jsonify({'state': 'error', 'reason': 'A recall date is required.'})
 
-            status=request.form['status']
+        deposit_flag = request.form.get('deposit_flag', '0')
+        if str(deposit_flag) == '1':
+            deposit   = request.form.get('deposit', '0')   or '0'
+            total     = request.form.get('total', '0')     or '0'
+            remaining = request.form.get('remaining', '0') or '0'
+        else:
+            deposit = total = remaining = '0'
 
-            if status == "not_interested":
-                not_interested_notes = request.form['not_interested_notes']
-                if not_interested_notes == '' or not_interested_notes == None:
-                    return {'state':'error','reason':'Please add Reason for Not Interested'}
+        notes = request.form.get('notes', '').strip()
+        if not notes:
+            return jsonify({'state': 'error', 'reason': 'A note is required on every save.'})
 
-                recall_date = None
+        assigned_to  = request.form.getlist('assigned_to[]')
+        check_list   = request.form.getlist('check_box')
+        check_hidden = request.form.getlist('check_box_hidden')
 
-            elif status == "pending" or status == "not_contacted":
-                recall_date = request.form['recall_date']
-                if recall_date == '' or recall_date == None:
-                    return {'state':'error','reason':'Please add Recall Date!'}
+        conn, cur = connection()
+        try:
+            cur.execute("SELECT client_id FROM event_event WHERE event_id = %s", (event_id,))
+            row = cur.fetchone()
+            if row is None or int(row[0]) != client_id:
+                return jsonify({'state': 'error', 'reason': 'That event does not belong to this client.'})
 
-                not_interested_notes = ""
+            cur.execute(
+                "UPDATE event_event SET event_name = %s, status = %s, temperature = %s,"
+                " recall_date = %s, not_interested_notes = %s, payment_status = %s,"
+                " deposit_flag = %s, deposit = %s, total = %s, remaining = %s,"
+                " assets_list = %s, modified_date = NOW(), modified_by = %s"
+                " WHERE event_id = %s",
+                (request.form.get('event_name', 'Event')[:128], status,
+                 request.form.get('temperature', 'hot'), recall_date,
+                 not_interested_notes, request.form.get('payment_status', 'pending'),
+                 deposit_flag, deposit, total, remaining,
+                 request.form.get('assets_list', ''), session['name'], event_id))
 
-            else : # enrol case.
-                not_interested_notes = ""
-                recall_date = None
+            # The client's own details ride along on the same save.
+            cur.execute(
+                "UPDATE event_client SET client_name = %s, client_mobile = %s,"
+                " client_email = %s, modified_date = NOW(), modified_by = %s"
+                " WHERE client_id = %s",
+                (request.form.get('client_name', ''), request.form.get('client_mobile', ''),
+                 request.form.get('email', ''), session['name'], client_id))
 
-            client_deposit_flag = request.form['client_deposit_flag']
-            if client_deposit_flag == "1":
-                client_deposit = request.form['client_deposit']
-                print("Client Deposit "+str(client_deposit))
-                
-                if str(client_deposit) == "" or client_deposit == None :
-                    return jsonify({"state":"error","reason":"Kindly add Deposit Amount to continue"})
-                
-                client_remaining = request.form['client_remaining']
-                client_total = request.form['client_total']
+            # Checklist: replace wholesale, as before. check_box carries the
+            # ticked items, check_box_hidden every item that is on the list, so
+            # the two together say which are unticked rather than removed.
+            cur.execute("DELETE FROM event_check_list WHERE event_id = %s", (event_id,))
+            for item in check_hidden:
+                cur.execute(
+                    "INSERT INTO event_check_list (client_id, event_id, item, checked)"
+                    " VALUES (%s, %s, %s, %s)",
+                    (client_id, event_id, item, 1 if item in check_list else 0))
 
-            else: 
-                client_deposit = 0
-                client_remaining = 0
-                client_total = 0
+            cur.execute("SELECT username FROM event_assignation WHERE event_id = %s", (event_id,))
+            already = {r[0] for r in cur.fetchall()}
+            for username in assigned_to:
+                if username in already:
+                    continue
+                cur.execute("SELECT user_id FROM user WHERE username = %s", (username,))
+                u = cur.fetchone()
+                cur.execute(
+                    "INSERT INTO event_assignation (client_id, event_id, user_id, username,"
+                    " client_mobile) VALUES (%s, %s, %s, %s, %s)",
+                    (client_id, event_id, int(u[0]) if u else None, username,
+                     request.form.get('client_mobile', '')))
+            for username in already - set(assigned_to):
+                cur.execute("DELETE FROM event_assignation WHERE event_id = %s AND username = %s",
+                            (event_id, username))
 
-            client_payment_status = request.form['client_payment_status']
-            try:
-                temperature = request.form['temperature']
-            except:
-                temperature = ""
-
-            ### CHECK LIST ###
-            try:
-                check_list = request.form.getlist('check_box')
-                check_list_hidden = request.form.getlist('check_box_hidden')
-
-                for item in check_list:
-                    if item in check_list_hidden:
-                        check_list_hidden.remove(item)
-
-                print(check_list)
-                print(check_list_hidden)
-            except:
-                check_list = ""
-                check_list_hidden = ""
-            
-            assigned_to_list = request.form.getlist('assigned_to[]')
-            print("#################################################")
-            print("Assign List from Frontend: "+str(assigned_to_list))
-            print("#################################################")
-
-            if assigned_to_list == '' or assigned_to_list == None:
-                return {'state':'error','reason':'Assignation list cannot be empty!'}
-
-            conn,cur=connection()
-
-            cur.execute("DELETE FROM event_check_list WHERE client_id = %s", (client_id,))  ### delete all items from DB and start fresh
             conn.commit()
+        except Exception as exc:
+            conn.rollback()
+            app.logger.exception('update_event_lead failed')
+            return jsonify({'state': 'error', 'reason': 'The event was not saved.'})
+        finally:
+            cur.close()
+            conn.close()
 
-            for item in check_list:
-                cur.execute("INSERT INTO event_check_list (client_id, item, checked) VALUES (%s, %s, %s)",(client_id, item, 1))
-            for item in check_list_hidden:
-                cur.execute("INSERT INTO event_check_list (client_id, item, checked) VALUES (%s, %s, %s)",(client_id, item, 0))
-            conn.commit()
+        add_event_notes(client_id, request.form.get('client_mobile', ''), notes, event_id)
 
-            client_assets_list = request.form['assets_list']
+        return jsonify({'state': 'success', 'reason': 'Event saved.'})
 
-            notes = request.form['notes']
-
-            done="0"
-
-            ### First Check if client mobile already exists or not:
-            x=cur.execute("select client_id, client_name from event_leads where client_mobile=%s and client_id != %s",(client_mobile,client_id,))
-            if int(x) > 0:
-                (exist_client_id,exist_client_name)=cur.fetchone()
-                return jsonify({"state":"error","reason":"Mobile Number already exists with ID: "+ str(exist_client_id)+ " ,Name: " + str(exist_client_name)})
-           
-            else:
-                cur.execute("SELECT * FROM event_leads where client_id=%s",(client_id,))
-                returned_row=cur.fetchone()
-                print(returned_row)
-
-                #if session['role'] != 'admin':
-                #    return jsonify({"state":"error","reason":"You do not have access to alter lead assignation"})
-
-                if session['role'] == 'admin':
-
-                    #### CLear all event asisgnation for said client_id to avoid any overwrites ####
-                    cur.execute("DELETE FROM event_assignation WHERE client_id = %s",(client_id,))
-                    conn.commit()
-
-                    ### Loop Users in list from Front End ###
-                    for user in assigned_to_list:
-                        print(str(user) + " 1st Loop")
-                        try:
-                            cur.execute("INSERT INTO event_assignation (client_id, user_id, username, client_mobile) VALUES (%s,(SELECT user_id FROM user WHERE username = %s),%s,%s)",(client_id, user, user,client_mobile,))
-                            conn.commit()
-                            add_event_assignation(assigned_to_list,client_id,client_mobile,False)
-
-                        except Exception as e:
-                            print(e)
-                            print("Could not Insert "+str(user)+" , probably duplicate")
-
-                ### MAIN UPDATE QUERY ###
-                cur.execute("UPDATE event_leads set client_mobile=%s, client_name=%s, client_email=%s, status=%s, recall_date=%s, client_not_interested_notes=%s, client_deposit_flag=%s, client_deposit=%s, client_remaining=%s, client_total=%s, client_payment_status=%s, client_assets_list=%s, modified_by=%s, modified_date=CURRENT_TIMESTAMP, temperature=%s WHERE client_id=%s",(int(client_mobile),client_name,client_email,status,recall_date,not_interested_notes,client_deposit_flag,client_deposit,client_remaining,client_total,client_payment_status,client_assets_list,str(session['name']),temperature,client_id,))                    
-                conn.commit()
-
-                for usernames in assigned_to_list:
-                    xx=cur.execute("select user_id from user where username=%s",(usernames,))
-                    if int(xx) > 0:
-                        (user_idss,)=cur.fetchone()
-                        if (user_idss) != session['id']:
-                            add_event_notifications(usernames,user_idss,client_id,"Event Lead Updated","One of the Event leads which are assigned to you, has been updated")
-
-                add_event_notes(client_id,client_mobile,notes)
-                cur.close()
-                conn.close()
-                return jsonify({"state":"success","reason":"Event Lead updated successfully"})
-                
-        except Exception as e:
-            print(e)
-            exc_type, exc_obj, exc_tb = sys.exc_info()
-            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
-            return jsonify({"state":"error","reason":"Something went wrong."})
+    return render_template("update_event_lead.html",
+                           client_id=request.args.get('client_id', ''),
+                           event_id=request.args.get('event_id', ''))
 
 
-    if request.method == 'GET' and 'client_data' in request.args:
-        client_data = request.args['client_data']
-        return render_template("update_event_lead.html", client_data=client_data)
-
-    else:
-        return render_template("update_event_lead.html", client_data="")
-
-def add_event_notes(client_id,client_mobile,notes):
-    collection,client = get_event_mongo()
+def add_event_notes(client_id, client_mobile, notes, event_id=None):
+    collection, client = get_event_mongo()
     date_now_mongo = datetime.datetime.now()
     added_datetime_standard_mongo = date_now_mongo.strftime("%Y-%m-%d %H:%M:%S")
     added_datetime_mongo = date_now_mongo.strftime("%Y-%m-%d %I:%M %p")
-    collection.insert_one({"client_id":int(client_id),"client_mobile":client_mobile,"notes":notes,"added_date":added_datetime_mongo,'added_date_standard':added_datetime_standard_mongo,"added_by":session['name'],})
+    doc = {"client_id": int(client_id), "client_mobile": client_mobile,
+           "notes": notes, "added_date": added_datetime_mongo,
+           'added_date_standard': added_datetime_standard_mongo,
+           "added_by": session['name']}
+    # client_id is kept alongside so the older notes and the new ones have the
+    # same shape, but the event is what the log is keyed on.
+    if event_id is not None:
+        doc["event_id"] = int(event_id)
+    collection.insert_one(doc)
     client.close()
 
 
@@ -3823,7 +4005,8 @@ def get_client_file():
     try:
         conn,cur=connection()
         
-        cur.execute("select file_name FROM event_leads WHERE client_id=%s",(client_id,))
+        cur.execute("select file_name FROM event_event WHERE event_id=%s",
+                    (request.form.get('event_id'),))
         (file_name,)=cur.fetchone()
 
         if file_name == None:
@@ -3838,13 +4021,13 @@ def get_client_file():
 def upload_file_event():
     try:
         client_id = request.form['client_id']
-        print(client_id)
+        event_id  = int(request.form['event_id'])
 
-        # make sure there are no old files #
-        files = glob.glob('/projects/51_apps/51_american_crm_nginx_clone/static/event_upload_files/client_id_'+client_id+'*')
+        # One file per event, so anything already there for this event goes.
+        files = glob.glob('/projects/51_apps/51_american_crm_nginx_clone/static/'
+                          'event_upload_files/event_id_' + str(event_id) + '.*')
         for f in files:
             os.remove(f)
-        ####################################
 
         files = request.files.getlist('files[]')
         print(files[0].filename)
@@ -3862,14 +4045,17 @@ def upload_file_event():
                 print("Lamda")
                 print(file.name)
                 #filename = secure_filename(file.filename)
-                file_name = 'client_id_' +str(client_id)+ file_extension
+                # Named after the event, not the client: a client can have
+                # several events and each carries its own file.
+                file_name = 'event_id_' + str(event_id) + file_extension
                 path = '/projects/51_apps/51_american_crm_nginx_clone/static/event_upload_files'
                 
                 try:
                     file.save(path+'/'+file_name)
 
                     conn,cur=connection()
-                    cur.execute("UPDATE event_leads set file_name = %s WHERE client_id = %s",(file_name,client_id,))
+                    cur.execute("UPDATE event_event set file_name = %s WHERE event_id = %s",
+                                (file_name, event_id,))
                     conn.commit()
                     cur.close()
                     conn.close()
@@ -3889,16 +4075,16 @@ def upload_file_event():
 
 @app.route('/file_delete', methods=["GET","POST"])
 def file_delete():
-    client_id=request.form['client_id']
+    event_id = request.form.get('event_id') or ''
 
     try:
-
-        files = glob.glob('/projects/51_apps/51_american_crm_nginx_clone/static/event_upload_files/client_id_'+client_id+'*')
+        files = glob.glob('/projects/51_apps/51_american_crm_nginx_clone/static/'
+                          'event_upload_files/event_id_' + str(int(event_id)) + '.*')
         for f in files:
             os.remove(f)
 
         conn,cur=connection()
-        cur.execute("UPDATE event_leads set file_name = NULL WHERE client_id = %s",(client_id,))
+        cur.execute("UPDATE event_event set file_name = NULL WHERE event_id = %s", (event_id,))
         conn.commit()
         cur.close()
         conn.close()

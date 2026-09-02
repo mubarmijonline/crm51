@@ -14,15 +14,19 @@
     <thead>
       <tr>
         <th></th>
-        <th>ID</th>
-        <th>Name</th>
+        <th>Client</th>
+        <th>Event</th>
         <th style="width: 8%;">Client mobile</th>
         <th>Email</th>
         <th>Status</th>
+        <th>Temperature</th>
         <th>Payment status</th>
         <th>Deposit (Y/N)</th>
-        <th>Deposit amount</th>
+        <th>Deposit</th>
+        <th>Total</th>
+        <th>Remaining</th>
         <th>Done (Y/N)</th>
+        <th>Recall date</th>
         <th>Added by</th>
         <th>Added date</th>
         <th>Modified by</th>
@@ -39,7 +43,8 @@
 <script>
   var STATUS_TONE = {
     enrol:'success', not_interested:'danger', pending:'warning',
-    not_contacted:'secondary', completed:'success'
+    not_contacted:'secondary', completed:'success',
+    hot:'danger', cold:'info'
   };
 
   function render_status(data, type) {
@@ -50,41 +55,55 @@
     return '<span class="badge badge-' + tone + '">' + label + '</span>';
   }
 
+  // deposit_flag and done are 0/1 in the database and read as nothing at all
+  // in a column headed "(Y/N)".
+  function render_yesno(data, type) {
+    if (type !== 'display') return data;
+    return String(data) === '1'
+      ? '<span class="badge badge-success">Yes</span>'
+      : '<span class="badge badge-secondary">No</span>';
+  }
+
   var table = crmTable('#events_table', {
     key: 'event_leads',
     url: '/api/event_leads',
-    rowId: 'client_id',
-    placeholder: 'Search name, mobile, email, status\u2026',
-    order: [[1, 'desc']],
+    rowId: 'event_id',
+    placeholder: 'Search client, event, mobile, email, status\u2026',
+    order: [[1, 'asc']],
     columns: [
       {
         data: null, orderable: false, searchable: false, className: 'crm-cell-actions',
         render: function (data, type, row) {
           var myrole = "{{ session['role'] }}";
           var acts = [crmAction({
-            icon: 'user-round', label: 'Profile',
-            href: '/update_event_lead?client_data=' + encodeURIComponent(row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name)
+            icon: 'user-round', label: 'Open client',
+            href: '/update_event_lead?client_id=' + encodeURIComponent(row.client_id) +
+                  '&event_id=' + encodeURIComponent(row.event_id)
           })];
           if (myrole === 'admin') acts.push(crmAction({
-            icon: 'trash-2', label: 'Delete', danger: true,
-            onclick: 'delete_event(' + row.client_id + ')'
+            icon: 'trash-2', label: 'Delete event', danger: true,
+            onclick: 'delete_event(' + row.event_id + ')'
           }));
           return crmActions(acts);
         }
       },
-      { data: 'client_id',             className: 'mono' },
       { data: 'client_name' },
-      { data: 'client_mobile',         className: 'mono' },
+      { data: 'event_name' },
+      { data: 'client_mobile',   className: 'mono' },
       { data: 'client_email' },
-      { data: 'status',                render: render_status },
-      { data: 'client_payment_status', render: render_status },
-      { data: 'client_deposit_flag' },
-      { data: 'client_deposit',        className: 'mono' },
-      { data: 'done' },
+      { data: 'status',          render: render_status },
+      { data: 'temperature',     render: render_status },
+      { data: 'payment_status',  render: render_status },
+      { data: 'deposit_flag',    render: render_yesno },
+      { data: 'deposit',         className: 'mono' },
+      { data: 'total',           className: 'mono' },
+      { data: 'remaining',       className: 'mono' },
+      { data: 'done',            render: render_yesno },
+      { data: 'recall_date',     className: 'mono' },
       { data: 'added_by' },
-      { data: 'added_date',            className: 'mono' },
+      { data: 'added_date',      className: 'mono' },
       { data: 'modified_by' },
-      { data: 'modified_date',         className: 'mono' }
+      { data: 'modified_date',   className: 'mono' }
     ]
   });
 

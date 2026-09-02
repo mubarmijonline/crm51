@@ -655,58 +655,6 @@ form:has(> .form-actions) .form-section { scroll-margin-block-end: 96px; }
 .crm-checklist { display: flex; flex-direction: column; gap: var(--space-2); }
 .crm-checklist:empty { display: none; }
 
-/* An explicit three-track grid rather than nested flex. The label wrapping the
-   checkbox and the name made the row a flex container holding another flex
-   container, and the name kept collapsing to zero width inside it. `display:
-   contents` on the label lifts the checkbox and the name into the grid as
-   items in their own right, so the name owns the 1fr track and cannot be
-   squeezed out. The label still wraps them in the DOM, so clicking the name
-   still toggles the box. */
-.crm-checklist__item {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: 38px;
-  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
-  border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-control);
-  background: var(--surface-sunken);
-}
-
-.crm-checklist__item > label { display: contents; cursor: pointer; }
-
-.crm-checklist__item input[type="checkbox"] {
-  width: 15px; height: 15px; margin: 0;
-  accent-color: var(--action-primary);
-  cursor: pointer;
-}
-
-.crm-checklist__item label > span {
-  min-width: 0;
-  font: var(--type-body-sm); color: var(--text-body);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  cursor: pointer;
-}
-.crm-checklist__item input[type="checkbox"]:checked + span {
-  color: var(--text-muted); text-decoration: line-through;
-}
-
-/* Removing an item is destructive, so it is a quiet icon that turns red on
-   approach - never a solid red fill. */
-.crm-checklist__remove {
-  width: 26px; height: 26px;
-  display: flex; align-items: center; justify-content: center;
-  background: none; border: 1px solid transparent;
-  border-radius: var(--radius-control);
-  color: var(--text-subtle); cursor: pointer;
-}
-.crm-checklist__remove:hover {
-  color: var(--text-danger); border-color: var(--border-danger);
-  background: var(--status-danger-bg);
-}
-.crm-checklist__remove i, .crm-checklist__remove svg { width: 14px; height: 14px; }
-
 .crm-file { display: flex; flex-direction: column; gap: var(--space-5); align-items: start; }
 
 .crm-file__current {
@@ -730,3 +678,171 @@ form:has(> .form-actions) .form-section { scroll-margin-block-end: 96px; }
 .crm-file__delete:not(:disabled):hover {
   color: var(--text-danger); border-color: var(--border-danger);
 }
+
+
+/* ===========================================================================
+   Events accordion.
+
+   A client can book many events, so the page is a list of them rather than one
+   form. Collapsed, a row says what the event is and where it stands; opened,
+   it is the full form for that event alone.
+   =========================================================================== */
+
+.crm-events__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-6); flex-wrap: wrap;
+}
+
+.crm-events { display: flex; flex-direction: column; gap: var(--space-4); }
+
+.crm-event {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+.crm-event.is-open { border-color: var(--border-strong); }
+
+.crm-event__bar {
+  display: flex; align-items: center; gap: var(--space-5);
+  margin: 0; padding: var(--space-4) var(--space-5);
+  background: var(--surface-sunken);
+}
+.crm-event.is-open .crm-event__bar { border-bottom: 1px solid var(--border-hairline); }
+
+.crm-event__toggle {
+  display: flex; align-items: center; gap: var(--space-4);
+  flex: 1 1 auto; min-width: 0;
+  background: none; border: 0; padding: 0; cursor: pointer; text-align: start;
+}
+.crm-event__chevron {
+  width: 16px; height: 16px; flex: none; color: var(--text-muted);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.crm-event.is-open .crm-event__chevron { transform: rotate(90deg); }
+
+.crm-event__name {
+  font: var(--type-section); color: var(--text-title);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.crm-event__meta {
+  display: flex; align-items: center; gap: var(--space-3); flex: none; flex-wrap: wrap;
+}
+.crm-event__money { font: var(--type-body-sm); color: var(--text-muted); }
+
+.crm-event__body { padding: var(--space-7) var(--space-6) var(--space-6); }
+
+.crm-event__sub {
+  margin: var(--space-8) 0 var(--space-5);
+  font: var(--type-section); color: var(--text-title);
+}
+.crm-event__sub--flush { margin: 0; }
+.crm-event__form > .form-grid:first-of-type + .crm-event__sub { margin-top: var(--space-7); }
+
+.crm-event__actions {
+  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+  margin-top: var(--space-8); padding-top: var(--space-6);
+  border-top: 1px solid var(--border-hairline);
+}
+.crm-event__note { margin-inline-start: auto; font: var(--type-body-sm); color: var(--text-muted); }
+.crm-event__delete:hover { color: var(--text-danger); border-color: var(--border-danger); }
+
+@media (max-width: 640px) {
+  .crm-event__bar { flex-wrap: wrap; }
+  .crm-event__meta { width: 100%; }
+  .crm-event__note { display: none; }
+}
+
+
+/* ===========================================================================
+   Check list.
+
+   Was a stack of loose checkboxes with no sense of progress and a solid red
+   delete button on each row. Now: a count and a progress bar, ticked items
+   sinking to the bottom on reload, a real hit target per row, and removal as a
+   quiet icon.
+   =========================================================================== */
+
+.crm-checklist-block {
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  padding: var(--space-5);
+  background: var(--surface-sunken);
+}
+
+.crm-checklist__head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--space-5); margin-bottom: var(--space-4);
+}
+.crm-checklist__count { margin: var(--space-2) 0 0; font: var(--type-body-sm); color: var(--text-muted); }
+
+.crm-checklist__bar {
+  height: 4px; border-radius: var(--radius-pill);
+  background: var(--surface-hover); overflow: hidden; margin-bottom: var(--space-5);
+}
+.crm-checklist__bar > span {
+  display: block; height: 100%; background: var(--status-success-fg);
+  transition: width var(--duration-base) var(--ease-standard);
+}
+
+.crm-checklist { list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: var(--space-2); }
+.crm-checklist__empty { margin: 0; font: var(--type-body-sm); color: var(--text-muted); }
+
+.crm-check {
+  display: grid; grid-template-columns: 1fr auto; align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+}
+
+/* The label is the row's hit target, so the whole line toggles the item. */
+.crm-check__label {
+  display: flex; align-items: center; gap: var(--space-4);
+  margin: 0; min-width: 0; cursor: pointer;
+}
+
+/* The native box is replaced by one that can be drawn on tokens, but it stays
+   in the DOM and keeps the name and value, so the form still posts it. */
+.crm-check__label input[type="checkbox"] {
+  position: absolute; opacity: 0; width: 0; height: 0;
+}
+.crm-check__box {
+  flex: none; width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-card);
+  color: transparent;
+}
+.crm-check__box i, .crm-check__box svg { width: 12px; height: 12px; }
+.crm-check__label input:checked + .crm-check__box {
+  background: var(--status-success-fg);
+  border-color: var(--status-success-fg);
+  color: var(--on-accent);
+}
+.crm-check__label input:focus-visible + .crm-check__box {
+  outline: 2px solid var(--border-focus); outline-offset: 2px;
+}
+
+.crm-check__text {
+  min-width: 0; font: var(--type-body-sm); color: var(--text-body);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.crm-check.is-done .crm-check__text { color: var(--text-muted); text-decoration: line-through; }
+
+.crm-check__remove {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text-subtle); cursor: pointer;
+}
+.crm-check__remove:hover {
+  color: var(--text-danger); border-color: var(--border-danger);
+  background: var(--status-danger-bg);
+}
+.crm-check__remove i, .crm-check__remove svg { width: 14px; height: 14px; }

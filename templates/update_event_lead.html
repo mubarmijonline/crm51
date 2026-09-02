@@ -1,933 +1,661 @@
 {% extends 'main.html' %}
 {% from "_macros.html" import page_header %}
+{% block title %}Event client — 51 American CRM{% endblock %}
 {% block body %}
 
-{{ page_header('Search and update event lead',
-               'Find a lead, then edit its details, files and notes.') }}
+{{ page_header('Event clients',
+               'Find a client, then work through the events they have booked.') }}
 
-{# --- find a lead --------------------------------------------------------- #}
+{# --- find a client ------------------------------------------------------- #}
 <div class="form-section">
   <div class="form-section__head">
-    <h2 class="form-section__title">Find a lead</h2>
+    <h2 class="form-section__title">Find a client</h2>
     <p class="form-section__desc">Search by client id, mobile or name.</p>
   </div>
   <div class="containerss">
     <div class="searchInput">
-      <input type="text" id="seacrch_input_box" placeholder="Search for event leads">
+      <input type="text" id="seacrch_input_box" placeholder="Search for a client">
       <div class="resultBox"></div>
       <div class="icon" onclick="clear_data()"><i data-lucide="x"></i></div>
     </div>
   </div>
 </div>
 
-{# Everything below is revealed once a lead is chosen. #}
-<div id="update_section" style="display: none;">
+<div id="client_section" hidden>
 
-  <form id="update_event_lead" name="update_event_lead">
-
-    {# --- identity --------------------------------------------------------- #}
+  {# --- the person --------------------------------------------------------- #}
+  <form id="client_form">
     <div class="form-section">
       <div class="form-section__head">
-        <h2 class="form-section__title">Lead</h2>
-        <p class="form-section__desc">Who this is. The id and the date it was added are set by the system.</p>
+        <h2 class="form-section__title">Client</h2>
+        <p class="form-section__desc">Saved with whichever event you save.</p>
       </div>
       <div class="form-grid">
         <div class="form-group">
           <label for="client_id">Client id</label>
-          <input class="form-control mono" maxlength="16" id="client_id" name="client_id"
-                 readonly required aria-required="true"
-                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-          <small class="form-text">Set when the lead was created.</small>
+          <input class="form-control mono" id="client_id" name="client_id" readonly>
+          <small class="form-text">Set when the client was created.</small>
         </div>
-
-        <div class="form-group">
-          <label for="added_date">Added date</label>
-          <input class="form-control mono" maxlength="16" id="added_date" name="added_date"
-                 readonly required aria-required="true">
-          <small class="form-text">Set when the lead was created.</small>
-        </div>
-
         <div class="form-group">
           <label for="client_name">Client name<span class="form-label__req" aria-hidden="true">*</span></label>
-          <input id="client_name" class="form-control" name="client_name" maxlength="100"
-                 required aria-required="true">
+          <input class="form-control" id="client_name" name="client_name" maxlength="100" required>
         </div>
-
         <div class="form-group">
           <label for="client_mobile">Client mobile<span class="form-label__req" aria-hidden="true">*</span></label>
-          <input class="form-control mono" maxlength="16" id="client_mobile" name="client_mobile"
-                 required aria-required="true"
-                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+          <input class="form-control mono" id="client_mobile" name="client_mobile" maxlength="16" required
+                 oninput="this.value = this.value.replace(/[^0-9.]/g, '');">
           <small class="form-text">Digits only.</small>
         </div>
-
         <div class="form-group">
           <label for="email">Email<span class="form-label__optional">optional</span></label>
-          <input class="form-control" id="email" type="email" name="email" maxlength="70">
+          <input class="form-control" id="email" name="email" type="email" maxlength="70">
         </div>
       </div>
-    </div>
-
-    {# --- where the lead stands -------------------------------------------- #}
-    <div class="form-section">
-      <div class="form-section__head">
-        <h2 class="form-section__title">Status</h2>
-        <p class="form-section__desc">A recall date is asked for while the lead is open; a reason is asked for when it is closed.</p>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="status">Status<span class="form-label__req" aria-hidden="true">*</span></label>
-          <select required aria-required="true" id="status" name="status" class="form-control"
-                  onchange="check_status()">
-            <option value="pending" selected>Pending</option>
-            <option value="not_contacted">Not contacted</option>
-            <option value="enrol">Enrol</option>
-            <option value="not_interested">Not interested</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="temperature">Temperature<span class="form-label__req" aria-hidden="true">*</span></label>
-          <select required aria-required="true" id="temperature" name="temperature" class="form-control">
-            <option value="hot" selected>Hot</option>
-            <option value="cold">Cold</option>
-          </select>
-        </div>
-
-        <div class="form-group" id="recall_date_section" hidden>
-          <label for="recall_date">Recall date<span class="form-label__req" aria-hidden="true">*</span></label>
-          <input type="text" class="form-control mono" id="recall_date" name="recall_date"
-                 data-datepicker required aria-required="true">
-          <small class="form-text">Type it as yyyy-mm-dd, or pick it from the calendar.</small>
-        </div>
-
-        <div class="form-group span-2" id="not_interested_notes_div" hidden>
-          <label for="not_interested_notes">Reason</label>
-          <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control">
-          <small class="form-text">Why the lead was closed.</small>
-        </div>
-      </div>
-    </div>
-
-    {# --- money ------------------------------------------------------------ #}
-    <div class="form-section">
-      <div class="form-section__head">
-        <h2 class="form-section__title">Payment</h2>
-        <p class="form-section__desc">The amounts stay locked until a deposit is recorded. Remaining is worked out for you.</p>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="client_deposit_flag">Deposit taken</label>
-          <select id="client_deposit_flag" name="client_deposit_flag" class="form-control"
-                  onchange="deposit_change(this.value)">
-            <option value="1">Yes</option>
-            <option value="0" selected>No</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="client_payment_status">Payment status</label>
-          <select id="client_payment_status" name="client_payment_status" class="form-control">
-            <option value="completed">Completed</option>
-            <option value="pending" selected>Pending</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="client_total">Total amount</label>
-          <input id="client_total" name="client_total" class="form-control mono" value="0" disabled
-                 onchange="recalc_remaining()"
-                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-        </div>
-
-        <div class="form-group">
-          <label for="client_deposit">Deposit amount</label>
-          <input id="client_deposit" name="client_deposit" class="form-control mono" value="0" disabled
-                 onchange="recalc_remaining()"
-                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-        </div>
-
-        <div class="form-group">
-          <label for="client_remaining">Remaining amount</label>
-          <input id="client_remaining" name="client_remaining" class="form-control mono" value="0"
-                 readonly disabled>
-          <small class="form-text">Total minus deposit.</small>
-        </div>
-      </div>
-    </div>
-
-    {# --- what the client asked for ----------------------------------------- #}
-    <div class="form-section">
-      <div class="form-section__head">
-        <h2 class="form-section__title">Requirements</h2>
-        <p class="form-section__desc">What the event needs, and the checklist of items to prepare.</p>
-      </div>
-      <div class="form-grid">
-        <div class="form-group span-2">
-          <label for="assets_list">Requirements</label>
-          <textarea rows="6" maxlength="256" class="form-control" id="assets_list"
-                    name="assets_list"></textarea>
-          <small class="form-text">Up to 256 characters.</small>
-        </div>
-
-        <div class="form-group span-2">
-          <label>Check list</label>
-          <div id="check_list_div" name="check_list_div" class="crm-checklist"></div>
-          <button type="button" class="btn btn-secondary btn-sm" style="align-self:start"
-                  data-toggle="modal" data-target="#add_item_modal">
-            <i data-lucide="plus"></i>Add item
-          </button>
-        </div>
-      </div>
-    </div>
-
-    {# --- files ------------------------------------------------------------- #}
-    <div class="form-section">
-      <div class="form-section__head">
-        <h2 class="form-section__title">File</h2>
-        <p class="form-section__desc">One attachment per lead. Uploading a new file replaces the current one.</p>
-      </div>
-      <div class="crm-file">
-        <div id="file_download_div" hidden class="crm-file__current">
-          <i data-lucide="paperclip"></i>
-          <input name="file_name" id="file_name" value="" readonly class="crm-file__name"
-                 aria-label="Attached file">
-          <a download title="Download file" aria-label="Download file"
-             class="btn btn-secondary btn-sm" id="file_download" href="javascript:void(0)">
-            <i data-lucide="download"></i>Download
-          </a>
-          <button type="button" disabled id="delete_file" class="btn btn-secondary btn-sm crm-file__delete"
-                  onclick="delete_file();">
-            <i data-lucide="trash-2"></i>Remove
-          </button>
-        </div>
-        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
-          <i data-lucide="upload"></i>Upload a file
-        </button>
-      </div>
-    </div>
-
-    {# --- note and assignment ------------------------------------------------ #}
-    <div class="form-section">
-      <div class="form-section__head">
-        <h2 class="form-section__title">Note and assignment</h2>
-        <p class="form-section__desc">Every save records a note against the lead. It is added to the log below.</p>
-      </div>
-      <div class="form-grid">
-        <div class="form-group span-2">
-          <label for="notes">Note<span class="form-label__req" aria-hidden="true">*</span></label>
-          <textarea rows="4" class="form-control" id="notes" name="notes"
-                    required aria-required="true"
-                    placeholder="What happened on this contact?"></textarea>
-        </div>
-
-        <div class="form-group span-2">
-          <label for="assigned_to">Assigned to<span class="form-label__req" aria-hidden="true">*</span></label>
-          <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple"
-                  required aria-required="true"></select>
-        </div>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <span class="form-actions__note">Fields marked with an asterisk are required.</span>
-      <button type="submit" id="add_client" class="btn btn-primary">Save lead</button>
     </div>
   </form>
 
+  {# --- their events ------------------------------------------------------- #}
   <div class="form-section">
-    <div class="form-section__head">
-      <h2 class="form-section__title">Notes log</h2>
-      <p class="form-section__desc">Everything the team has recorded on this lead, newest first.</p>
+    <div class="form-section__head crm-events__head">
+      <div>
+        <h2 class="form-section__title">Events</h2>
+        <p class="form-section__desc">
+          Every event this client has booked. Open one to edit it.
+        </p>
+      </div>
+      <button type="button" class="btn btn-secondary" id="add_event_btn">
+        <i data-lucide="plus"></i>Add event
+      </button>
     </div>
-    <div id="notes_timeline" class="notes"></div>
+    <div id="events_list" class="crm-events"></div>
   </div>
 
 </div>
 
-
-
-  <div class="modal fade" id="add_item_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+{# --- the add-item dialog, shared by every event ------------------------- #}
+<div class="modal fade" id="add_item_modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <div class='text-center'>
-          <h5 id="exampleModalLabel">Add Item to Check List</h5>
+      <div class="modal-header"><h5 class="modal-title">Add a checklist item</h5></div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="check_list_item_name">Item</label>
+          <input maxlength="40" id="check_list_item_name" class="form-control"
+                 placeholder="What needs preparing?">
         </div>
       </div>
-    <div class="modal-body">
-
-  <span>
-    <div>Item Name</div>
-    <input maxlength="40" id="check_list_item_name" name="check_list_item_name" class="form-control"></span>
-    
-        
-  <hr>
-  <button type="submit"  class="btn btn-success" name='add_room_btn' name='add_room_btn' onclick="add_item();">Add Item</button>
-  <button type="button" id="close" class="btn btn-secondary" data-dismiss="modal">Close</button>
-  </div>
-  </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="add_item_confirm">Add item</button>
+      </div>
+    </div>
   </div>
 </div>
 
-<script>
-  /* One builder for the check list, used by both the "add item" path and the
-     load path, which had a copy each. The old markup appended the checkbox,
-     a hidden twin, a label and a delete button as flat siblings with no row
-     around them, and the delete button was a `btn btn-danger` carrying no
-     text - which is why the list rendered as a stack of solid red bars. Names
-     and values are unchanged, so the POST is identical. */
-  function append_check_item(name, checked) {
-    var host = document.getElementById('check_list_div');
-    if (!host) return;
-
-    var row = document.createElement('div');
-    row.className = 'crm-checklist__item';
-    row.id = 'row_id_' + name;
-
-    var label = document.createElement('label');
-
-    var box = document.createElement('input');
-    box.type = 'checkbox';
-    box.name = 'check_box';
-    box.value = name;
-    box.id = 'id_' + name;
-    box.checked = !!checked;
-
-    var text = document.createElement('span');
-    text.textContent = name;
-
-    label.appendChild(box);
-    label.appendChild(text);
-
-    // The hidden twin is how the server tells "was on the list and unticked"
-    // from "was never on the list": check_box only posts ticked boxes.
-    var twin = document.createElement('input');
-    twin.type = 'hidden';
-    twin.name = 'check_box_hidden';
-    twin.value = name;
-    twin.id = 'hidden_id_' + name;
-
-    var remove = document.createElement('button');
-    remove.type = 'button';
-    remove.className = 'crm-checklist__remove';
-    remove.id = 'btn_id_' + name;
-    remove.setAttribute('aria-label', 'Remove ' + name);
-    remove.setAttribute('onclick', "remove_item('id_" + name + "')");
-    remove.innerHTML = '<i data-lucide="x"></i>';
-
-    row.appendChild(label);
-    row.appendChild(twin);
-    row.appendChild(remove);
-    host.appendChild(row);
-
-    if (window.lucide && lucide.createIcons) lucide.createIcons({ nameAttr: 'data-lucide' });
-  }
-</script>
-
-<script>
-  /* These three were inline in the middle of the markup, between a </td> and
-     the next <td>. They are behaviour, not layout. */
-
-  // The two conditional fields. Toggling `hidden` alone left the inputs in the
-  // form while invisible, so a hidden required field could block submission;
-  // disabling them takes them out of validation and out of the POST as well.
-  function check_status() {
-    var val      = document.getElementById('status').value;
-    var recall   = document.getElementById('recall_date_section');
-    var reasonBox= document.getElementById('not_interested_notes_div');
-    var reason   = document.getElementById('not_interested_notes');
-    var date     = document.getElementById('recall_date');
-
-    var wantRecall = (val === 'pending' || val === 'not_contacted');
-    var wantReason = (val === 'not_interested');
-
-    recall.hidden    = !wantRecall;
-    date.disabled    = !wantRecall;
-    date.required    =  wantRecall;
-
-    reasonBox.hidden = !wantReason;
-    reason.disabled  = !wantReason;
-  }
-
-  // Amounts are meaningless without a deposit, so they stay locked and zeroed
-  // until one is recorded.
-  function deposit_change(value) {
-    var on = String(value) === '1';
-    ['client_deposit', 'client_total', 'client_remaining'].forEach(function (id) {
-      var el = document.getElementById(id);
-      el.disabled = !on;
-      if (!on) el.value = '0';
-    });
-  }
-
-  function recalc_remaining() {
-    var total   = Number(document.getElementById('client_total').value)   || 0;
-    var deposit = Number(document.getElementById('client_deposit').value) || 0;
-    document.getElementById('client_remaining').value = total - deposit;
-  }
-
-  function add_item()
-  {
-
-    var halto = 0;
-    if (check_list_item_name == '')
-    {
-      Swal.fire(
-                    'Empty',
-                    'Please entry item first...',
-                    'info');
-                    return;
-    }
-
-    [...document.getElementsByClassName('item_in_checklist')].forEach(el => {
-    // Do something with each element
-      
-            if(el.value.toString().toUpperCase() == check_list_item_name.toString().toUpperCase())
-            {
-                          Swal.fire(
-                            'Duplicate',
-                            'Item already exists in checklist...',
-                            'info');
-                            halto = 1;                        
-            }
-    });
-
-
-      if(halto == 1)
-      {
-        return;
-      }
-
-    check_list_item_name = document.getElementById("check_list_item_name").value;
-
-    var check_list_div = document.getElementById("check_list_div");
-             
-             append_check_item(check_list_item_name, false);
-
-             document.getElementById("check_list_item_name").value = "";
-             //$("#add_item_modal #close").click();
-  }
-
-  // item_id arrives as "id_<name>", so the row is "row_<same>".
-  function remove_item(item_id) {
-    var row = document.getElementById('row_' + item_id);
-    if (row) row.remove();
-  }
-</script>
-
-
-  <script>
-    function run_function_again() {
-      client_id = document.getElementById('client_id').value;
-      client_mobile = document.getElementById('client_mobile').value
-      client_name = document.getElementById('client_name').value
-      selection_again = client_id + " - " + client_mobile + " - " + client_name
-      get_data(selection_again);
-    }
-  </script>
-
-  <script>
-
-    $("form#update_event_lead").submit(function (e) {
-      
-      e.preventDefault();
-      var formData = new FormData(this);
-
-
-      $.ajax({
-        url: "/update_event_lead?update_event_lead",
-        type: 'POST',
-        data: formData,
-        success: function (data) {
-          var state = data.state
-          var reason = data.reason
-
-          if (state == 'error') {
-            Swal.fire(
-              'Sorry',
-              reason,
-              'error')
-
-
-          }
-
-          else if (state == 'success') {
-            Swal.fire(
-              'Good Job',
-              reason,
-              'success')
-            
-            //run_function_again();
-            notifications();
-            
-            client_id = document.getElementById('client_id').value;
-            client_mobile = document.getElementById('client_mobile').value;
-            client_name = document.getElementById('client_name').value;
-
-            setTimeout(window.location.assign('/update_event_lead?client_data='+client_id+' - '+client_mobile+' - '+client_name), 3000); 
-            
-            
-
-          }
-          else {
-            Swal.fire(
-              'Sorry',
-              'Something went wrong',
-              'error')
-
-            //$("#add_client_close").click();
-          }
-        },
-        cache: false,
-        contentType: false,
-        processData: false
-      });
-
-    });
-  </script>
-
-  <script>
-
-    function get_notes(id) {
-      // Was a DataTable whose single visible column rendered a readonly
-      // <textarea> per row. Notes are a conversation, so they read as one.
-      crmNotes('#notes_timeline', { url: '/get_events_notes?id=' + id });
-    }
-
-  </script>
-
-
-
-
-
-
-  <script>
-
-
-    url = "/suggesion_data_event";
-
-    suggestions_data = []
-    $.post(url).done(function (response) {
-
-
-      suggestions_data = response
-
-      let suggestions = suggestions_data;
-
-
-      // getting all required elements
-      const searchInput = document.querySelector(".searchInput");
-      const input = searchInput.querySelector("input");
-      const resultBox = searchInput.querySelector(".resultBox");
-      const icon = searchInput.querySelector(".icon");
-      let linkTag = searchInput.querySelector("a");
-      let webLink;
-
-      // if user press any key and release
-
-      input.onkeyup = (e) => {
-        let userData = e.target.value; //user enetered data
-        let emptyArray = [];
-        if (userData) {
-          emptyArray = suggestions.filter((data) => {
-            //filtering array value and user characters to lowercase and return only those words which are start with user enetered chars
-            return data.toLocaleLowerCase().includes(userData.toLocaleLowerCase());
-          });
-          emptyArray = emptyArray.map((data) => {
-            // passing return data inside li tag
-            return data = '<li>' + data + '</li>';
-          });
-          searchInput.classList.add("active"); //show autocomplete box
-          showSuggestions(emptyArray);
-          let allList = resultBox.querySelectorAll("li");
-          for (let i = 0; i < allList.length; i++) {
-            //adding onclick attribute in all li tag
-            allList[i].setAttribute("onclick", "get_data(this.innerHTML)");
-
-          }
-        } else {
-          searchInput.classList.remove("active"); //hide autocomplete box
-        }
-      }
-      function showSuggestions(list) {
-        let listData;
-
-        if (!list.length) {
-          userValue = input.value; //inputBox
-          listData = '<li>' + userValue + '</li>';
-        } else {
-          listData = list.join('');
-        }
-        resultBox.innerHTML = listData;
-      }
-
-
-
-    });
-
-  </script>
-
-  <script>
-    function clear_data() {
-      $('#seacrch_input_box').val('')
-      document.querySelector(".searchInput").classList.remove("active");
-      document.getElementById('update_section').style = 'display: none;';
-
-    }
-  </script>
-
-  <script>
-    function get_data(selected_value) {
-
-      if (selected_value === "") {
-        return;
-      }
-
-      url = '/get_event_lead_data?selected_data=' + selected_value
-      $.post(url).done(function (response) {
-
-        update_response = response[0]
-        assignation_response = response[1]
-        check_list = response[2]
-
-        response = update_response
-        const searchInput = document.querySelector(".searchInput");
-        searchInput.classList.remove("active"); // hide search bar
-        document.getElementById('seacrch_input_box').value = selected_value
-        document.getElementById('update_section').style = 'display: block;';
-        document.getElementById('client_id').value = response.client_id;
-        document.getElementById('clien_id_file_upload').value = response.client_id; // IN file Upload Modal
-        document.getElementById('added_date').value = response.added_date;
-        document.getElementById('client_mobile').value = response.client_mobile;
-        document.getElementById('client_name').value = response.client_name;
-
-        document.getElementById('email').value = response.client_email;
-
-        document.getElementById('client_deposit_flag').value = response.client_deposit_flag;
-        document.getElementById('client_deposit').value = response.client_deposit;
-        document.getElementById('client_remaining').value = response.client_remaining;
-        document.getElementById('client_total').value = response.client_total;
-        deposit_change(response.client_deposit_flag); // Update flag
-
-        document.getElementById('status').value = response.status;
-
-        document.getElementById('temperature').value = response.temperature;
-
-        document.getElementById('client_payment_status').value = response.client_payment_status;
-        
-        if (response.status == 'pending' || response.status == 'not_contacted') {
-          check_status();
-          document.getElementById('recall_date').value = response.recall_date;
-          //$('#recall_date').datepicker("setDate", response.recall_date);
-        }
-        else if (response.status == 'not_interested')
-        {
-          check_status();
-          document.getElementById('not_interested_notes').value = response.client_not_interested_notes;
-        }
-
-        document.getElementById('assets_list').value = response.client_assets_list;
-
-        document.getElementById('notes').value = '';
-
-        assignation = assignation_response.username_assignation;
-        myrole = "{{session['role']}}";
-        get_assignation(assignation, myrole);
-        get_notes(response.client_id);
-
-        get_client_file();
-
-        // Build Check List //
-        var check_list_div = document.getElementById("check_list_div");
-
-        for(i=0;i<check_list.length;i++)
-        {
-        check_list_item_name = check_list[i].item;
-        item_state = check_list[i].checked;
-
-
-             append_check_item(check_list_item_name, item_state == 1);
-
-        }
-
-      });
-    }
-
-  </script>
-
-
-  <script>
-    function get_assignation(username_from_query, user_role) {
-
-      let dropdown = $('#assigned_to');
-
-      dropdown.empty()
-      const url = '/users?get_select_users_event';
-
-
-      user_role = "{{session['role']}}"
-      current_username = "{{session['name']}}"
-
-      user_list = []
-      // Populate dropdown with list of provinces
-      $.getJSON(url, function (data) {
-        $.each(data, function (key, entry) {
-
-
-
-
-          if (user_role == 'admin') {
-
-            if (username_from_query.includes(entry.username)) {
-
-              dropdown.append($('<option selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
-              user_list.push(entry.username)
-            }
-            else {
-
-              dropdown.append($('<option></option>').attr('value', entry.abbreviation).text(entry.username));
-            }
-          }
-          else {
-
-            if (username_from_query.includes(entry.username)) {
-
-              user_list.push(entry.username)
-
-              dropdown.append($('<option disabled selected="true"></option>').attr('value', entry.abbreviation).text(entry.username));
-
-
-            }
-            else {
-
-              dropdown.append($('<option disabled></option>').attr('value', entry.abbreviation).text(entry.username));
-            }
-          }
-
-        })
-
-
-
-
-        //$("#assigned_to").val(user_list);
-        if (user_role == 'admin') {
-        $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: true });
-        }
-        else
-        {
-         
-          $('#assigned_to').select2({ placeholder: 'Multi Assignation', closeOnSelect: false, allowClear: false,disabled:'readonly' });
-         
-          
-        }
-
-      });
-
-
-
-    }
-  </script>
-
-
-<!-- Upload Modal -->
-
-<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-labelledby="uploadModalTitle" aria-hidden="true">
-	<div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-	  <div class="modal-content">
-		<div class="modal-header">
-		  <h5 class="modal-title" id="uploadModalLongTitle">Upload File</h5>
-		  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-			<span aria-hidden="true">&times;</span>
-		  </button>
-		</div>
-		<div class="modal-body">
-  
-		  <form id="upload_files_form" method="POST" enctype="multipart/form-data" >
-			<input name="client_id" id="clien_id_file_upload" type="hidden" readonly value="0">
-
-			<input type="file" id="uploadFile" class="btn btn-secondary" name="files[]" multiple="false" autocomplete="off" required aria-required="true" accept=".xls,.xlsx,.png,.jpg,.jpeg,.gif,.pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
-			<!-- <input type="submit" class="btn btn-success" id="upload_files" name="upload_files" value="Upload"> -->
-			<button id="upload-file-btn" class="btn btn-success" type="button" disabled="true" >Upload</button>
-  
-  <script>
-	var MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
-   
-   $(document).ready(function() {
-	   $('#uploadFile').change(function() {
-		$('#upload-file-btn').attr('disabled', true);
-		 fileSize = 0;
-
-		 if (this.files.length > 1) {
-			   this.setCustomValidity("Only 1 FIle !");
-			   this.reportValidity();
-			   $('#upload-file-btn').attr('disabled', true);
-		   }
-		   else{
-
-		 for(i=0; i<this.files.length; i++){
-		   fileSize = this.files[i].size + fileSize;
-		  }
-		  if (fileSize > MAX_FILE_SIZE) {
-			   this.setCustomValidity("File must not exceed 5 MB!");
-			   this.reportValidity();
-			   $('#upload-file-btn').attr('disabled', true);
-		   } else {
-			   this.setCustomValidity("");
-			   $('#upload-file-btn').attr('disabled', false);
-		   }
-		}
-	   });
-   });
-  </script>
-  
-  
-		  </form>
-  
-		  <br>
-		  <div class="progress">
-			  <div class="progress-bar progress-bar-striped bg-info"></div>
-		  </div>
-  
-		</div>
-
-
-		<div class="modal-footer">
-		  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-		</div>
-	  </div>
-	</div>
+{# --- file upload, shared by every event --------------------------------- #}
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Upload a file</h5></div>
+      <div class="modal-body">
+        <form id="upload_files_form" method="POST" enctype="multipart/form-data">
+          <input name="client_id" id="clien_id_file_upload" type="hidden" value="0">
+          <input name="event_id"  id="event_id_file_upload" type="hidden" value="0">
+          <div class="form-group">
+            <label for="uploadFile">File</label>
+            <input type="file" id="uploadFile" class="form-control" name="files[]"
+                   accept=".xls,.xlsx,.png,.jpg,.jpeg,.gif,.pdf" required>
+            <small class="form-text">One file per event. A new upload replaces the current one.</small>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="upload-file-btn">Upload</button>
+      </div>
+    </div>
   </div>
-  
-  <script type="text/javascript">
-  
-  $(function() {
-	  $('#upload-file-btn').click(function() {
-		  var form_data = new FormData($('#upload_files_form')[0]);
-		  $.ajax({
-  
-		xhr: function() {
-				  var xhr = new window.XMLHttpRequest();
-				  xhr.upload.addEventListener("progress", function(evt) {
-					  if (evt.lengthComputable) {
-						  var percentComplete = parseInt( ((evt.loaded / evt.total) * 100) );
-						  $(".progress-bar").width(percentComplete + '%');
-						  $(".progress-bar").html(percentComplete+'%');
-					  }
-				  }, false);
-				  return xhr;
-			  },
-  
-			  type: 'POST',
-			  url: '/upload_file_event',
-			  data: form_data,
-			  contentType: false,
-			  cache: false,
-			  processData: false,
-			  success: function(data) {
-				  if (data == "Success"){
-					Swal.fire(
-							'File Uploaded Successfully',
-							'You can check it now. ',
-							'success');
-				  }
-				  else{
-					Swal.fire(
-							'Failed to Upload!',
-							'Kindly retry. ',
-							'error');
-				  }
+</div>
 
-				$('#upload_files_form').trigger("reset");
-				$("#uploadModal .close").click();
-				$(".progress-bar").width( 0 + '%');
-				$(".progress-bar").html( 0+'%');
-				  console.log(data);
-				  console.log('Success!');
-				  get_client_file(); // refresh
-			  },
-		  });
-	  });
-  });
-  
-  </script>
-  
-  <!-- End of Upload Modal -->
+{% endblock %}
 
-  <script>
-    function get_client_file()
-  {
-    client_id = document.getElementById("client_id").value;
-    console.log(client_id)
 
-    banana = {"client_id":client_id};
-    $.post("/get_client_file", banana).done(function (data) {
-      console.log(data);
-      if (data.length == 0 || data == 'no_file' || data == 'error'){
-      console.log("No Files");
-      }
-      else{
-      document.getElementById('file_download_div').hidden = false;
+{% block scripts %}
+<script>
+(function () {
+  'use strict';
 
-        console.log(data);
-        filename=data;
+  var MY_ROLE   = "{{ session['role'] }}";
+  var state     = { client: null, events: [], open: null };
+  var bootClient = "{{ client_id }}", bootEvent = "{{ event_id }}";
 
-        document.getElementById('file_name').value = filename;
-        $('a#file_download').attr("href", "/static/event_upload_files/"+filename+`?v=${new Date().getTime()}` );
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function money(v) { return Number(v || 0).toLocaleString(); }
 
-        $('#delete_file').prop('disabled', false); // Activiate Delete Button
-      
+  var TONE = { enrol:'success', completed:'success', pending:'warning',
+               not_interested:'danger', not_contacted:'secondary',
+               hot:'danger', cold:'info' };
 
+  function badge(v) {
+    if (!v) return '';
+    var label = String(v).replace(/_/g, ' ');
+    return '<span class="badge badge-' + (TONE[v] || 'secondary') + '">' +
+           esc(label.charAt(0).toUpperCase() + label.slice(1)) + '</span>';
+  }
+
+  /* --- loading ----------------------------------------------------------- */
+
+  function load(clientId, openEventId) {
+    crmSkeleton.text('#events_list', 3);
+    $.getJSON('/api/event_client?client_id=' + encodeURIComponent(clientId))
+      .done(function (payload) {
+        state.client = payload.client;
+        state.events = payload.events || [];
+        if (openEventId) state.open = Number(openEventId);
+        else if (state.open === null && state.events.length === 1)
+          state.open = state.events[0].event_id;
+        paintClient();
+        paintEvents();
+      })
+      .fail(function () {
+        $('#events_list').html('<div class="crm-state">' +
+          '<p class="crm-state__body">Could not load this client.</p></div>');
+      });
+  }
+
+  function paintClient() {
+    var c = state.client;
+    $('#client_section').prop('hidden', false);
+    $('#client_id').val(c.client_id);
+    $('#client_name').val(c.client_name);
+    $('#client_mobile').val(c.client_mobile);
+    $('#email').val(c.client_email);
+    $('#clien_id_file_upload').val(c.client_id);
+    $('#seacrch_input_box').val(c.client_id + ' - ' + c.client_mobile + ' - ' + c.client_name);
+  }
+
+  /* --- the accordion ------------------------------------------------------ */
+
+  function summary(e) {
+    var bits = [];
+    if (e.status)      bits.push(badge(e.status));
+    if (e.temperature) bits.push(badge(e.temperature));
+    if (String(e.deposit_flag) === '1')
+      bits.push('<span class="crm-event__money mono">' + money(e.deposit) + ' / ' +
+                money(e.total) + '</span>');
+    if (String(e.done) === '1')
+      bits.push('<span class="badge badge-success">Done</span>');
+    return bits.join('');
+  }
+
+  function paintEvents() {
+    if (!state.events.length) {
+      $('#events_list').html('<div class="crm-state">' +
+        '<i data-lucide="calendar-plus"></i>' +
+        '<p class="crm-state__title">No events yet</p>' +
+        '<p class="crm-state__body">Add the first event for this client.</p></div>');
+      if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide' });
+      return;
     }
+
+    var html = state.events.map(function (e) {
+      var open = Number(state.open) === Number(e.event_id);
+      return '' +
+        '<section class="crm-event' + (open ? ' is-open' : '') + '" data-event="' + e.event_id + '">' +
+          '<h3 class="crm-event__bar">' +
+            '<button type="button" class="crm-event__toggle" aria-expanded="' + open + '">' +
+              '<i data-lucide="chevron-right" class="crm-event__chevron"></i>' +
+              '<span class="crm-event__name">' + esc(e.event_name) + '</span>' +
+            '</button>' +
+            '<span class="crm-event__meta">' + summary(e) + '</span>' +
+          '</h3>' +
+          '<div class="crm-event__body"' + (open ? '' : ' hidden') + '>' +
+            (open ? form(e) : '') +
+          '</div>' +
+        '</section>';
+    }).join('');
+
+    $('#events_list').html(html);
+    if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide' });
+    state.events.forEach(function (e) {
+      if (Number(state.open) === Number(e.event_id)) wire(e);
+    });
+  }
+
+  /* --- one event's form --------------------------------------------------- */
+
+  function form(e) {
+    var id = e.event_id;
+    var recallOpen = (e.status === 'pending' || e.status === 'not_contacted');
+    var reasonOpen = (e.status === 'not_interested');
+    var moneyOn    = String(e.deposit_flag) === '1';
+
+    function opt(list, chosen) {
+      return list.map(function (o) {
+        return '<option value="' + o[0] + '"' + (o[0] === chosen ? ' selected' : '') +
+               '>' + o[1] + '</option>';
+      }).join('');
+    }
+
+    return '' +
+    '<form class="crm-event__form" data-event-form="' + id + '">' +
+      '<input type="hidden" name="event_id" value="' + id + '">' +
+
+      '<div class="form-grid">' +
+        '<div class="form-group">' +
+          '<label for="event_name_' + id + '">Event name</label>' +
+          '<input class="form-control" id="event_name_' + id + '" name="event_name" ' +
+                 'maxlength="128" value="' + esc(e.event_name) + '" required>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="status_' + id + '">Status<span class="form-label__req">*</span></label>' +
+          '<select class="form-control" id="status_' + id + '" name="status" required>' +
+            opt([['pending','Pending'],['not_contacted','Not contacted'],
+                 ['enrol','Enrol'],['not_interested','Not interested']], e.status) +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="temperature_' + id + '">Temperature</label>' +
+          '<select class="form-control" id="temperature_' + id + '" name="temperature">' +
+            opt([['hot','Hot'],['cold','Cold']], e.temperature) +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group" data-recall' + (recallOpen ? '' : ' hidden') + '>' +
+          '<label for="recall_date_' + id + '">Recall date<span class="form-label__req">*</span></label>' +
+          '<input class="form-control mono" id="recall_date_' + id + '" name="recall_date" ' +
+                 'data-datepicker value="' + esc(e.recall_date || '') + '"' +
+                 (recallOpen ? ' required' : ' disabled') + '>' +
+          '<small class="form-text">Type it as yyyy-mm-dd, or pick it.</small>' +
+        '</div>' +
+        '<div class="form-group span-2" data-reason' + (reasonOpen ? '' : ' hidden') + '>' +
+          '<label for="reason_' + id + '">Reason</label>' +
+          '<input class="form-control" id="reason_' + id + '" name="not_interested_notes" ' +
+                 'value="' + esc(e.not_interested_notes || '') + '"' +
+                 (reasonOpen ? '' : ' disabled') + '>' +
+        '</div>' +
+      '</div>' +
+
+      '<h4 class="crm-event__sub">Payment</h4>' +
+      '<div class="form-grid">' +
+        '<div class="form-group">' +
+          '<label for="deposit_flag_' + id + '">Deposit taken</label>' +
+          '<select class="form-control" id="deposit_flag_' + id + '" name="deposit_flag">' +
+            opt([['1','Yes'],['0','No']], String(e.deposit_flag)) +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="payment_status_' + id + '">Payment status</label>' +
+          '<select class="form-control" id="payment_status_' + id + '" name="payment_status">' +
+            opt([['completed','Completed'],['pending','Pending']], e.payment_status) +
+          '</select>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="total_' + id + '">Total</label>' +
+          '<input class="form-control mono" id="total_' + id + '" name="total" ' +
+                 'value="' + esc(e.total) + '"' + (moneyOn ? '' : ' disabled') + '>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="deposit_' + id + '">Deposit</label>' +
+          '<input class="form-control mono" id="deposit_' + id + '" name="deposit" ' +
+                 'value="' + esc(e.deposit) + '"' + (moneyOn ? '' : ' disabled') + '>' +
+        '</div>' +
+        '<div class="form-group">' +
+          '<label for="remaining_' + id + '">Remaining</label>' +
+          '<input class="form-control mono" id="remaining_' + id + '" name="remaining" ' +
+                 'value="' + esc(e.remaining) + '" readonly' + (moneyOn ? '' : ' disabled') + '>' +
+          '<small class="form-text">Total minus deposit.</small>' +
+        '</div>' +
+      '</div>' +
+
+      '<h4 class="crm-event__sub">Requirements</h4>' +
+      '<div class="form-grid">' +
+        '<div class="form-group span-2">' +
+          '<label for="assets_' + id + '">Requirements</label>' +
+          '<textarea class="form-control" id="assets_' + id + '" name="assets_list" ' +
+                    'rows="5" maxlength="256">' + esc(e.assets_list || '') + '</textarea>' +
+        '</div>' +
+      '</div>' +
+      checklist(e) +
+
+      '<h4 class="crm-event__sub">File</h4>' +
+      fileRow(e) +
+
+      '<h4 class="crm-event__sub">Note and assignment</h4>' +
+      '<div class="form-grid">' +
+        '<div class="form-group span-2">' +
+          '<label for="notes_' + id + '">Note<span class="form-label__req">*</span></label>' +
+          '<textarea class="form-control" id="notes_' + id + '" name="notes" rows="3" required ' +
+                    'placeholder="What happened on this contact?"></textarea>' +
+        '</div>' +
+        '<div class="form-group span-2">' +
+          '<label for="assigned_' + id + '">Assigned to<span class="form-label__req">*</span></label>' +
+          '<select class="form-control" id="assigned_' + id + '" name="assigned_to[]" ' +
+                  'multiple required></select>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="crm-event__actions">' +
+        (MY_ROLE === 'admin'
+          ? '<button type="button" class="btn btn-secondary crm-event__delete">' +
+            '<i data-lucide="trash-2"></i>Delete event</button>' : '') +
+        '<span class="crm-event__note">Every save records a note against this event.</span>' +
+        '<button type="submit" class="btn btn-primary">Save event</button>' +
+      '</div>' +
+
+      '<h4 class="crm-event__sub">Notes log</h4>' +
+      '<div class="notes" data-notes="' + id + '"></div>' +
+    '</form>';
+  }
+
+  /* --- checklist ----------------------------------------------------------
+     A real list with a progress line, not a stack of loose checkboxes. Ticked
+     items sink to the bottom so what is still outstanding stays at the top. */
+
+  function checklistItem(item, checked) {
+    return '' +
+      '<li class="crm-check' + (checked ? ' is-done' : '') + '">' +
+        '<label class="crm-check__label">' +
+          '<input type="checkbox" name="check_box" value="' + esc(item) + '"' +
+            (checked ? ' checked' : '') + '>' +
+          '<span class="crm-check__box"><i data-lucide="check"></i></span>' +
+          '<span class="crm-check__text">' + esc(item) + '</span>' +
+        '</label>' +
+        '<input type="hidden" name="check_box_hidden" value="' + esc(item) + '">' +
+        '<button type="button" class="crm-check__remove" aria-label="Remove ' + esc(item) + '">' +
+          '<i data-lucide="x"></i></button>' +
+      '</li>';
+  }
+
+  function checklist(e) {
+    var items = e.check_list || [];
+    var done  = items.filter(function (i) { return Number(i.checked) === 1; }).length;
+    var pct   = items.length ? Math.round(100 * done / items.length) : 0;
+
+    var body = items.length
+      ? '<ul class="crm-checklist">' +
+          items.slice().sort(function (a, b) { return Number(a.checked) - Number(b.checked); })
+               .map(function (i) { return checklistItem(i.item, Number(i.checked) === 1); })
+               .join('') +
+        '</ul>'
+      : '<p class="crm-checklist__empty">Nothing on the list yet.</p>';
+
+    return '' +
+      '<div class="crm-checklist-block">' +
+        '<div class="crm-checklist__head">' +
+          '<div>' +
+            '<h4 class="crm-event__sub crm-event__sub--flush">Check list</h4>' +
+            '<p class="crm-checklist__count"><span data-count>' + done + ' of ' +
+              items.length + ' done</span></p>' +
+          '</div>' +
+          '<button type="button" class="btn btn-secondary btn-sm crm-checklist__add">' +
+            '<i data-lucide="plus"></i>Add item</button>' +
+        '</div>' +
+        '<div class="crm-checklist__bar"><span style="width:' + pct + '%"></span></div>' +
+        body +
+      '</div>';
+  }
+
+  // Recount without re-rendering, so a tick does not move the row out from
+  // under the pointer mid-click.
+  function recount($form) {
+    var $items = $form.find('.crm-check');
+    var done = $form.find('.crm-check input[type=checkbox]:checked').length;
+    $form.find('[data-count]').text(done + ' of ' + $items.length + ' done');
+    $form.find('.crm-checklist__bar > span')
+         .css('width', ($items.length ? Math.round(100 * done / $items.length) : 0) + '%');
+  }
+
+  function fileRow(e) {
+    if (!e.file_name) {
+      return '<div class="crm-file">' +
+        '<button type="button" class="btn btn-secondary crm-file__upload">' +
+          '<i data-lucide="upload"></i>Upload a file</button></div>';
+    }
+    return '<div class="crm-file">' +
+      '<div class="crm-file__current">' +
+        '<i data-lucide="paperclip"></i>' +
+        '<span class="crm-file__name">' + esc(e.file_name) + '</span>' +
+        '<a class="btn btn-secondary btn-sm" download href="/download_file?file_name=' +
+          encodeURIComponent(e.file_name) + '"><i data-lucide="download"></i>Download</a>' +
+        '<button type="button" class="btn btn-secondary btn-sm crm-file__delete">' +
+          '<i data-lucide="trash-2"></i>Remove</button>' +
+      '</div>' +
+      '<button type="button" class="btn btn-secondary crm-file__upload">' +
+        '<i data-lucide="upload"></i>Replace file</button></div>';
+  }
+
+  /* --- behaviour for one open event --------------------------------------- */
+
+  function wire(e) {
+    var id    = e.event_id;
+    var $form = $('[data-event-form="' + id + '"]');
+
+    if (window.crmDate) crmDate.autoInit($form.get(0));
+
+    // Assignment list, then the current selection. /users?get_select_users_event
+    // is the endpoint the page has always used for this.
+    var $sel = $form.find('[name="assigned_to[]"]');
+    $.getJSON('/users?get_select_users_event').done(function (users) {
+      (users || []).forEach(function (u) {
+        $sel.append($('<option></option>').val(u.username).text(u.username));
+      });
+      $sel.val(e.assigned_to || []);
+      // Only an admin reassigns work; everyone else sees who it is on.
+      if (MY_ROLE !== 'admin') $sel.prop('disabled', true);
+      $sel.select2({ width: '100%', placeholder: 'Choose one or more people' });
     });
 
-  }  // End Of File Name Fetcher
+    // crmNotes takes a selector, not an element.
+    crmNotes('[data-event-form="' + id + '"] [data-notes]',
+             { url: '/get_events_notes?event_id=' + id });
 
+    // Status drives which of the two conditional fields is live. A disabled
+    // field is not validated and not posted, which is what the server expects.
+    $form.on('change', '[name=status]', function () {
+      var v = this.value;
+      var recall = (v === 'pending' || v === 'not_contacted');
+      var reason = (v === 'not_interested');
+      $form.find('[data-recall]').prop('hidden', !recall)
+           .find('input').prop('disabled', !recall).prop('required', recall);
+      $form.find('[data-reason]').prop('hidden', !reason)
+           .find('input').prop('disabled', !reason);
+    });
 
-function delete_file()
-{
-  client_id = document.getElementById("client_id").value;
+    $form.on('change', '[name=deposit_flag]', function () {
+      var on = this.value === '1';
+      ['total', 'deposit', 'remaining'].forEach(function (n) {
+        var $f = $form.find('[name=' + n + ']');
+        $f.prop('disabled', !on);
+        if (!on) $f.val('0');
+      });
+    });
 
-body = {"client_id":client_id}
-$.post("/file_delete", body).done(function (data) {
-if( data == "Success")
-{
-Swal.fire(
-		  'File Deleted Successfully',
-		  '',
-		  'success'
-		  );
+    $form.on('input', '[name=total], [name=deposit]', function () {
+      this.value = this.value.replace(/[^0-9.]/g, '');
+      $form.find('[name=remaining]').val(
+        (Number($form.find('[name=total]').val()) || 0) -
+        (Number($form.find('[name=deposit]').val()) || 0));
+    });
 
-      $('#delete_file').attr("href", "javascript:void(0)");
+    $form.on('change', '.crm-check input[type=checkbox]', function () {
+      $(this).closest('.crm-check').toggleClass('is-done', this.checked);
+      recount($form);
+    });
 
- 	$('#delete_file').prop('disabled', true);
-  document.getElementById('file_name').value = "";
-  document.getElementById('file_download_div').hidden = true;
+    $form.on('click', '.crm-check__remove', function () {
+      $(this).closest('.crm-check').remove();
+      recount($form);
+    });
 
-	get_client_file(); // refresh
-}
-else{
-	Swal.fire(
-		  'Failed to Delete File...',
-		  'Kindly try again',
-		  'error'
-		  );
-}
+    $form.on('click', '.crm-checklist__add', function () {
+      window.__checklistTarget = $form;
+      $('#check_list_item_name').val('');
+      $('#add_item_modal').modal('show');
+    });
 
-});
+    $form.on('click', '.crm-file__upload', function () {
+      $('#event_id_file_upload').val(id);
+      $('#uploadModal').modal('show');
+    });
 
-} // End Of File Delete
+    $form.on('click', '.crm-file__delete', function () {
+      Swal.fire({ title: 'Remove this file?', icon: 'warning', showCancelButton: true,
+                  confirmButtonText: 'Remove', cancelButtonText: 'Cancel' })
+        .then(function (r) {
+          if (!r.isConfirmed) return;
+          $.post('/file_delete', { client_id: state.client.client_id, event_id: id })
+            .always(function () { load(state.client.client_id, id); });
+        });
+    });
 
+    $form.on('click', '.crm-event__delete', function () {
+      Swal.fire({ title: 'Delete this event?',
+                  text: 'The event, its checklist, its assignments and its notes go with it.',
+                  icon: 'warning', showCancelButton: true,
+                  confirmButtonText: 'Delete event', cancelButtonText: 'Cancel' })
+        .then(function (r) {
+          if (!r.isConfirmed) return;
+          $.post('/delete_event', { event_id: id }).done(function (res) {
+            if (res.state !== 'success') {
+              Swal.fire('Not deleted', 'The event was not deleted.', 'error');
+              return;
+            }
+            if (res.client_deleted) { window.location.assign('/event_db'); return; }
+            state.open = null;
+            load(state.client.client_id);
+          });
+        });
+    });
+
+    $form.on('submit', function (ev) {
+      ev.preventDefault();
+      var data = $form.serializeArray()
+        .concat($('#client_form').serializeArray());
+      var $save = $form.find('[type=submit]');
+      $save.prop('disabled', true).text('Saving…');
+
+      $.post('/update_event_lead?update_event_lead', $.param(data))
+        .done(function (res) {
+          if (res.state === 'success') {
+            Swal.fire({ icon: 'success', title: 'Event saved', showConfirmButton: false,
+                        timer: 1200 });
+            load(state.client.client_id, id);
+          } else {
+            Swal.fire('Not saved', res.reason || 'The event was not saved.', 'error');
+          }
+        })
+        .fail(function () { Swal.fire('Not saved', 'The event was not saved.', 'error'); })
+        .always(function () { $save.prop('disabled', false).text('Save event'); });
+    });
+  }
+
+  /* --- page-level wiring --------------------------------------------------- */
+
+  $('#events_list').on('click', '.crm-event__toggle', function () {
+    var id = Number($(this).closest('.crm-event').data('event'));
+    state.open = (Number(state.open) === id) ? null : id;
+    paintEvents();
+  });
+
+  $('#add_event_btn').on('click', function () {
+    $.post('/api/event_add', { client_id: state.client.client_id }).done(function (res) {
+      if (res.state !== 'success') { Swal.fire('Not added', 'The event was not added.', 'error'); return; }
+      load(state.client.client_id, res.event_id);
+    });
+  });
+
+  $('#add_item_confirm').on('click', function () {
+    var name  = $('#check_list_item_name').val().trim();
+    var $form = window.__checklistTarget;
+    if (!name || !$form) return;
+    var dup = $form.find('.crm-check input[name=check_box]').filter(function () {
+      return this.value.toLowerCase() === name.toLowerCase();
+    }).length;
+    if (dup) { Swal.fire('Already on the list', name + ' is already there.', 'info'); return; }
+
+    var $list = $form.find('.crm-checklist');
+    if (!$list.length) {
+      $form.find('.crm-checklist__empty').replaceWith('<ul class="crm-checklist"></ul>');
+      $list = $form.find('.crm-checklist');
+    }
+    $list.prepend(checklistItem(name, false));
+    if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide' });
+    recount($form);
+    $('#add_item_modal').modal('hide');
+  });
+
+  $('#upload-file-btn').on('click', function () {
+    var form = document.getElementById('upload_files_form');
+    if (!form.files || !document.getElementById('uploadFile').value) {
+      Swal.fire('Choose a file first', '', 'info'); return;
+    }
+    var fd = new FormData(form);
+    $.ajax({ url: '/upload_file_event', type: 'POST', data: fd,
+             processData: false, contentType: false })
+      .done(function () {
+        $('#uploadModal').modal('hide');
+        load(state.client.client_id, Number($('#event_id_file_upload').val()));
+      })
+      .fail(function () { Swal.fire('Not uploaded', 'The file was not uploaded.', 'error'); });
+  });
+
+  window.clear_data = function () {
+    $('#seacrch_input_box').val('');
+    $('#client_section').prop('hidden', true);
+    state = { client: null, events: [], open: null };
+  };
+
+  // The search box hands back "id - mobile - name"; only the id matters.
+  window.event_client_chosen = function (value) {
+    var id = String(value).split(' - ')[0];
+    if (id) load(id);
+  };
+
+  /* --- the search box -----------------------------------------------------
+     Same autocomplete the page always had - filter a list of
+     "id - mobile - name" strings - but it now picks a client rather than a
+     lead, and hands the id straight to load(). */
+
+  var suggestions = [];
+
+  $.post('/suggesion_data_event').done(function (response) {
+    suggestions = response || [];
+  });
+
+  var $search = $('.searchInput');
+  var $input  = $('#seacrch_input_box');
+  var $box    = $search.find('.resultBox');
+
+  $input.on('input', function () {
+    var q = this.value.trim().toLowerCase();
+    if (!q) { $search.removeClass('active'); $box.empty(); return; }
+    var hits = suggestions.filter(function (d) {
+      return String(d).toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 25);
+    if (!hits.length) { $search.removeClass('active'); $box.empty(); return; }
+    $box.html(hits.map(function (d) {
+      return '<li data-value="' + esc(d) + '">' + esc(d) + '</li>';
+    }).join(''));
+    $search.addClass('active');
+  });
+
+  $box.on('click', 'li', function () {
+    var value = $(this).data('value');
+    $input.val(value);
+    $search.removeClass('active');
+    $box.empty();
+    event_client_chosen(value);
+  });
+
+  $(document).on('click', function (e) {
+    if (!$search.get(0).contains(e.target)) { $search.removeClass('active'); }
+  });
+
+  if (bootClient) load(bootClient, bootEvent || null);
+})();
 </script>
-<!--  FILES END   -->
-
-
-<script>
- $( document ).ready(function() {
-
-  get_data('{{client_data}}');
-  
- })
-</script>
-
 {% endblock %}
