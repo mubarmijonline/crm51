@@ -51,20 +51,47 @@ body {
 }
 
 .app-sidebar__brand:hover { color: var(--chrome-fg); text-decoration: none; }
-/* The mark is roughly a third near-black, so on the --chrome ground it
-   disappeared. It sits on a white plate instead - the brand is white, red and
-   black, so a white chip is the honest way to carry it onto a dark bar rather
-   than recolouring someone's logo. */
+/* The mark carries its own silver panel, so it needs no plate behind it - the
+   white chip that was here was treating the wrong problem. What it did need
+   was cropping: the source PNG had a wide transparent margin, so the artwork
+   rendered small inside its own box. */
 .app-sidebar__brand img {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 28px;
   flex: none;
   object-fit: contain;
-  padding: 3px;
-  background: var(--paper);
-  border-radius: var(--radius-control);
 }
-.app-sidebar__brand span  { font: var(--weight-semibold) var(--text-md)/1 var(--font-sans); }
+
+/* A lockup, not a logo next to some words: the mark, a hairline rule, then the
+   name in two weights so "51" reads as the brand and the rest as the product. */
+.app-sidebar__brand {
+  gap: var(--space-4);
+}
+
+.app-sidebar__wordmark {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-inline-start: var(--space-4);
+  border-inline-start: 1px solid var(--chrome-border);
+  line-height: 1;
+}
+
+.app-sidebar__brand .app-sidebar__wordmark b {
+  font: var(--weight-semibold) var(--text-sm)/var(--leading-tight) var(--font-sans);
+  letter-spacing: var(--tracking-tight);
+  color: var(--chrome-fg);
+}
+
+.app-sidebar__brand .app-sidebar__wordmark span {
+  font: var(--weight-medium) var(--text-2xs)/var(--leading-tight) var(--font-sans);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--chrome-muted);
+}
+
+/* Collapsed hides the wordmark through the generic
+   `.app-sidebar__brand span` rule further down; nothing extra needed here. */
 
 .app-sidebar__nav {
   flex: 1 1 auto;

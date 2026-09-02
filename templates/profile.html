@@ -2,6 +2,7 @@
 {% block body %}
 
 
+
 <style>
   body {
     font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
@@ -290,24 +291,24 @@ value="{{total_assigned_lead_unfinished}}"></div>
 
         <div class="card-body" id="course_analysis_section1" style="display: show;">
           <div class="chart-area">
-              <div id="course_analysis1" style="width:auto; height:100%;"></div>
+              <div id="course_analysis1" data-skeleton="chart" style="width:auto; height:100%;"></div>
           </div>
         </div>
 
         <div class="card-body" id="course_analysis_section2" style="display: show;">
           <div class="chart-area">
-              <div id="course_analysis2" style="width:auto; height:100%;"></div>
+              <div id="course_analysis2" data-skeleton="chart" style="width:auto; height:100%;"></div>
           </div>
         </div>
         <div class="card-body" id="course_analysis_section3" style="display: show;">
           <div class="chart-area">
-              <div id="course_analysis3" style="width:auto; height:100%;"></div>
+              <div id="course_analysis3" data-skeleton="chart" style="width:auto; height:100%;"></div>
           </div>
         </div>
 
         <div class="card-body" id="course_analysis_section" style="display: show;">
           <div class="chart-area">
-              <div id="course_analysis" style="width:auto; height:100%;"></div>
+              <div id="course_analysis" data-skeleton="chart" style="width:auto; height:100%;"></div>
           </div>
         </div>
 
@@ -317,14 +318,21 @@ value="{{total_assigned_lead_unfinished}}"></div>
 
       <div class="card-body" id="educational_chart_section" style="display: show;">
         <div class="chart-area">
-            <div id="educational_chart" style="width:auto; height:100%;"></div>
+            <div id="educational_chart" data-skeleton="chart" style="width:auto; height:100%;"></div>
         </div>
       </div>
         
     </div>
 
     
-    <script>
+    {# Only these two pages chart anything. In the shared head this was a
+   render-blocking script on all 27 pages, and it held up DOMContentLoaded
+   here too, so the chart skeletons could not paint before the charts did.
+   It sits after the chart containers and before the code that uses it:
+   kept synchronous, because the inline draw code calls google.charts.load
+   directly and cannot tolerate async. #}
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
       function get_course_analysis1() {
     
         username_profile = "{{username_profile}}"

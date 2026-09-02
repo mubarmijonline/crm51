@@ -455,14 +455,7 @@ table.dataTable thead th {
 
 /* --- loading / empty / error ---------------------------------------------- */
 
-.crm-skel {
-  display: block; height: 10px; width: 70%;
-  background: var(--surface-hover);
-  border-radius: var(--radius-pill);
-  animation: crm-pulse 1.2s ease-in-out infinite;
-}
 @keyframes crm-pulse { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
-@media (prefers-reduced-motion: reduce) { .crm-skel { animation: none; } }
 
 .crm-state {
   display: flex; flex-direction: column; align-items: center; gap: var(--space-3);
@@ -1032,4 +1025,107 @@ table.dataTable tbody tr.selected:hover > td { background: var(--surface-selecte
 @media (max-width: 767px) {
   .crm-toasts { inset-inline: var(--space-5); top: auto; bottom: var(--space-6); }
   .crm-toast { min-width: 0; max-width: none; }
+}
+
+
+/* ===========================================================================
+   Skeletons and per-widget loading.
+
+   Two different waits need two different treatments, and using one for the
+   other is what makes an interface feel slow:
+
+   - First load, when the widget has no content yet. A skeleton in the shape of
+     the thing that is coming stops the page reflowing when data lands, and
+     tells you what to expect while you wait.
+   - A refresh, when the widget already has content. The content stays put and
+     dims behind a spinner, because blanking a table you were reading in order
+     to reload the same table is worse than a short stale moment.
+   =========================================================================== */
+
+.crm-skel {
+  display: block; height: 10px; width: 70%;
+  background: var(--surface-hover);
+  border-radius: var(--radius-pill);
+  animation: crm-pulse 1.2s ease-in-out infinite;
+}
+
+/* Shapes. A skeleton that is not the shape of its content is just a grey box,
+   so each variant matches something the app actually renders. */
+.crm-skel--title  { height: 14px; width: 45%; }
+.crm-skel--text   { height: 10px; width: 100%; }
+.crm-skel--line   { height: 10px; }
+.crm-skel--avatar { width: 32px; height: 32px; border-radius: var(--radius-pill); flex: none; }
+.crm-skel--block  { height: 100%; width: 100%; border-radius: var(--radius-control); }
+
+/* Stagger, so a stack of bars reads as one object breathing rather than as
+   several unrelated things flashing in time. */
+.crm-skel-stack { display: flex; flex-direction: column; gap: var(--space-3); }
+.crm-skel-stack > .crm-skel:nth-child(2) { animation-delay: .10s; }
+.crm-skel-stack > .crm-skel:nth-child(3) { animation-delay: .20s; }
+.crm-skel-stack > .crm-skel:nth-child(4) { animation-delay: .30s; }
+
+/* --- note-shaped skeleton ------------------------------------------------- */
+
+.crm-skel-note { display: flex; gap: var(--space-4); align-items: flex-start; }
+.crm-skel-note__body {
+  flex: 1 1 auto;
+  display: flex; flex-direction: column; gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+}
+.crm-skel-note:nth-child(2) .crm-skel { animation-delay: .12s; }
+.crm-skel-note:nth-child(3) .crm-skel { animation-delay: .24s; }
+
+/* --- chart-shaped skeleton ------------------------------------------------ */
+
+.crm-skel-chart {
+  display: flex; align-items: flex-end; gap: var(--space-4);
+  height: 220px; padding: var(--space-5) var(--space-4) 0;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.crm-skel-chart .crm-skel {
+  width: 100%; border-radius: var(--radius-control) var(--radius-control) 0 0;
+}
+
+/* --- calendar-shaped skeleton --------------------------------------------- */
+
+.crm-skel-cal {
+  display: grid; gap: 1px;
+  grid-template-columns: repeat(7, 1fr);
+  background: var(--border-hairline);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.crm-skel-cal > div {
+  min-height: 84px; padding: var(--space-3);
+  background: var(--surface-raised);
+  animation: crm-pulse 1.2s ease-in-out infinite;
+}
+
+/* --- per-widget busy overlay ---------------------------------------------- */
+
+.crm-busy { position: relative; }
+.crm-busy > .crm-busy__veil {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--surface-raised) 72%, transparent);
+  border-radius: inherit;
+}
+.crm-busy__spin {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border-hairline);
+  border-top-color: var(--action-primary);
+  border-radius: var(--radius-pill);
+  animation: crm-spin .7s linear infinite;
+}
+@keyframes crm-spin { to { transform: rotate(360deg); } }
+
+/* Reduced motion: the skeleton still marks the region as pending, it just
+   stops flashing. */
+@media (prefers-reduced-motion: reduce) {
+  .crm-skel, .crm-skel-cal > div { animation: none; }
+  .crm-busy__spin { animation-duration: 2.4s; }
 }

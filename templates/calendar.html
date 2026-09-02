@@ -48,7 +48,13 @@
 </div>
 
 <div class="card_customized">
-  <div id="calendar"></div>
+  <div id="cal_wrap" style="position:relative">
+    <div id="calendar"></div>
+    {# The skeleton covers the grid rather than replacing it: FullCalendar 3
+       measures its scroll container on init and throws on a hidden element. #}
+    <div id="cal_skeleton"
+         style="position:absolute;inset:0;z-index:4;background:var(--surface-raised)"></div>
+  </div>
 </div>
 
 {% endblock %}
@@ -113,10 +119,23 @@
     $count.text(events.length + (events.length === 1 ? ' booking' : ' bookings'));
   }
 
+  var calShown = false;
+  // setEditing() runs a load() before /room_data has answered, so the select is
+  // still empty at that point. Without this the skeleton was torn down by that
+  // first no-op load, before a single booking had been asked for.
+  var roomsReady = false;
+
+  function revealCalendar() {
+    if (calShown) return;
+    calShown = true;
+    $('#cal_skeleton').remove();
+  }
+
   function load(then) {
     var room = $room.val();
-    if (!room) { paint([]); return; }
+    if (!room) { if (roomsReady) revealCalendar(); paint([]); return; }
     var url = showFinished ? '/appointment_data_finished' : '/appointment_data';
+    if (calShown) crmBusy('#cal_wrap', true);
 
     $.when($.post(url, { room: room }), $.post('/api/calendar/conflicts', { room: room }))
       .done(function (a, b) {
@@ -143,10 +162,14 @@
         }));
         if (then) then();
       })
-      .fail(function () { paint([]); $count.text('Could not load bookings'); });
+      .fail(function () { paint([]); $count.text('Could not load bookings'); })
+      .always(function () { crmBusy('#cal_wrap', false); revealCalendar(); });
   }
 
   /* --- the calendar ----------------------------------------------------- */
+
+  crmSkeleton.calendar('#cal_skeleton', 35);
+  $('#cal_skeleton > .crm-skel-cal').css('height', '100%');
 
   $cal.fullCalendar({
     header: { left: 'prev,next today', center: 'title',
@@ -363,7 +386,13 @@
     (rooms || []).forEach(function (r) {
       $room.append($('<option></option>').val(r.room_name).text(r.room_name));
     });
+    roomsReady = true;
     load();
+  }).fail(function () {
+    roomsReady = true;
+    // No rooms, no load(), so nothing else would ever clear the skeleton.
+    revealCalendar();
+    $count.text('Could not load rooms');
   });
   $room.on('change', function () { load(); });
 })();

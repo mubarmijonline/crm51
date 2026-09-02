@@ -1,3 +1,6 @@
+{# The tab icon. /favicon.ico had been 404ing on every page load. #}
+<link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" sizes="any">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/51_mark_160.png') }}">
 {# ============================================================================
    _assets.html — every stylesheet and script the app uses, in one place.
 
@@ -73,6 +76,7 @@
 {# The one table component: server-side search, URL state, real states. #}
 <script src="{{ url_for('static', filename='js/crm-table.js') }}"></script>
 <script src="{{ url_for('static', filename='js/crm-form.js') }}"></script>
+<script src="{{ url_for('static', filename='js/crm-skeleton.js') }}"></script>
 <script src="{{ url_for('static', filename='js/crm-notes.js') }}"></script>
 <script src="{{ url_for('static', filename='js/crm-toast.js') }}"></script>
 {# Applies the form language to every page, including un-migrated ones. #}
@@ -80,6 +84,5 @@
 {# Google Charts backs the 10 ColumnCharts on profile and event_profile.
    The old base loaded this; dropping it left google.charts undefined at
    call time and every one of those charts dead. #}
-<script src="https://www.gstatic.com/charts/loader.js"></script>
 {# Icons — replaces Font Awesome 4.7 + both Font Awesome kit scripts #}
 <script src="{{ url_for('static', filename='vendor/lucide/lucide.js') }}"></script>

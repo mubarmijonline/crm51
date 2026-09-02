@@ -123,12 +123,28 @@
       host.innerHTML = html;
     }
 
+    // First load draws note-shaped skeletons so the column does not jump when
+    // the notes land. A reload keeps the notes you were reading on screen and
+    // dims them instead - blanking them to fetch the same list back is worse
+    // than a stale second.
+    var loaded = false;
+
     function load() {
-      host.innerHTML = '<p class="notes__empty">Loading notes…</p>';
+      if (loaded) { crmBusy(host, true); }
+      else if (window.crmSkeleton) { crmSkeleton.notes(host, 3); }
+
       $.getJSON(opts.url).done(function (payload) {
         render(payload && payload.data ? payload.data : payload);
+        loaded = true;
       }).fail(function () {
-        host.innerHTML = '<p class="notes__empty">Could not load the notes. Refresh to try again.</p>';
+        if (!loaded) {
+          host.innerHTML = '<p class="notes__empty">Could not load the notes. ' +
+                           'Refresh to try again.</p>';
+        } else if (window.crmToast) {
+          crmToast({ text: 'Could not refresh the notes.', tone: 'danger' });
+        }
+      }).always(function () {
+        if (loaded) crmBusy(host, false);
       });
     }
 

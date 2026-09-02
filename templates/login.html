@@ -12,9 +12,14 @@ body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;backgr
 .pane-form{display:flex;align-items:center;justify-content:center;padding:var(--space-11)}
 .pane-brand{background:var(--surface-app);border-left:1px solid var(--border-hairline);display:flex;align-items:center;justify-content:center;padding:var(--space-11)}
 .form-wrap{width:340px;display:flex;flex-direction:column;gap:var(--space-8)}
-.brand{display:flex;align-items:center;gap:var(--space-5)}
-.brand img{height:40px;width:auto}
-.brand span{font:var(--type-title);color:var(--text-title);letter-spacing:var(--tracking-tight)}
+.brand{display:flex;align-items:center;gap:var(--space-4)}
+.brand img{height:44px;width:auto}
+.brand-word{display:flex;flex-direction:column;gap:2px;line-height:1;
+  padding-inline-start:var(--space-4);border-inline-start:1px solid var(--border-hairline)}
+.brand-word b{font:var(--weight-semibold) 17px/1.2 var(--font-sans);
+  letter-spacing:var(--tracking-tight);color:var(--text-title)}
+.brand-word span{font:var(--weight-medium) 11px/1.2 var(--font-sans);
+  letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
 .field{display:flex;flex-direction:column;gap:var(--space-3)}
 @media (max-width:900px){body{grid-template-columns:1fr}.pane-brand{display:none}.pane-form{padding:var(--space-8)}.form-wrap{width:100%;max-width:360px}}
 </style>
@@ -24,8 +29,8 @@ body{margin:0;min-height:100vh;display:grid;grid-template-columns:1fr 1fr;backgr
 <div class="pane-form">
   <div class="form-wrap">
     <div class="brand">
-      <img src="{{ url_for('static', filename='images/51_logo_mark.png') }}" alt="">
-      <span>51 American CRM</span>
+      <img src="{{ url_for('static', filename='images/51_mark_160.png') }}" alt="51">
+      <span class="brand-word"><b>51 American</b><span>CRM</span></span>
     </div>
 
     <div style="display:flex;flex-direction:column;gap:var(--space-3)">
