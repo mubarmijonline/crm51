@@ -88,7 +88,7 @@
               crmAction({ icon: 'notebook-pen', label: 'Add notes',
                 onclick: "add_notes_swal(\'" + row.client_id + "\',\'" + row.client_mobile + "\')" }),
               crmAction({ icon: 'user-round', label: 'Profile',
-                onclick: "window.location.assign(\'/update_event_lead?client_data=" + row.client_id + " - " + row.client_mobile + " - " + row.client_name + "\')" })
+                href: '/update_event_lead?client_data=' + encodeURIComponent(row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name) })
             ]);
           }
         }
@@ -100,7 +100,7 @@
       pageLength: 25,
       lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
       dom: 'Blfrtip',
-      scrollX: true,
+      scrollX: false,   // see crm-table.js: a split header breaks the pinned column
       order: [[3, "desc"]],
       buttons: [
         'copy', 'csv', 'excel', 'pdf', 'print',

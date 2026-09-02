@@ -62,7 +62,7 @@
           var myrole = "{{ session['role'] }}";
           var acts = [crmAction({
             icon: 'user-round', label: 'Profile',
-            onclick: "window.location.assign(\'/update_event_lead?client_data=' + row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name + '\')"
+            href: '/update_event_lead?client_data=' + encodeURIComponent(row.client_id + ' - ' + row.client_mobile + ' - ' + row.client_name)
           })];
           if (myrole === 'admin') acts.push(crmAction({
             icon: 'trash-2', label: 'Delete', danger: true,

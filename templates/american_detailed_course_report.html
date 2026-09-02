@@ -71,8 +71,7 @@
           var myrole = "{{ session['role'] }}";
           var acts = [crmAction({
             icon: 'user-round', label: 'Profile',
-            onclick: "window.location.assign(\'/update_american_lead?student_data=" +
-                     row.student_id + " - " + row.student_mobile + " - " + row.student_name + "\')"
+            href: '/update_american_lead?student_data=' + encodeURIComponent(row.student_id + ' - ' + row.student_mobile + ' - ' + row.student_name)
           })];
           if (myrole === 'admin') acts.push(crmAction({
             icon: 'trash-2', label: 'Delete', danger: true,

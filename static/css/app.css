@@ -280,9 +280,14 @@ select[multiple] option:checked {
   overflow-x: auto;
 }
 
-.card_customized > .dataTables_wrapper {
-  padding: var(--pad-card);
-}
+/* No padding on the wrapper: it inset the table by 20px a side, so a narrow
+   table never reached the card edge. The toolbar and the footer carry their
+   own padding instead, and the table itself runs edge to edge. */
+.card_customized > .dataTables_wrapper { padding: 0; }
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_paginate { padding: var(--space-4) var(--space-6); }
 
 
 /* --- Buttons carrying an icon --------------------------------------------- */
@@ -588,6 +593,12 @@ table.dataTable thead th {
 /* --- pinned first column -------------------------------------------------- */
 
 @media (min-width: 768px) {
+  /* The pinned column only works when the header and the body are the SAME
+     table. DataTables' scrollX splits them into two, each with its own width
+     calculation, and sticky positioning in the body then drifts out of step
+     with the header - which is what put the labels over the wrong columns.
+     crm-table.js turns scrollX off and scrolls one table inside .crm-scroll
+     instead, so there is a single set of column widths. */
   table.dataTable thead th:first-child,
   table.dataTable tbody td:first-child {
     position: sticky;
@@ -615,8 +626,10 @@ table.dataTable thead th {
 
 .crm-actions { display: inline-flex; align-items: center; gap: var(--space-2); }
 
-.crm-iconbtn {
+.crm-iconbtn,
+a.crm-iconbtn {
   display: inline-flex;
+  text-decoration: none;
   align-items: center;
   justify-content: center;
   width: 30px;
@@ -631,6 +644,8 @@ table.dataTable thead th {
               border-color var(--duration-fast) var(--ease-standard),
               background var(--duration-fast) var(--ease-standard);
 }
+
+a.crm-iconbtn:hover { text-decoration: none; }
 
 .crm-iconbtn:hover {
   background: var(--surface-hover);
@@ -657,4 +672,57 @@ table.dataTable thead th {
   .crm-iconbtn::after { content: attr(data-label); font: var(--type-body-sm); }
   .crm-actions { width: 100%; gap: var(--space-3); }
   .crm-actions .crm-iconbtn { flex: 1 1 auto; }
+}
+
+
+
+/* ===========================================================================
+   Tables: full width and ruled.
+   =========================================================================== */
+
+/* 2. Fill the card, whatever DataTables computed. It sets an inline width in
+   px from its own measurement, which on a narrow payload leaves the table
+   floating in a half-empty card. */
+.dataTables_wrapper,
+.dataTables_wrapper table.dataTable {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.card_customized > .dataTables_wrapper,
+.form-section > .dataTables_wrapper { width: 100%; }
+
+/* 3. Grid lines. Rows already had a divider; columns did not, so a wide table
+   read as drifting text. A vertical rule on every cell but the last gives the
+   grid without turning it into a spreadsheet. */
+table.dataTable thead th,
+table.dataTable tbody td {
+  border-inline-end: 1px solid var(--border-hairline);
+}
+table.dataTable thead th:last-child,
+table.dataTable tbody td:last-child { border-inline-end: 0; }
+
+table.dataTable thead th {
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--surface-sunken);
+}
+
+table.dataTable tbody td {
+  border-top: 1px solid var(--border-hairline);
+}
+
+/* The outer edge of the grid. */
+.dataTables_wrapper table.dataTable {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Cells need breathing room once they are ruled. */
+table.dataTable thead th,
+table.dataTable tbody td { padding: var(--space-4) var(--space-5); }
+
+/* On phones the table is a stack of cards, so the column rules would be noise. */
+@media (max-width: 767px) {
+  table.dataTable tbody td { border-inline-end: 0; }
 }

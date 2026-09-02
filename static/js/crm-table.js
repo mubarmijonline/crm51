@@ -23,13 +23,31 @@
   /* Row actions are icons, not a row of word-buttons. Each carries an
      aria-label and a title, and data-label so the mobile card view can put the
      word back where there is room for it. */
+  function attrEscape(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  /* Pass `href` for navigation and `onclick` only for a real action.
+     Building a URL inside an onclick string meant nesting quotes three deep,
+     which is how "' + row.client_id + '" ended up in the DOM as literal text
+     instead of being concatenated - every Profile button threw
+     "row is not defined". An href cannot go wrong that way, and it also gives
+     the row middle-click and open-in-new-tab for free. */
   window.crmAction = function (opts) {
-    return '<button type="button" class="crm-iconbtn' +
-      (opts.danger ? ' crm-iconbtn--danger' : '') + '"' +
-      ' aria-label="' + opts.label + '" title="' + opts.label + '"' +
-      ' data-label="' + opts.label + '"' +
-      ' onclick="' + opts.onclick + '">' +
-      '<i data-lucide="' + opts.icon + '"></i></button>';
+    var common =
+      ' class="crm-iconbtn' + (opts.danger ? ' crm-iconbtn--danger' : '') + '"' +
+      ' aria-label="' + attrEscape(opts.label) + '"' +
+      ' title="' + attrEscape(opts.label) + '"' +
+      ' data-label="' + attrEscape(opts.label) + '"';
+    var glyph = '<i data-lucide="' + opts.icon + '"></i>';
+
+    if (opts.href) {
+      return '<a href="' + attrEscape(opts.href) + '"' + common + '>' + glyph + '</a>';
+    }
+    return '<button type="button"' + common +
+           ' onclick="' + attrEscape(opts.onclick) + '">' + glyph + '</button>';
   };
 
   window.crmActions = function (buttons) {
@@ -173,7 +191,12 @@
       displayStart: startPage,
       lengthMenu: [[25, 50, 100], [25, 50, 100]],
       dom: opts.dom || 'lrtip',   // our own search box replaces 'f'
-      scrollX: true,
+      // scrollX off deliberately. It clones the header into a second table
+      // with its own width calculation, and a sticky first column in the body
+      // then no longer lines up with the header above it. One table scrolling
+      // inside .crm-scroll keeps a single set of column widths.
+      scrollX: false,
+      autoWidth: false,
       language: {
         emptyTable: panel('inbox', 'Nothing here yet',
                           'Records appear here once the first one is created.'),
@@ -347,6 +370,8 @@
        mouse that has no horizontal wheel. Grab anywhere that is not a control
        and drag. A few pixels of movement before we claim the gesture, so a
        plain click on a row still behaves like a click. */
+    // With scrollX off there is no .dataTables_scrollBody, so the wrapper is
+    // the scrolling element.
     var scroller = $wrap.find('.dataTables_scrollBody').get(0) || $wrap.get(0);
     scroller.classList.add('crm-scroll');
 

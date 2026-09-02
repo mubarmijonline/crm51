@@ -88,7 +88,7 @@
               crmAction({ icon: 'notebook-pen', label: 'Add notes',
                 onclick: "add_notes_swal(\'" + row.student_id + "\',\'" + row.student_mobile + "\')" }),
               crmAction({ icon: 'user-round', label: 'Profile',
-                onclick: "window.location.assign(\'/update_american_lead?student_data=" + row.student_id + " - " + row.student_mobile + " - " + row.student_name + "\')" })
+                href: '/update_american_lead?student_data=' + encodeURIComponent(row.student_id + ' - ' + row.student_mobile + ' - ' + row.student_name) })
             ]);
           }
         }
@@ -102,7 +102,7 @@
       pageLength: 25,
       lengthMenu: [[25, 50, 100, -1], [25, 50, 100, 'All']],
       dom: 'Blfrtip',
-      scrollX: true,
+      scrollX: false,   // see crm-table.js: a split header breaks the pinned column
       order: [[3, "desc"]],
       buttons: [
         'copy', 'csv', 'excel', 'pdf', 'print',
