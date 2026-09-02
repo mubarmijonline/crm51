@@ -5,8 +5,7 @@
  *
  *   crmSkeleton.<shape>(host, n)  - first load: draw a placeholder in the
  *                                   shape of the content that is coming.
- *   crmBusy(host, true|false)     - refresh: keep the content, dim it,
- *                                   put a spinner over it.
+ *   crmBusy(host, true|false)     - refresh: keep the content and dim it.
  *
  * Both take an element or a selector. Neither throws when the host is absent,
  * so a page that does not have a given widget can call them unconditionally.
@@ -82,9 +81,10 @@
     }
   };
 
-  /* Per-widget busy state. Reference-counted, so two overlapping requests over
-   * the same widget do not have the second one's completion uncover the first
-   * one that is still running. */
+  /* Per-widget busy state: a dim over the existing content, no spinner.
+   * Reference-counted, so two overlapping requests over the same widget do not
+   * have the second one's completion uncover the first one that is still
+   * running. */
   function crmBusy(host, on) {
     var h = el(host); if (!h) return;
     var n = parseInt(h.getAttribute('data-busy') || '0', 10);
@@ -98,7 +98,8 @@
       if (!veil) {
         veil = document.createElement('div');
         veil.className = 'crm-busy__veil';
-        veil.innerHTML = '<span class="crm-busy__spin" role="status" aria-label="Loading"></span>';
+        veil.setAttribute('role', 'status');
+        veil.setAttribute('aria-label', 'Loading');
         h.appendChild(veil);
       }
     } else {

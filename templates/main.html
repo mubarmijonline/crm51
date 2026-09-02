@@ -212,7 +212,6 @@ $(document).ready(function () {
 });
 
 function notifications() {
-  localStorage.setItem("isFunctionRunning", 1);
   var isAdmin = "{{ session['role'] }}" === "admin";
   var listId = isAdmin ? "#notification_dropdown" : "#notification_dropdownx";
   var countId = isAdmin ? "notifiction_count" : "notifiction_countx";
@@ -225,7 +224,6 @@ function notifications() {
       $list.append("<li><div style='padding:8px;color:var(--text-muted)'>No new notifications</div></li>");
       $list.append("<li><div class='text-center' style='padding-top:8px;border-top:1px solid var(--border-hairline)'><button onclick='go_to_notification_center()' class='btn btn-secondary btn-sm'>Show historical notifications</button></div></li>");
       badge.style.display = "none";
-      localStorage.setItem("isFunctionRunning", 0);
       return;
     }
 
@@ -255,13 +253,10 @@ function notifications() {
     if (unread) { badge.style.display = "block"; badge.innerText = unread; }
     else badge.style.display = "none";
   });
-  localStorage.setItem("isFunctionRunning", 0);
 }
 
 function read_notification(notification_id, true_false) {
-  localStorage.setItem("isFunctionRunning", 1);
   $.get("/read_notifications?notification_id=" + notification_id + "&true_false=" + true_false).done(notifications);
-  localStorage.setItem("isFunctionRunning", 0);
 }
 
 function go_to_notification_center() { window.location.assign("/historical_notification"); }
@@ -284,43 +279,13 @@ function go_to_event_lead(client_id, section) {
 setInterval(notifications, 60000);
 </script>
 
-{# --- Global ajax loading overlay --- #}
-<script>
-/* Two rules make this reliable:
-   1. Only show after 250ms. Most requests finish in 20-50ms; flashing an
-      overlay for those is noise, and SweetAlert ignores close() while its
-      open animation is still running - which is exactly why a fast table
-      load left the spinner stuck on screen.
-   2. No open animation at all, so a close() that does arrive is honoured. */
-(function () {
-  var pending = null;
-  var LOADING_GIF = "{{ url_for('static', filename='images/loading__.gif') }}";
-
-  function show() {
-    pending = null;
-    Swal.fire({
-      imageUrl: LOADING_GIF,
-      imageWidth: 120, imageHeight: 120,
-      background: 'transparent', allowOutsideClick: false, showConfirmButton: false,
-      showClass: { popup: '', backdrop: '' },
-      hideClass: { popup: '', backdrop: '' },
-      customClass: { container: 'loading-container-class', popup: 'popup-class', backdrop: 'true' }
-    });
-  }
-
-  $(document)
-    .ajaxStart(function () {
-      if (localStorage.getItem("isFunctionRunning") == 1) return;
-      if (pending === null) pending = setTimeout(show, 250);
-    })
-    .ajaxStop(function () {
-      if (pending !== null) { clearTimeout(pending); pending = null; }
-      if (window.Swal && Swal.isVisible() &&
-          document.querySelector('.loading-container-class')) Swal.close();
-    });
-})();
-</script>
-
+{# The global ajax loading overlay is gone. It was a full-screen SweetAlert
+   holding one gif, thrown up on every request that took longer than 250ms,
+   which meant it covered the page and blocked interaction while a table
+   fetched its own rows - a table that was already showing a skeleton of the
+   rows underneath it. Loading is now shown where the loading is happening:
+   a skeleton in the shape of the content on first load, and the content
+   dimmed in place on a refresh. See crm-skeleton.js. #}
 
 {# --- shell behaviour ----------------------------------------------------- #}
 <script>

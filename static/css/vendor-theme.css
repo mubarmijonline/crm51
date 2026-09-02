@@ -324,14 +324,6 @@ input[readonly], textarea[readonly], .form-control[readonly] {
 }
 
 
-/* The global ajax loading overlay is a transparent popup holding one gif.
-   The .swal2-popup rule above gave it a white card and a border. Exempt it. */
-.swal2-popup.popup-class {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-
 /* --- D. scrollX clones the header. The copy left inside scrollBody must stay
    collapsed; our sticky/padded thead rules were giving it height again, so
    every scrolling table showed its header twice. */
