@@ -149,17 +149,25 @@ body {
 
 /* Collapsed: 64px, icons only. Labels are hidden but stay in the DOM for
    screen readers. */
-.app-sidebar.is-collapsed { width: 64px; }
+.app-sidebar.is-collapsed,
+html.sidebar-collapsed .app-sidebar { width: 64px; }
 .app-sidebar.is-collapsed .app-sidebar__brand span,
 .app-sidebar.is-collapsed .app-sidebar__link span,
-.app-sidebar.is-collapsed .app-sidebar__toggle span { display: none; }
-.app-sidebar.is-collapsed .app-sidebar__group {
+.app-sidebar.is-collapsed .app-sidebar__toggle span,
+html.sidebar-collapsed .app-sidebar__brand span,
+html.sidebar-collapsed .app-sidebar__link span,
+html.sidebar-collapsed .app-sidebar__toggle span { display: none; }
+.app-sidebar.is-collapsed .app-sidebar__group,
+html.sidebar-collapsed .app-sidebar__group {
   height: 1px; padding: 0; margin: var(--space-5) var(--space-5) 0;
   overflow: hidden; color: transparent; background: var(--chrome-border);
 }
 .app-sidebar.is-collapsed .app-sidebar__link,
 .app-sidebar.is-collapsed .app-sidebar__brand,
-.app-sidebar.is-collapsed .app-sidebar__toggle { justify-content: center; padding-inline: 0; }
+.app-sidebar.is-collapsed .app-sidebar__toggle,
+html.sidebar-collapsed .app-sidebar__link,
+html.sidebar-collapsed .app-sidebar__brand,
+html.sidebar-collapsed .app-sidebar__toggle { justify-content: center; padding-inline: 0; }
 
 
 /* --- main column ---------------------------------------------------------- */
@@ -174,7 +182,8 @@ body {
   transition: margin var(--duration-base) var(--ease-standard);
 }
 
-.app-shell.is-collapsed .app-main { margin-inline-start: 64px; }
+.app-shell.is-collapsed .app-main,
+html.sidebar-collapsed .app-main { margin-inline-start: 64px; }
 
 
 /* --- top bar -------------------------------------------------------------- */
@@ -358,13 +367,18 @@ footer, footer a {
     width: 248px;
   }
   .app-sidebar.is-open { transform: translateX(0); box-shadow: var(--shadow-lg); }
-  .app-sidebar.is-collapsed { width: 248px; }
+  .app-sidebar.is-collapsed,
+  html.sidebar-collapsed .app-sidebar { width: 248px; }
   .app-sidebar.is-collapsed .app-sidebar__link span,
   .app-sidebar.is-collapsed .app-sidebar__brand span,
-  .app-sidebar.is-collapsed .app-sidebar__toggle span { display: inline; }
+  .app-sidebar.is-collapsed .app-sidebar__toggle span,
+  html.sidebar-collapsed .app-sidebar__link span,
+  html.sidebar-collapsed .app-sidebar__brand span,
+  html.sidebar-collapsed .app-sidebar__toggle span { display: inline; }
 
   .app-main,
-  .app-shell.is-collapsed .app-main { margin-inline-start: 0; }
+  .app-shell.is-collapsed .app-main,
+  html.sidebar-collapsed .app-main { margin-inline-start: 0; }
 
   .app-topbar__burger { display: inline-flex; }
   .app-topbar__crumbs { display: none; }

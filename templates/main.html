@@ -37,8 +37,12 @@ try {
   if (t === 'dark' || t === 'light') {
     document.documentElement.setAttribute('data-theme', t);
   }
+  // A class on <html>, not an injected <style>. document.write dropped a
+  // permanent ".app-sidebar{width:64px}" rule after shell.css, so expanding
+  // removed .is-collapsed - labels reappeared - while the width stayed 64px
+  // and clipped them. A class can be taken off again.
   if (localStorage.getItem('crm51.sidebar.collapsed') === '1') {
-    document.write('<style>.app-sidebar{width:64px}.app-main{margin-inline-start:64px}</style>');
+    document.documentElement.classList.add('sidebar-collapsed');
   }
 } catch (e) {}
 </script>
@@ -329,6 +333,9 @@ setInterval(notifications, 60000);
   function apply(collapsed) {
     sidebar.classList.toggle('is-collapsed', collapsed);
     shell.classList.toggle('is-collapsed', collapsed);
+    // Keep the pre-paint class in step, or expanding leaves the narrow width
+    // behind and the labels render clipped inside it.
+    document.documentElement.classList.toggle('sidebar-collapsed', collapsed);
     if (toggle) {
       toggle.setAttribute('aria-expanded', String(!collapsed));
       toggle.setAttribute('aria-label', collapsed ? 'Expand sidebar' : 'Collapse sidebar');
