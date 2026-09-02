@@ -327,3 +327,84 @@ small.form-text {
   .note__bubble { max-width: 100%; }
   .note-composer { gap: var(--space-3); }
 }
+
+
+/* ===========================================================================
+   Lead search autocomplete (update_american_lead, update_event_lead).
+
+   These rules lived in an inline <style> on the page and were removed with
+   the dead switch/slider CSS beside them. Without them the suggestion list
+   renders as a raw bulleted <ul>. Restored here, on tokens, so it cannot be
+   lost again with a page edit.
+   =========================================================================== */
+
+.containerss { max-width: 640px; width: 100%; margin: 0 0 var(--space-7); }
+
+.containerss .searchInput {
+  position: relative;
+  width: 100%;
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-control);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
+}
+.containerss .searchInput:focus-within { border-color: var(--red); box-shadow: var(--focus-ring); }
+
+.searchInput input {
+  width: 100%;
+  height: 44px;
+  padding: 0 48px 0 var(--space-5);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-control);
+  outline: none;
+  font: var(--type-body);
+  color: var(--text-body);
+  box-shadow: none;
+}
+.searchInput input::placeholder { color: var(--text-subtle); }
+.searchInput.active input { border-radius: var(--radius-control) var(--radius-control) 0 0; }
+
+.searchInput .icon {
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.searchInput .icon:hover { color: var(--text-body); }
+
+.searchInput .resultBox {
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  border-top: 0 solid var(--border-hairline);
+}
+.searchInput.active .resultBox {
+  padding: var(--space-3);
+  opacity: 1;
+  pointer-events: auto;
+  border-top-width: 1px;
+}
+
+.resultBox li {
+  display: none;
+  list-style: none;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-xs);
+  font: var(--type-body-sm);
+  color: var(--text-body);
+  cursor: pointer;
+}
+.searchInput.active .resultBox li { display: block; }
+.resultBox li:hover { background: var(--surface-hover); }

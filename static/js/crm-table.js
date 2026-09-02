@@ -152,7 +152,10 @@
       deferRender: true,
       ajax: {
         url: url,
-        type: 'GET',
+        // POST, not GET. Server-side DataTables sends six params per column;
+        // at 21 columns that is a 4.7 KB query string, which nginx rejects
+        // with 400 before Flask ever sees it. The body has no such limit.
+        type: 'POST',
         error: function () {
           $table.find('tbody').html(
             '<tr><td colspan="' + columns.length + '">' +

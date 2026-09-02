@@ -340,17 +340,39 @@ setInterval(notifications, 60000);
 
 {# --- Global ajax loading overlay --- #}
 <script>
-$(document)
-  .ajaxStart(function () {
-    if (localStorage.getItem("isFunctionRunning") == 1) return;
+/* Two rules make this reliable:
+   1. Only show after 250ms. Most requests finish in 20-50ms; flashing an
+      overlay for those is noise, and SweetAlert ignores close() while its
+      open animation is still running - which is exactly why a fast table
+      load left the spinner stuck on screen.
+   2. No open animation at all, so a close() that does arrive is honoured. */
+(function () {
+  var pending = null;
+  var LOADING_GIF = "{{ url_for('static', filename='images/loading__.gif') }}";
+
+  function show() {
+    pending = null;
     Swal.fire({
-      imageUrl: "{{ url_for('static', filename='images/loading__.gif') }}",
+      imageUrl: LOADING_GIF,
       imageWidth: 120, imageHeight: 120,
       background: 'transparent', allowOutsideClick: false, showConfirmButton: false,
+      showClass: { popup: '', backdrop: '' },
+      hideClass: { popup: '', backdrop: '' },
       customClass: { container: 'loading-container-class', popup: 'popup-class', backdrop: 'true' }
     });
-  })
-  .ajaxStop(function () { $(".loading-container-class .swal2-close").click(); });
+  }
+
+  $(document)
+    .ajaxStart(function () {
+      if (localStorage.getItem("isFunctionRunning") == 1) return;
+      if (pending === null) pending = setTimeout(show, 250);
+    })
+    .ajaxStop(function () {
+      if (pending !== null) { clearTimeout(pending); pending = null; }
+      if (window.Swal && Swal.isVisible() &&
+          document.querySelector('.loading-container-class')) Swal.close();
+    });
+})();
 </script>
 
 
