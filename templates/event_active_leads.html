@@ -53,6 +53,8 @@
   var table = crmTable('#events_table', {
     key: 'event_active_leads',
     url: '/api/event_active_leads',
+    rowId: 'client_id',
+    bulkDelete: 'event_leads',
     placeholder: 'Search name, mobile, email, status\u2026',
     order: [[1, 'desc']],
     columns: [

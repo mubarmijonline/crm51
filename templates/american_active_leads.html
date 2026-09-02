@@ -64,6 +64,8 @@
   var table = crmTable('#students_table', {
     key: 'american_active_leads',
     url: '/api/american_active_leads',
+    rowId: 'student_id',
+    bulkDelete: 'american_leads',
     placeholder: 'Search name, mobile, email, course, school\u2026',
     order: [[1, 'desc']],
     columns: [

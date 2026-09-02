@@ -2286,6 +2286,88 @@ def api_american_leads_detailed():
                               mimetype='application/json')
 
 
+# =============================================================================
+# Bulk delete.
+#
+# Mirrors /delete_student and /delete_event exactly - same three tables, same
+# admin check re-read from the database rather than trusted from the session -
+# but in one transaction, so a partial failure leaves nothing half-deleted.
+#
+# Ids are bound, never interpolated. The per-row route builds its first DELETE
+# by string concatenation; that pattern is not repeated here.
+# =============================================================================
+
+BULK_TARGETS = {
+    'american_leads': {
+        'key': 'student_id',
+        'deletes': [('american_leads', 'student_id'),
+                    ('course_status',  'student_id'),
+                    ('assignation',    'student_id')],
+    },
+    'event_leads': {
+        'key': 'client_id',
+        'deletes': [('event_leads',       'client_id'),
+                    ('event_assignation', 'client_id'),
+                    ('event_check_list',  'client_id')],
+    },
+}
+
+BULK_DELETE_LIMIT = 200
+
+
+@app.route('/api/bulk_delete', methods=["POST"])
+def api_bulk_delete():
+    if 'name' not in session:
+        return jsonify({'state': 'not_authenticated'}), 401
+
+    target = request.form.get('target', '')
+    spec = BULK_TARGETS.get(target)
+    if not spec:
+        return jsonify({'state': 'bad_target'}), 400
+
+    raw = request.form.getlist('ids[]') or request.form.getlist('ids')
+    ids = []
+    for value in raw:
+        try:
+            ids.append(int(value))
+        except (TypeError, ValueError):
+            return jsonify({'state': 'bad_id'}), 400
+    ids = list(dict.fromkeys(ids))          # de-duplicate, keep order
+
+    if not ids:
+        return jsonify({'state': 'nothing_selected'}), 400
+    if len(ids) > BULK_DELETE_LIMIT:
+        return jsonify({'state': 'too_many', 'limit': BULK_DELETE_LIMIT}), 400
+
+    conn, cur = connection()
+    try:
+        # Authorisation comes from the database, not the session, exactly as
+        # the single-row route does.
+        found = cur.execute("select role from user where username=%s", (session['name'],))
+        if int(found) == 0:
+            return jsonify({'state': 'failed'})
+        (role,) = cur.fetchone()
+        if (role or '').lower() != 'admin':
+            return jsonify({'state': 'no_access'})
+
+        placeholders = ', '.join(['%s'] * len(ids))
+        deleted = 0
+        for table, column in spec['deletes']:
+            cur.execute('DELETE FROM `%s` WHERE `%s` IN (%s)'
+                        % (table, column, placeholders), tuple(ids))
+            if table == spec['deletes'][0][0]:
+                deleted = cur.rowcount
+        conn.commit()
+        return jsonify({'state': 'success', 'deleted': deleted, 'requested': len(ids)})
+    except Exception as exc:
+        conn.rollback()
+        print('bulk_delete failed:', exc)
+        return jsonify({'state': 'error'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+
 @app.route('/american_active_leads', methods=["GET","POST"])
 def american_active_leads():
     return render_template("american_active_leads.html")
