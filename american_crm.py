@@ -2072,20 +2072,30 @@ def _escape_like(term):
                 .replace('_', '\\_'))
 
 
+def _col_expr(name, spec):
+    """A column maps to a SQL expression. Two-item specs are a plain column on
+    the base table; three-item specs carry their own expression, which is what
+    a joined view needs - "b.course" cannot be written as `course`."""
+    if len(spec) >= 3 and spec[2]:
+        return spec[2]
+    return '`%s`' % name
+
+
 def _build_search(term, columns, phone_columns):
     """One search term -> (sql_fragment, params). OR across every column."""
     parts, params = [], []
     like = '%' + _escape_like(term) + '%'
 
-    for col, (searchable, _) in columns.items():
-        if not searchable:
+    for col, spec in columns.items():
+        if not spec[0]:
             continue
-        parts.append("`%s` LIKE %%s" % col)
+        parts.append("%s LIKE %%s" % _col_expr(col, spec))
         params.append(like)
 
     for col in phone_columns:
+        expr = _col_expr(col, columns.get(col, (True, True)))
         for variant in _phone_variants(term):
-            parts.append("%s LIKE %%s" % _digits_only_sql('`%s`' % col))
+            parts.append("%s LIKE %%s" % _digits_only_sql(expr))
             params.append('%' + variant + '%')
 
     if not parts:
@@ -2093,7 +2103,8 @@ def _build_search(term, columns, phone_columns):
     return '(' + ' OR '.join(parts) + ')', params
 
 
-def _datatables_query(table, columns, phone_columns, request, base_where=None):
+def _datatables_query(table, columns, phone_columns, request, base_where=None,
+                      from_sql=None):
     """Shared server-side handler. Returns the DataTables response dict."""
     draw   = int(request.values.get('draw', 1))
     start  = max(0, int(request.values.get('start', 0)))
@@ -2125,28 +2136,33 @@ def _datatables_query(table, columns, phone_columns, request, base_where=None):
         name = request.values.get('columns[%s][data]' % col_idx)
         direction = 'DESC' if request.values.get('order[%d][dir]' % i) == 'desc' else 'ASC'
         if name in columns and columns[name][1]:
-            order_parts.append('`%s` %s' % (name, direction))
+            order_parts.append('%s %s' % (_col_expr(name, columns[name]), direction))
         i += 1
     order_sql = ' ORDER BY ' + ', '.join(order_parts) if order_parts else ''
+
+    # from_sql lets a view join. It is written by the route, never by the
+    # request, so it is a literal here by construction.
+    source = from_sql if from_sql else '`%s`' % table
 
     conn, cur = connection()
     try:
         if base_where:
-            cur.execute('SELECT COUNT(*) FROM `%s` WHERE %s' % (table, base_where))
+            cur.execute('SELECT COUNT(*) FROM %s WHERE %s' % (source, base_where))
         else:
-            cur.execute('SELECT COUNT(*) FROM `%s`' % table)
+            cur.execute('SELECT COUNT(*) FROM %s' % source)
         total = cur.fetchone()[0]
 
         if where_sql:
-            cur.execute('SELECT COUNT(*) FROM `%s`%s' % (table, where_sql), tuple(params))
+            cur.execute('SELECT COUNT(*) FROM %s%s' % (source, where_sql), tuple(params))
             filtered = cur.fetchone()[0]
         else:
             filtered = total
 
-        select_cols = ', '.join('`%s`' % c for c in columns)
+        select_cols = ', '.join('%s AS `%s`' % (_col_expr(c, spec), c)
+                                for c, spec in columns.items())
         cur.execute(
-            'SELECT %s FROM `%s`%s%s LIMIT %%s OFFSET %%s'
-            % (select_cols, table, where_sql, order_sql),
+            'SELECT %s FROM %s%s%s LIMIT %%s OFFSET %%s'
+            % (select_cols, source, where_sql, order_sql),
             tuple(params) + (length, start))
         headers = [d[0] for d in cur.description]
         rows = [dict(zip(headers, r)) for r in cur.fetchall()]
@@ -2220,6 +2236,52 @@ def api_event_active_leads():
     payload = _datatables_query('event_leads', EVENT_LEAD_COLUMNS,
                                 EVENT_PHONE_COLUMNS, request,
                                 base_where="`status` IN ('pending','not_contacted')")
+    return app.response_class(json.dumps(payload, default=str),
+                              mimetype='application/json')
+
+
+# The detailed course report is american_leads joined to course_status, so a
+# lead appears once per course it is enrolled on. Columns carry their own
+# expression because "b.course" cannot be written as `course`, and the two
+# joined columns keep the course1 / course_status1 names the page already uses.
+DETAILED_REPORT_FROM = ('`american_leads` AS a '
+                        'LEFT JOIN `course_status` AS b ON a.student_id = b.student_id')
+
+DETAILED_REPORT_COLUMNS = {
+    'student_id':           (True,  True,  'a.student_id'),
+    'student_name':         (True,  True,  'a.student_name'),
+    'student_mobile':       (True,  True,  'a.student_mobile'),
+    'parent_mobile':        (True,  True,  'a.parent_mobile'),
+    'year':                 (True,  True,  'a.year'),
+    'educational_system':   (True,  True,  'a.educational_system'),
+    'exam_trial':           (True,  True,  'a.exam_trial'),
+    'subject':              (True,  True,  'a.subject'),
+    'course1':              (True,  True,  'b.course'),
+    'school':               (True,  True,  'a.school'),
+    'email':                (True,  True,  'a.email'),
+    'source':               (True,  True,  'a.source'),
+    'course_status1':       (True,  True,  'b.status'),
+    'recall_date':          (False, True,  'a.recall_date'),
+    'not_interested_notes': (True,  True,  'a.not_interested_notes'),
+    'deposit':              (False, True,  'a.deposit'),
+    'added_date':           (False, True,  'a.added_date'),
+    'added_by':             (True,  True,  'a.added_by'),
+    'modified_date':        (False, True,  'a.modified_date'),
+    'system_section':       (True,  True,  'a.system_section'),
+}
+
+DETAILED_REPORT_PHONE = ('student_mobile', 'parent_mobile')
+
+
+@app.route('/api/american_leads_detailed', methods=["GET", "POST"])
+def api_american_leads_detailed():
+    # Same visibility as /get_american_leads_detailed, which returns the whole
+    # join to every role.
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    payload = _datatables_query(None, DETAILED_REPORT_COLUMNS,
+                                DETAILED_REPORT_PHONE, request,
+                                from_sql=DETAILED_REPORT_FROM)
     return app.response_class(json.dumps(payload, default=str),
                               mimetype='application/json')
 
