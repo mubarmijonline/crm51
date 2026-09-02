@@ -57,6 +57,35 @@
 .form-grid > .span-2   { grid-column: 1 / -1; }
 .form-grid > .span-all { grid-column: 1 / -1; }
 
+/* A grid makes an item of every child, including ones that render nothing.
+   Leftover <br> and inline <script> from the table era were each taking a
+   whole cell, which is what left holes in the layout. <hr> becomes a full-row
+   divider rather than a one-column stub. Central, so every page benefits. */
+.form-grid > br,
+.form-grid > script,
+.crm-layout-table > br,
+.crm-layout-table > script { display: none !important; }
+
+.form-grid > hr {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: var(--space-3) 0;
+  border: 0;
+  border-top: 1px solid var(--border-hairline);
+}
+
+/* A bare .row or .text-center dropped into the grid is a table-era wrapper,
+   not a field. Let it take the full width instead of one narrow column. */
+.form-grid > .row,
+.form-grid > .text-center,
+.form-grid > .form-check { grid-column: 1 / -1; }
+
+/* Bootstrap's .row carries -15px side margins for its own gutters. Inside the
+   grid that makes it wider than its track and pushes the page sideways. */
+.form-grid > .row { margin-inline: 0; width: 100%; }
+
+.form-grid > .text-center { display: flex; justify-content: flex-end; }
+
 /* Two buttons that belong to the field beside them, not their own cell. */
 .form-inline-actions { display: flex; flex-wrap: wrap; gap: var(--space-3); }
 .form-inline-actions .btn { flex: 0 0 auto; }

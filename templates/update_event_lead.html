@@ -1,163 +1,8 @@
 {% extends 'main.html' %}
+{% from "_macros.html" import page_header %}
 {% block body %}
 
-
-<style>
-  body {
-    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: #333;
-    background-color: #f2f3f7;
-  }
-
-
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
-
-
-
-  ::selection {
-    color: #fff;
-    background: #664AFF;
-  }
-
-  .containerss {
-    max-width: 600px;
-    width: 500px;
-    margin: 30px auto;
-  }
-
-  .containerss .searchInput {
-    background: #fff;
-    width: 100%;
-    border-radius: 5px;
-    position: relative;
-    box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
-  }
-
-  .searchInput input {
-    height: 55px;
-    width: 100%;
-    outline: none;
-    border: none;
-    border-radius: 5px;
-    padding: 0 60px 0 20px;
-    font-size: 18px;
-    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
-  }
-
-  .searchInput.active input {
-    border-radius: 5px 5px 0 0;
-  }
-
-  .searchInput .resultBox {
-    padding: 0;
-    opacity: 0;
-    pointer-events: none;
-    max-height: 280px;
-    overflow-y: auto;
-  }
-
-  .searchInput.active .resultBox {
-    padding: 10px 8px;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .resultBox li {
-    list-style: none;
-    padding: 8px 12px;
-    display: none;
-    width: 100%;
-    cursor: default;
-    border-radius: 3px;
-  }
-
-  .searchInput.active .resultBox li {
-    display: block;
-  }
-
-  .resultBox li:hover {
-    background: #efefef;
-  }
-
-  .searchInput .icon {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    height: 55px;
-    width: 55px;
-    text-align: center;
-    line-height: 55px;
-    font-size: 20px;
-    color: maroon;
-    cursor: pointer;
-  }
-
-
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-  }
-
-  input:checked+.slider {
-    background-color: #2196F3;
-  }
-
-  input:focus+.slider {
-    box-shadow: 0 0 1px #2196F3;
-  }
-
-  input:checked+.slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
-  }
-
-  /* Rounded sliders */
-  .slider.round {
-    border-radius: 34px;
-  }
-
-  .slider.round:before {
-    border-radius: 50%;
-  }
-</style>
-
-<body>
+{{ page_header('Search and update event lead', 'Find a lead, then edit its details, files and notes.') }}
 
 
   <br>
@@ -173,15 +18,7 @@
   </div>
 
   <div id="update_section" style="display: none;">
-    <div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
-
-
-      <center>
-        <br>
-        <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Search and Update Event Lead Form</u>
-        </h3>
-      </center>
-
+    <div class="form-section">
   <hr>
     <div>
       <table>
@@ -203,24 +40,20 @@
   <hr>
 
       <form id="update_event_lead" name="update_event_lead">
-        <table cellpadding="10">
+        <div class="form-grid">
           <tr>
 
             <div class="row">
               <div class="col">
-              <label for="client_id"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client
+              <label for="client_id">Client
                 ID</label>
-              <input class="form-control" maxlength="16" id="client_id" name="client_id" readonly
-                style="font-weight:bold;color:gray;background-color: white;border:none" required
+              <input class="form-control" maxlength="16" id="client_id" name="client_id" readonly required aria-required="true"
                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
               </div>
 
               <div class="col">
-                <label for="added_date"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Added Date</label>
-                <input class="form-control" maxlength="16" id="added_date" name="added_date" readonly
-                  style="font-weight:bold;color:gray;background-color: white;border:none" required>
+                <label for="added_date">Added Date</label>
+                <input class="form-control" maxlength="16" id="added_date" name="added_date" readonly required aria-required="true">
               </div>
           </div>
 
@@ -229,11 +62,9 @@
             <td>
               <div class="form-group">
 
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client Mobile</label>
+                <label for="exampleFormControlInput1">Client Mobile</label>
                 <br>
-                <input class="form-control" maxlength="16" id="client_mobile" name="client_mobile"
-                  style="font-weight:bold;color:gray" required
+                <input class="form-control" maxlength="16" id="client_mobile" name="client_mobile" required aria-required="true"
                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
               </div>
@@ -242,10 +73,8 @@
             <td>
               <div class="form-group">
 
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Client Name</label>
-                <input id="client_name" class="form-control" name="client_name" maxlength="100"
-                  style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+                <label for="exampleFormControlInput1">Client Name</label>
+                <input id="client_name" class="form-control" name="client_name" maxlength="100" required aria-required="true">
               </div>
 
             </td>
@@ -262,18 +91,16 @@
 
             <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
-                <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text"
+                <label for="exampleFormControlInput1">Email</label>
+                <input type="text"
                   class="form-control" id="email" type="email" name="email" maxlength="70">
               </div>
             </td>
 
             <td>
               <div class="form-group">
-                <label for="temperature"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Hot/Cold</label>
-                <select required id="temperature" name="temperature" class="form-control" style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;">
+                <label for="temperature">Hot/Cold</label>
+                <select required aria-required="true" id="temperature" name="temperature" class="form-control">
                   <option value="hot" selected>Hot</option>
                   <option value="cold">Cold</option>
                 </select>
@@ -285,10 +112,8 @@
           <tr>
             <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
-                <select required id="status" name="status" class="form-control"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_status()">
+                <label for="exampleFormControlInput1">Status</label>
+                <select required aria-required="true" id="status" name="status" class="form-control" onchange="check_status()">
                   <option value="pending" selected>Pending</option>
                   <option value="not_contacted">Not Contacted</option>
                   <option value="enrol">Enrol</option>
@@ -329,12 +154,11 @@
             <td>
               <div class="form-group" id="recall_date_section" disabled hidden>
   
-                <label for="recall_date"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
+                <label for="recall_date">Recall
                   Date</label>
                 <input
                   style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
-                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
+                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required aria-required="true">
   
               </div>
               <script>
@@ -352,8 +176,7 @@
               </script>
   
                 <div class="form-group" id="not_interested_notes_div" hidden>
-                <label for="not_interested_notes"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Reason</label>
+                <label for="not_interested_notes">Reason</label>
                 <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control" style="width: 600px;max-width: 600px;">
                 </div>
   
@@ -364,20 +187,16 @@
           <tr>
             <td>
               <div class="form-group">
-                <label for="client_deposit_flag"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
-                <select id="client_deposit_flag" name="client_deposit_flag" class="form-control"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="deposit_change(this.value)">
+                <label for="client_deposit_flag">Deposit</label>
+                <select id="client_deposit_flag" name="client_deposit_flag" class="form-control" onchange="deposit_change(this.value)">
                   <option value=1>YES</option>
                   <option selected value=0>NO</option>
                 </select>
 
                 <hr>
 
-                <label for="client_payment_status"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Payment Status</label>
-              <select id="client_payment_status" name="client_payment_status" class="form-control"
-                style="font-weight: bold; font-family: 'Trebuchet MS', sans-serif;">
+                <label for="client_payment_status">Payment Status</label>
+              <select id="client_payment_status" name="client_payment_status" class="form-control">
                 <option value='completed'>Completed</option>
                 <option selected value='pending'>Pending</option>
               </select>
@@ -411,17 +230,14 @@
             <td>
             
             <div class="form-group">
-              <label for="client_deposit"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit Amount</label>
-              <input id="client_deposit" name="client_deposit" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              <label for="client_deposit">Deposit Amount</label>
+              <input id="client_deposit" name="client_deposit" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
-              <label for="client_total"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Total Amount</label>
-              <input id="client_total" name="client_total" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+              <label for="client_total">Total Amount</label>
+              <input id="client_total" name="client_total" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
-              <label for="client_remaining"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Remaining Amount</label>
-              <input id="client_remaining" name="client_remaining" class="form-control" value="0" readonly disabled style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;">
+              <label for="client_remaining">Remaining Amount</label>
+              <input id="client_remaining" name="client_remaining" class="form-control" value="0" readonly disabled>
   
             </div>
           </td>
@@ -431,12 +247,10 @@
           <tr>
             <td>
               <div class="form-group">
-                <label for="assets_list"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                <label for="assets_list">
                   Requirements</label>
                 <br>
-                <textarea col="60" rows="4" maxlength="256" class="form-control" id="assets_list" name="assets_list" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray
-              ;" ></textarea>
+                <textarea col="60" rows="4" maxlength="256" class="form-control" id="assets_list" name="assets_list" value="" ></textarea>
               </div>
             </td>
   
@@ -445,7 +259,7 @@
                 <button type="button" class="btn btn-info" data-toggle="modal" data-target="#add_item_modal">Add Itemt to Check List</button>
               </div>
   
-              <div id="check_list_div" name="check_list_div" style="padding-top: 1rem;" class="form-check">
+              <div id="check_list_div" name="check_list_div" class="span-2" style="padding-top: 1rem;" class="form-check">
               </div>
   
   
@@ -456,21 +270,19 @@
 
             <td>
               <div class="form-group">
-                <label for="notes"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                <label for="notes">
                   Notes</label>
                 <br>
-                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray;" required></textarea>
+                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" required aria-required="true"></textarea>
               </div>
             </td>
 
               <td>
                 <div class="form-group">
-                  <label for="exampleFormControlInput1"
-                    style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
+                  <label for="exampleFormControlInput1">Assigned
                     to</label>
                     <br>
-                  <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple" required
+                  <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple" required aria-required="true"
                     style="width: 600px;max-width: 600px;">
   
                   </select>
@@ -483,7 +295,13 @@
         <hr>
 
 
-        <div class="text-center"><button type="submit" id="add_client" class="btn btn-primary" >Save</button></div>
+        </div>
+
+  <div class="form-actions">
+    <span class="form-actions__note">Fields marked with an asterisk are required.</span>
+    <button type="submit" id="add_client" class="btn btn-primary" >Save</button>
+  </div>
+  <div style="display:none">
 
         <br>
       </form>
@@ -495,24 +313,13 @@
 
 
 
-    <div class="card_customized" style="margin-left: 10%;margin-right: 5%">
-      <center>
-        <h3 style="color:tomato;font-family:  'Trebuchet MS', sans-serif;"><u>Notes Log</u></h3>
-      </center>
-      <table id="notes_table" style="width: 100%;">
-        <thead>
-
-          <tr>
-            <th style="display:none">ID</th>
-            <th style="width: 950px;min-width: 950px;">Notes</th>
-            <th>Added_by</th>
-            <th>Added_date</th>
-          </tr>
-
-        </thead>
-      </table>
-
-    </div>
+    <div class="form-section">
+        <div class="form-section__head">
+          <h2 class="form-section__title">Notes log</h2>
+          <p class="form-section__desc">Everything the team has recorded on this lead, newest first.</p>
+        </div>
+        <div id="notes_timeline" class="notes"></div>
+      </div>
 
 
 
@@ -530,7 +337,7 @@
     <div class="modal-body">
 
   <span>
-    <div style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px; padding: 1rem;">Item Name</div>
+    <div>Item Name</div>
     <input maxlength="40" id="check_list_item_name" name="check_list_item_name" class="form-control" style="font-weight: bold;color: darkcyan; width: 60%"></span>
     
         
@@ -730,47 +537,9 @@
   <script>
 
     function get_notes(id) {
-
-      $('#notes_table').DataTable().destroy();
-      var table = $('#notes_table').DataTable({
-        ajax: { url: '/get_events_notes?id=' + id, mimeType: 'json' },
-        deferRender: true,
-        columns: [
-          { data: '_id', "visible": false },
-          {
-            mRender: function (data, type, row) {
-              mynotes = row.notes
-              const matches = mynotes.match(/\r\n|\n\r|\n|\r/g);
-              const count = matches ? matches.length + 1 : 1;
-              return '<textarea id="mytextarea' + row._id + '" rows="' + count + '" class="form-control" width="100%" height="auto" readonly style="boarder:none;background-color:white;position: relative;border: 1px solid #888;background: #fff;" contenteditable>' + row.notes + '</textarea>'
-            },
-          },
-          { data: 'added_by' },
-          { data: 'added_date' },
-        ],
-
-
-        rowId: 'extn',
-        select: true,
-        paging: false,
-        dom: 'Bfrtip',
-        scrollX: true,
-        select: false,
-        "order": [[0, "desc"]],
-        buttons: [
-
-          {
-            text: 'Refresh',
-
-            action: function () {
-              table.ajax.reload();
-            }
-          }
-        ]
-
-      });
-
-
+      // Was a DataTable whose single visible column rendered a readonly
+      // <textarea> per row. Notes are a conversation, so they read as one.
+      crmNotes('#notes_timeline', { url: '/get_events_notes?id=' + id });
     }
 
   </script>
@@ -1086,7 +855,7 @@
 		  <form id="upload_files_form" method="POST" enctype="multipart/form-data" >
 			<input name="client_id" id="clien_id_file_upload" type="hidden" readonly value="0">
 
-			<input type="file" id="uploadFile" class="btn btn-secondary" name="files[]" multiple="false" autocomplete="off" required accept=".xls,.xlsx,.png,.jpg,.jpeg,.gif,.pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+			<input type="file" id="uploadFile" class="btn btn-secondary" name="files[]" multiple="false" autocomplete="off" required aria-required="true" accept=".xls,.xlsx,.png,.jpg,.jpeg,.gif,.pdf, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
 			<!-- <input type="submit" class="btn btn-success" id="upload_files" name="upload_files" value="Upload"> -->
 			<button id="upload-file-btn" class="btn btn-success" type="button" disabled="true" >Upload</button>
   
@@ -1269,9 +1038,5 @@ else{
   
  })
 </script>
-
-
-
-</body>
 
 {% endblock %}
