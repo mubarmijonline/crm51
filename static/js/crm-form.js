@@ -66,6 +66,26 @@
     return ok;
   }
 
+  /* A sticky action bar overlaps whatever is behind it. CSS alone cannot fix
+   * the case that matters - tabbing into a field the bar is sitting on - because
+   * the browser counts an element under an overlay as already visible and so
+   * never scrolls, which means scroll-margin never applies. Nudge it instead. */
+  document.addEventListener('focusin', function (e) {
+    var bar = document.querySelector('.form-actions');
+    if (!bar || getComputedStyle(bar).position !== 'sticky') return;
+
+    var el = e.target;
+    if (!el || !el.getBoundingClientRect) return;
+
+    var f = el.getBoundingClientRect();
+    var b = bar.getBoundingClientRect();
+    if (!f.height || f.top >= b.bottom || f.bottom <= b.top) return;   // clear
+
+    // Move the field up by however much the bar is covering, plus a margin so
+    // it does not sit flush against it.
+    window.scrollBy({ top: f.bottom - b.top + 16, behavior: 'smooth' });
+  });
+
   window.crmForm = function (selector, opts) {
     var form = document.querySelector(selector);
     if (!form) return null;

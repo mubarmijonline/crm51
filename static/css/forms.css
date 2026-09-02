@@ -241,6 +241,24 @@ small.form-text {
 
 .form-actions__note { margin-inline-end: auto; font: var(--type-body-sm); color: var(--text-muted); }
 
+/* A sticky bottom bar rides over the content behind it, which is fine while
+   you are scrolling past and not fine when it is sitting on the field you just
+   tabbed into. scroll-margin keeps focus clear of it, and the form reserves
+   the bar's own height at the end so the last section is never trapped under
+   it. Both are keyed to the same custom property. */
+.form { --form-actions-h: 72px; }
+
+form:has(> .form-actions) { padding-block-end: var(--space-6); }
+
+form:has(> .form-actions) .form-group,
+form:has(> .form-actions) .form-section { scroll-margin-block-end: 96px; }
+
+/* The note is the first thing to go when there is no room for it. */
+@media (max-width: 560px) {
+  .form-actions { padding: var(--space-4); }
+  .form-actions__note { display: none; }
+}
+
 /* Submitting: the button never goes disabled for being invalid, only while
    the request is in flight. No spinner - crmFormBusy() already disables it and
    swaps the label to "Saving…", which says the same thing in words. */
@@ -492,3 +510,223 @@ small.form-text {
 }
 .searchInput.active .resultBox li { display: block; }
 .resultBox li:hover { background: var(--surface-hover); }
+
+
+/* ===========================================================================
+   Date field.
+
+   Replaces bootstrap-datepicker, which drew its own greys and so stayed a
+   light widget on a dark page, and whose 22px cells were unreachable on a
+   touch screen. Every colour here is a token and every cell is 36px.
+   =========================================================================== */
+
+.crm-date { position: relative; display: block; }
+
+.crm-date__input { padding-inline-end: calc(var(--space-8) + 16px); }
+
+.crm-date__trigger {
+  position: absolute; inset-inline-end: 1px; top: 1px; bottom: 1px;
+  width: calc(var(--space-8) + 12px);
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 0; padding: 0;
+  color: var(--text-muted); cursor: pointer;
+  border-start-end-radius: var(--radius-control);
+  border-end-end-radius: var(--radius-control);
+}
+.crm-date__trigger:hover { color: var(--text-title); background: var(--surface-hover); }
+.crm-date__trigger i, .crm-date__trigger svg { width: 16px; height: 16px; }
+.crm-date.is-open .crm-date__trigger { color: var(--action-primary); }
+
+/* Announcements only; the calendar itself already shows the state. */
+.crm-date__live {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+.crm-date__pop {
+  position: absolute; z-index: 60; inset-inline-start: 0; top: calc(100% + var(--space-2));
+  width: 324px; padding: var(--space-5);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-card);
+  box-shadow: 0 12px 32px rgb(0 0 0 / .16);
+}
+.crm-date__pop.is-above { top: auto; bottom: calc(100% + var(--space-2)); }
+
+.crm-date__head {
+  display: flex; align-items: center; gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.crm-date__pickers { display: flex; gap: var(--space-3); flex: 1 1 auto; }
+
+/* Month and year are selects, so a date two years out is two changes rather
+   than twenty-four clicks on a chevron. */
+.crm-date__month, .crm-date__year {
+  flex: 1 1 auto; min-width: 0;
+  height: 32px; padding: 0 var(--space-3);
+  font: var(--type-body-sm); color: var(--text-title);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+}
+.crm-date__year { flex: 0 0 78px; }
+
+.crm-date__nav {
+  flex: none; width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  color: var(--text-muted); cursor: pointer;
+}
+.crm-date__nav:hover { background: var(--surface-hover); color: var(--text-title); }
+.crm-date__nav i, .crm-date__nav svg { width: 15px; height: 15px; }
+
+.crm-date__week, .crm-date__grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+.crm-date__week span {
+  text-align: center; padding-block: var(--space-2);
+  font: var(--weight-semibold) var(--text-2xs)/1 var(--font-sans);
+  letter-spacing: .04em; text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.crm-date__day {
+  height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  font: var(--type-body-sm); color: var(--text-body);
+  background: none; border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+.crm-date__day:hover:not(:disabled) { background: var(--surface-hover); }
+.crm-date__day.is-outside { color: var(--text-disabled); }
+.crm-date__day:disabled { color: var(--text-disabled); cursor: not-allowed; }
+.crm-date__day.is-today  { border-color: var(--border-strong); font-weight: var(--weight-semibold); }
+.crm-date__day.is-selected {
+  background: var(--action-primary);
+  border-color: var(--action-primary);
+  color: var(--on-accent);
+  font-weight: var(--weight-semibold);
+}
+.crm-date__day:focus-visible {
+  outline: 2px solid var(--border-focus); outline-offset: 1px;
+}
+
+.crm-date__foot {
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  margin-top: var(--space-4); padding-top: var(--space-4);
+  border-top: 1px solid var(--border-hairline);
+}
+.crm-date__quick, .crm-date__clear {
+  height: 28px; padding: 0 var(--space-4);
+  font: var(--type-body-sm); color: var(--text-body);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.crm-date__quick:hover, .crm-date__clear:hover {
+  background: var(--surface-hover); color: var(--text-title);
+}
+/* Clearing is the destructive one here, so it reads as a quiet link rather
+   than a filled red button. */
+.crm-date__clear {
+  margin-inline-start: auto;
+  background: none; border-color: transparent; color: var(--text-danger);
+}
+.crm-date__clear:hover { background: var(--status-danger-bg); color: var(--text-danger); }
+
+/* On a phone the popover is wider than the field it hangs off, so pin it to
+   the field's start edge and let it size to the viewport. */
+@media (max-width: 480px) {
+  .crm-date__pop { width: min(324px, calc(100vw - var(--space-8))); }
+}
+
+
+/* ===========================================================================
+   Check list and file row.
+
+   Both were raw markup before: the checklist rendered as bare inputs with no
+   spacing, and the file row was two 2em PNGs sitting on their own line with
+   nothing lining up.
+   =========================================================================== */
+
+.crm-checklist { display: flex; flex-direction: column; gap: var(--space-2); }
+.crm-checklist:empty { display: none; }
+
+/* An explicit three-track grid rather than nested flex. The label wrapping the
+   checkbox and the name made the row a flex container holding another flex
+   container, and the name kept collapsing to zero width inside it. `display:
+   contents` on the label lifts the checkbox and the name into the grid as
+   items in their own right, so the name owns the 1fr track and cannot be
+   squeezed out. The label still wraps them in the DOM, so clicking the name
+   still toggles the box. */
+.crm-checklist__item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 38px;
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+}
+
+.crm-checklist__item > label { display: contents; cursor: pointer; }
+
+.crm-checklist__item input[type="checkbox"] {
+  width: 15px; height: 15px; margin: 0;
+  accent-color: var(--action-primary);
+  cursor: pointer;
+}
+
+.crm-checklist__item label > span {
+  min-width: 0;
+  font: var(--type-body-sm); color: var(--text-body);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: pointer;
+}
+.crm-checklist__item input[type="checkbox"]:checked + span {
+  color: var(--text-muted); text-decoration: line-through;
+}
+
+/* Removing an item is destructive, so it is a quiet icon that turns red on
+   approach - never a solid red fill. */
+.crm-checklist__remove {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  color: var(--text-subtle); cursor: pointer;
+}
+.crm-checklist__remove:hover {
+  color: var(--text-danger); border-color: var(--border-danger);
+  background: var(--status-danger-bg);
+}
+.crm-checklist__remove i, .crm-checklist__remove svg { width: 14px; height: 14px; }
+
+.crm-file { display: flex; flex-direction: column; gap: var(--space-5); align-items: start; }
+
+.crm-file__current {
+  display: flex; align-items: center; gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  max-width: 100%;
+}
+.crm-file__current > i, .crm-file__current > svg {
+  width: 16px; height: 16px; flex: none; color: var(--text-muted);
+}
+.crm-file__name {
+  flex: 1 1 200px; min-width: 0;
+  border: 0; background: none; padding: 0;
+  font: var(--type-body-sm); color: var(--text-title);
+  text-overflow: ellipsis;
+}
+.crm-file__delete:not(:disabled):hover {
+  color: var(--text-danger); border-color: var(--border-danger);
+}

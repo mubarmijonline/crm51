@@ -2,328 +2,249 @@
 {% from "_macros.html" import page_header %}
 {% block body %}
 
-{{ page_header('Search and update event lead', 'Find a lead, then edit its details, files and notes.') }}
+{{ page_header('Search and update event lead',
+               'Find a lead, then edit its details, files and notes.') }}
 
-
-  <br>
-
+{# --- find a lead --------------------------------------------------------- #}
+<div class="form-section">
+  <div class="form-section__head">
+    <h2 class="form-section__title">Find a lead</h2>
+    <p class="form-section__desc">Search by client id, mobile or name.</p>
+  </div>
   <div class="containerss">
     <div class="searchInput">
-      <input type="text" id="seacrch_input_box" placeholder="Search for Event Leads">
-      <div class="resultBox">
-        <!-- here list are inserted from javascript -->
-      </div>
-      <div class="icon" onclick="clear_data()"><i class="fa-solid fa-xmark"></i></div>
+      <input type="text" id="seacrch_input_box" placeholder="Search for event leads">
+      <div class="resultBox"></div>
+      <div class="icon" onclick="clear_data()"><i data-lucide="x"></i></div>
     </div>
   </div>
+</div>
 
-  <div id="update_section" style="display: none;">
+{# Everything below is revealed once a lead is chosen. #}
+<div id="update_section" style="display: none;">
+
+  <form id="update_event_lead" name="update_event_lead">
+
+    {# --- identity --------------------------------------------------------- #}
     <div class="form-section">
-  <hr>
-    <div>
-      <table>
-        <tr>
-          <td>
-            <button class="btn btn-md btn-success" data-toggle="modal" data-target="#uploadModal">File Upload</button>
-          </td>
-
-          <td>
-            <div id="file_download_div" hidden class="form-inline" style="margin-left: 1rem;">
-              <input name="file_name" id="file_name" value="" readonly class="form-control mb-2" style="background: none; border: none; width:fit-content;">
-              <a download title="Download File" class="mb-2" id="file_download" href="javascript:void(0)"><img src="/static/images/download.svg" style="width: 2em; height: 2em; margin: 0.5em;"></a>
-              <button disabled id="delete_file" class="clear-btn mb-2" onclick="delete_file();"><img src="/static/images/delete.svg" style="width: 2em; height: 2em; margin: 0.5em;"></button>
-            </div>
-          </td>
-        </tr>
-      </table>
-    </div>
-  <hr>
-
-      <form id="update_event_lead" name="update_event_lead">
-        <div class="form-grid">
-          <tr>
-
-            <div class="row">
-              <div class="col">
-              <label for="client_id">Client
-                ID</label>
-              <input class="form-control" maxlength="16" id="client_id" name="client_id" readonly required aria-required="true"
-                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-              </div>
-
-              <div class="col">
-                <label for="added_date">Added Date</label>
-                <input class="form-control" maxlength="16" id="added_date" name="added_date" readonly required aria-required="true">
-              </div>
-          </div>
-
-          </tr>
-          <tr>
-            <td>
-              <div class="form-group">
-
-                <label for="exampleFormControlInput1">Client Mobile</label>
-                <br>
-                <input class="form-control" maxlength="16" id="client_mobile" name="client_mobile" required aria-required="true"
-                  oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-
-              </div>
-            </td>
-
-            <td>
-              <div class="form-group">
-
-                <label for="exampleFormControlInput1">Client Name</label>
-                <input id="client_name" class="form-control" name="client_name" maxlength="100" required aria-required="true">
-              </div>
-
-            </td>
-
-
-          </tr>
-
-
-          <hr>
-
-
-
-          <tr>
-
-            <td>
-              <div class="form-group">
-                <label for="exampleFormControlInput1">Email</label>
-                <input type="text"
-                  class="form-control" id="email" type="email" name="email" maxlength="70">
-              </div>
-            </td>
-
-            <td>
-              <div class="form-group">
-                <label for="temperature">Hot/Cold</label>
-                <select required aria-required="true" id="temperature" name="temperature" class="form-control">
-                  <option value="hot" selected>Hot</option>
-                  <option value="cold">Cold</option>
-                </select>
-              </div>
-            </td>
-
-          </tr>
-
-          <tr>
-            <td>
-              <div class="form-group">
-                <label for="exampleFormControlInput1">Status</label>
-                <select required aria-required="true" id="status" name="status" class="form-control" onchange="check_status()">
-                  <option value="pending" selected>Pending</option>
-                  <option value="not_contacted">Not Contacted</option>
-                  <option value="enrol">Enrol</option>
-                  <option value="not_interested">Not Interested</option>
-                </select>
-              </div>
-            </td>
-  
-            <script>
-              function check_status() {
-                val = document.getElementById('status').value;
-                if (val == 'pending' || val == 'not_contacted') {
-                  document.getElementById('recall_date_section').disabled = false;
-                  document.getElementById('recall_date_section').hidden = false;
-  
-                  document.getElementById('not_interested_notes').disabled = true;
-                  document.getElementById('not_interested_notes_div').hidden = true;
-                }
-                else if (val == 'not_interested')
-                {
-                  document.getElementById('not_interested_notes').disabled = false;
-                  document.getElementById('not_interested_notes_div').hidden = false;
-  
-                  document.getElementById('recall_date_section').disabled = true;
-                  document.getElementById('recall_date_section').hidden = true;
-                }
-                else {
-                  val = ""
-                  document.getElementById('recall_date_section').disabled = true;
-                  document.getElementById('recall_date_section').hidden = true;
-  
-                  document.getElementById('not_interested_notes').disabled = true;
-                  document.getElementById('not_interested_notes_div').hidden = true;
-                }
-              }
-            </script>
-  
-            <td>
-              <div class="form-group" id="recall_date_section" disabled hidden>
-  
-                <label for="recall_date">Recall
-                  Date</label>
-                <input
-                  style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
-                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required aria-required="true">
-  
-              </div>
-              <script>
-                $('#recall_date').datepicker({
-                  todayBtn: "linked",
-                  weekStart: 0,
-                  autoclose: true,
-                  todayHighlight: true,
-                  format: "yyyy-mm-dd",
-  
-  
-  
-                });
-  
-              </script>
-  
-                <div class="form-group" id="not_interested_notes_div" hidden>
-                <label for="not_interested_notes">Reason</label>
-                <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control" style="width: 600px;max-width: 600px;">
-                </div>
-  
-            </td>
-  
-          </tr>
-
-          <tr>
-            <td>
-              <div class="form-group">
-                <label for="client_deposit_flag">Deposit</label>
-                <select id="client_deposit_flag" name="client_deposit_flag" class="form-control" onchange="deposit_change(this.value)">
-                  <option value=1>YES</option>
-                  <option selected value=0>NO</option>
-                </select>
-
-                <hr>
-
-                <label for="client_payment_status">Payment Status</label>
-              <select id="client_payment_status" name="client_payment_status" class="form-control">
-                <option value='completed'>Completed</option>
-                <option selected value='pending'>Pending</option>
-              </select>
-              
-              </div>
-            </td>
-  
-            <script>
-              function deposit_change(value)
-              {
-                if(value == "1")
-                {
-                  document.getElementById("client_deposit").disabled = false;
-                  document.getElementById("client_remaining").disabled = false;
-                  document.getElementById("client_total").disabled = false;
-                }
-                else if(value == "0")
-                {
-                  document.getElementById("client_deposit").disabled = true;
-                  document.getElementById('client_deposit').value = "0";  // Reset Deposit Value/
-
-                  document.getElementById("client_remaining").disabled = true;
-                  document.getElementById('client_remaining').value = "0";  // Reset remainging Value/
-
-                  document.getElementById("client_total").disabled = true;
-                  document.getElementById('client_total').value = "0";  // Reset total amount Value/
-                }
-              }
-            </script>
-  
-            <td>
-            
-            <div class="form-group">
-              <label for="client_deposit">Deposit Amount</label>
-              <input id="client_deposit" name="client_deposit" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-
-              <label for="client_total">Total Amount</label>
-              <input id="client_total" name="client_total" class="form-control" value="0" disabled onchange="$('#client_remaining').val( Number($('#client_total').val()) - Number($('#client_deposit').val()) );" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
-
-              <label for="client_remaining">Remaining Amount</label>
-              <input id="client_remaining" name="client_remaining" class="form-control" value="0" readonly disabled>
-  
-            </div>
-          </td>
-  
-          </tr>
-
-          <tr>
-            <td>
-              <div class="form-group">
-                <label for="assets_list">
-                  Requirements</label>
-                <br>
-                <textarea col="60" rows="4" maxlength="256" class="form-control" id="assets_list" name="assets_list" value="" ></textarea>
-              </div>
-            </td>
-  
-            <td>
-              <div class="form-group">
-                <button type="button" class="btn btn-info" data-toggle="modal" data-target="#add_item_modal">Add Itemt to Check List</button>
-              </div>
-  
-              <div id="check_list_div" name="check_list_div" class="span-2 form-check" style="padding-top:var(--space-5)">
-              </div>
-  
-  
-            </td>
-          </tr>
-
-          <tr>
-
-            <td>
-              <div class="form-group">
-                <label for="notes">
-                  Notes</label>
-                <br>
-                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" required aria-required="true"></textarea>
-              </div>
-            </td>
-
-              <td>
-                <div class="form-group">
-                  <label for="exampleFormControlInput1">Assigned
-                    to</label>
-                    <br>
-                  <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple" required aria-required="true"
-                    style="width: 600px;max-width: 600px;">
-  
-                  </select>
-                </div>
-              </td>
-
-          </tr>
-
-        </table>
-        <hr>
-
-
+      <div class="form-section__head">
+        <h2 class="form-section__title">Lead</h2>
+        <p class="form-section__desc">Who this is. The id and the date it was added are set by the system.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="client_id">Client id</label>
+          <input class="form-control mono" maxlength="16" id="client_id" name="client_id"
+                 readonly required aria-required="true"
+                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+          <small class="form-text">Set when the lead was created.</small>
         </div>
 
-  <div class="form-actions">
-    <span class="form-actions__note">Fields marked with an asterisk are required.</span>
-    <button type="submit" id="add_client" class="btn btn-primary" >Save</button>
-  </div>
-  <div style="display:none">
+        <div class="form-group">
+          <label for="added_date">Added date</label>
+          <input class="form-control mono" maxlength="16" id="added_date" name="added_date"
+                 readonly required aria-required="true">
+          <small class="form-text">Set when the lead was created.</small>
+        </div>
 
-        <br>
-      </form>
+        <div class="form-group">
+          <label for="client_name">Client name<span class="form-label__req" aria-hidden="true">*</span></label>
+          <input id="client_name" class="form-control" name="client_name" maxlength="100"
+                 required aria-required="true">
+        </div>
 
-      <br>
-      <br>
-      <br>
+        <div class="form-group">
+          <label for="client_mobile">Client mobile<span class="form-label__req" aria-hidden="true">*</span></label>
+          <input class="form-control mono" maxlength="16" id="client_mobile" name="client_mobile"
+                 required aria-required="true"
+                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+          <small class="form-text">Digits only.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email<span class="form-label__optional">optional</span></label>
+          <input class="form-control" id="email" type="email" name="email" maxlength="70">
+        </div>
+      </div>
     </div>
 
-
-
+    {# --- where the lead stands -------------------------------------------- #}
     <div class="form-section">
-        <div class="form-section__head">
-          <h2 class="form-section__title">Notes log</h2>
-          <p class="form-section__desc">Everything the team has recorded on this lead, newest first.</p>
-        </div>
-        <div id="notes_timeline" class="notes"></div>
+      <div class="form-section__head">
+        <h2 class="form-section__title">Status</h2>
+        <p class="form-section__desc">A recall date is asked for while the lead is open; a reason is asked for when it is closed.</p>
       </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="status">Status<span class="form-label__req" aria-hidden="true">*</span></label>
+          <select required aria-required="true" id="status" name="status" class="form-control"
+                  onchange="check_status()">
+            <option value="pending" selected>Pending</option>
+            <option value="not_contacted">Not contacted</option>
+            <option value="enrol">Enrol</option>
+            <option value="not_interested">Not interested</option>
+          </select>
+        </div>
 
+        <div class="form-group">
+          <label for="temperature">Temperature<span class="form-label__req" aria-hidden="true">*</span></label>
+          <select required aria-required="true" id="temperature" name="temperature" class="form-control">
+            <option value="hot" selected>Hot</option>
+            <option value="cold">Cold</option>
+          </select>
+        </div>
 
+        <div class="form-group" id="recall_date_section" hidden>
+          <label for="recall_date">Recall date<span class="form-label__req" aria-hidden="true">*</span></label>
+          <input type="text" class="form-control mono" id="recall_date" name="recall_date"
+                 data-datepicker required aria-required="true">
+          <small class="form-text">Type it as yyyy-mm-dd, or pick it from the calendar.</small>
+        </div>
 
+        <div class="form-group span-2" id="not_interested_notes_div" hidden>
+          <label for="not_interested_notes">Reason</label>
+          <input id="not_interested_notes" name="not_interested_notes" disabled class="form-control">
+          <small class="form-text">Why the lead was closed.</small>
+        </div>
+      </div>
+    </div>
+
+    {# --- money ------------------------------------------------------------ #}
+    <div class="form-section">
+      <div class="form-section__head">
+        <h2 class="form-section__title">Payment</h2>
+        <p class="form-section__desc">The amounts stay locked until a deposit is recorded. Remaining is worked out for you.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="client_deposit_flag">Deposit taken</label>
+          <select id="client_deposit_flag" name="client_deposit_flag" class="form-control"
+                  onchange="deposit_change(this.value)">
+            <option value="1">Yes</option>
+            <option value="0" selected>No</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="client_payment_status">Payment status</label>
+          <select id="client_payment_status" name="client_payment_status" class="form-control">
+            <option value="completed">Completed</option>
+            <option value="pending" selected>Pending</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="client_total">Total amount</label>
+          <input id="client_total" name="client_total" class="form-control mono" value="0" disabled
+                 onchange="recalc_remaining()"
+                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+        </div>
+
+        <div class="form-group">
+          <label for="client_deposit">Deposit amount</label>
+          <input id="client_deposit" name="client_deposit" class="form-control mono" value="0" disabled
+                 onchange="recalc_remaining()"
+                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+        </div>
+
+        <div class="form-group">
+          <label for="client_remaining">Remaining amount</label>
+          <input id="client_remaining" name="client_remaining" class="form-control mono" value="0"
+                 readonly disabled>
+          <small class="form-text">Total minus deposit.</small>
+        </div>
+      </div>
+    </div>
+
+    {# --- what the client asked for ----------------------------------------- #}
+    <div class="form-section">
+      <div class="form-section__head">
+        <h2 class="form-section__title">Requirements</h2>
+        <p class="form-section__desc">What the event needs, and the checklist of items to prepare.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label for="assets_list">Requirements</label>
+          <textarea rows="6" maxlength="256" class="form-control" id="assets_list"
+                    name="assets_list"></textarea>
+          <small class="form-text">Up to 256 characters.</small>
+        </div>
+
+        <div class="form-group span-2">
+          <label>Check list</label>
+          <div id="check_list_div" name="check_list_div" class="crm-checklist"></div>
+          <button type="button" class="btn btn-secondary btn-sm" style="align-self:start"
+                  data-toggle="modal" data-target="#add_item_modal">
+            <i data-lucide="plus"></i>Add item
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {# --- files ------------------------------------------------------------- #}
+    <div class="form-section">
+      <div class="form-section__head">
+        <h2 class="form-section__title">File</h2>
+        <p class="form-section__desc">One attachment per lead. Uploading a new file replaces the current one.</p>
+      </div>
+      <div class="crm-file">
+        <div id="file_download_div" hidden class="crm-file__current">
+          <i data-lucide="paperclip"></i>
+          <input name="file_name" id="file_name" value="" readonly class="crm-file__name"
+                 aria-label="Attached file">
+          <a download title="Download file" aria-label="Download file"
+             class="btn btn-secondary btn-sm" id="file_download" href="javascript:void(0)">
+            <i data-lucide="download"></i>Download
+          </a>
+          <button type="button" disabled id="delete_file" class="btn btn-secondary btn-sm crm-file__delete"
+                  onclick="delete_file();">
+            <i data-lucide="trash-2"></i>Remove
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
+          <i data-lucide="upload"></i>Upload a file
+        </button>
+      </div>
+    </div>
+
+    {# --- note and assignment ------------------------------------------------ #}
+    <div class="form-section">
+      <div class="form-section__head">
+        <h2 class="form-section__title">Note and assignment</h2>
+        <p class="form-section__desc">Every save records a note against the lead. It is added to the log below.</p>
+      </div>
+      <div class="form-grid">
+        <div class="form-group span-2">
+          <label for="notes">Note<span class="form-label__req" aria-hidden="true">*</span></label>
+          <textarea rows="4" class="form-control" id="notes" name="notes"
+                    required aria-required="true"
+                    placeholder="What happened on this contact?"></textarea>
+        </div>
+
+        <div class="form-group span-2">
+          <label for="assigned_to">Assigned to<span class="form-label__req" aria-hidden="true">*</span></label>
+          <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple"
+                  required aria-required="true"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <span class="form-actions__note">Fields marked with an asterisk are required.</span>
+      <button type="submit" id="add_client" class="btn btn-primary">Save lead</button>
+    </div>
+  </form>
+
+  <div class="form-section">
+    <div class="form-section__head">
+      <h2 class="form-section__title">Notes log</h2>
+      <p class="form-section__desc">Everything the team has recorded on this lead, newest first.</p>
+    </div>
+    <div id="notes_timeline" class="notes"></div>
   </div>
+
+</div>
+
 
 
   <div class="modal fade" id="add_item_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
@@ -350,6 +271,102 @@
 </div>
 
 <script>
+  /* One builder for the check list, used by both the "add item" path and the
+     load path, which had a copy each. The old markup appended the checkbox,
+     a hidden twin, a label and a delete button as flat siblings with no row
+     around them, and the delete button was a `btn btn-danger` carrying no
+     text - which is why the list rendered as a stack of solid red bars. Names
+     and values are unchanged, so the POST is identical. */
+  function append_check_item(name, checked) {
+    var host = document.getElementById('check_list_div');
+    if (!host) return;
+
+    var row = document.createElement('div');
+    row.className = 'crm-checklist__item';
+    row.id = 'row_id_' + name;
+
+    var label = document.createElement('label');
+
+    var box = document.createElement('input');
+    box.type = 'checkbox';
+    box.name = 'check_box';
+    box.value = name;
+    box.id = 'id_' + name;
+    box.checked = !!checked;
+
+    var text = document.createElement('span');
+    text.textContent = name;
+
+    label.appendChild(box);
+    label.appendChild(text);
+
+    // The hidden twin is how the server tells "was on the list and unticked"
+    // from "was never on the list": check_box only posts ticked boxes.
+    var twin = document.createElement('input');
+    twin.type = 'hidden';
+    twin.name = 'check_box_hidden';
+    twin.value = name;
+    twin.id = 'hidden_id_' + name;
+
+    var remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'crm-checklist__remove';
+    remove.id = 'btn_id_' + name;
+    remove.setAttribute('aria-label', 'Remove ' + name);
+    remove.setAttribute('onclick', "remove_item('id_" + name + "')");
+    remove.innerHTML = '<i data-lucide="x"></i>';
+
+    row.appendChild(label);
+    row.appendChild(twin);
+    row.appendChild(remove);
+    host.appendChild(row);
+
+    if (window.lucide && lucide.createIcons) lucide.createIcons({ nameAttr: 'data-lucide' });
+  }
+</script>
+
+<script>
+  /* These three were inline in the middle of the markup, between a </td> and
+     the next <td>. They are behaviour, not layout. */
+
+  // The two conditional fields. Toggling `hidden` alone left the inputs in the
+  // form while invisible, so a hidden required field could block submission;
+  // disabling them takes them out of validation and out of the POST as well.
+  function check_status() {
+    var val      = document.getElementById('status').value;
+    var recall   = document.getElementById('recall_date_section');
+    var reasonBox= document.getElementById('not_interested_notes_div');
+    var reason   = document.getElementById('not_interested_notes');
+    var date     = document.getElementById('recall_date');
+
+    var wantRecall = (val === 'pending' || val === 'not_contacted');
+    var wantReason = (val === 'not_interested');
+
+    recall.hidden    = !wantRecall;
+    date.disabled    = !wantRecall;
+    date.required    =  wantRecall;
+
+    reasonBox.hidden = !wantReason;
+    reason.disabled  = !wantReason;
+  }
+
+  // Amounts are meaningless without a deposit, so they stay locked and zeroed
+  // until one is recorded.
+  function deposit_change(value) {
+    var on = String(value) === '1';
+    ['client_deposit', 'client_total', 'client_remaining'].forEach(function (id) {
+      var el = document.getElementById(id);
+      el.disabled = !on;
+      if (!on) el.value = '0';
+    });
+  }
+
+  function recalc_remaining() {
+    var total   = Number(document.getElementById('client_total').value)   || 0;
+    var deposit = Number(document.getElementById('client_deposit').value) || 0;
+    document.getElementById('client_remaining').value = total - deposit;
+  }
+
   function add_item()
   {
 
@@ -386,80 +403,16 @@
 
     var check_list_div = document.getElementById("check_list_div");
              
-             //var checkbox_div = document.createElement('div');
-             //checkbox_div.className = "form-check";
-
-             // creating checkbox element
-             var checkbox = document.createElement('input');
-             var checkbox_hidden = document.createElement('input');
-
-             // Assigning the attributes
-             // to created checkbox
-             // checkbox.type = "checkbox";
-             checkbox.name = "check_box";
-             checkbox.value = check_list_item_name;
-
-             checkbox.id = "id_"+check_list_item_name;
-             checkbox.className  = "form-check-input";
-             checkbox.readOnly = 'true';
-             checkbox.style="background-color:white;boarder:none";
-             checkbox.type="checkbox";
-
-              // Hidden
-             checkbox_hidden.id = "hidden_id_"+check_list_item_name;
-             checkbox_hidden.name = "check_box_hidden";
-             checkbox_hidden.value = check_list_item_name;
-             
-             checkbox_hidden.className  = "form-check-input";
-             checkbox_hidden.readOnly = 'true';
-             checkbox_hidden.style="background-color:white;boarder:none";
-             checkbox_hidden.type="hidden";
-              
-             // creating label for checkbox
-             var label = document.createElement('label');
-              
-             // assigning attributes for 
-             // the created label tag 
-             label.htmlFor = "id_"+check_list_item_name;
-              
-             // appending the created text to 
-             // the created label tag 
-             label.appendChild(document.createTextNode(check_list_item_name));
-             label.className = "form-check-label";
-             label.id =  "label_id_"+check_list_item_name;
-
-             // appending the checkbox
-             // and label to div
-             
-             check_list_div.appendChild(checkbox_hidden);
-             check_list_div.appendChild(checkbox);
-             check_list_div.appendChild(label);
-
-             var cancel_item = document.createElement('button');
-             cancel_item.id = "btn_id_"+check_list_item_name;
-             cancel_item.type = "button";
-             cancel_item.className = "btn btn-md btn-danger";
-             cancel_item.setAttribute("onclick","remove_item('id_"+check_list_item_name+"')");
-             cancel_item.setAttribute("style", "margin-left:1rem;")
-
-
-             check_list_div.appendChild(cancel_item);
-
-             var br = document.createElement('br');
-             br.id = "br_id_"+check_list_item_name;
-             check_list_div.appendChild(br);
+             append_check_item(check_list_item_name, false);
 
              document.getElementById("check_list_item_name").value = "";
              //$("#add_item_modal #close").click();
   }
 
-  function remove_item(item_id)
-  {
-    document.getElementById(item_id).remove();
-    document.getElementById('hidden_'+item_id).remove();
-    document.getElementById('btn_'+item_id).remove();
-    document.getElementById('label_'+item_id).remove();
-    document.getElementById('br_'+item_id).remove();
+  // item_id arrives as "id_<name>", so the row is "row_<same>".
+  function remove_item(item_id) {
+    var row = document.getElementById('row_' + item_id);
+    if (row) row.remove();
   }
 </script>
 
@@ -694,69 +647,7 @@
         item_state = check_list[i].checked;
 
 
-             // creating checkbox element
-             var checkbox = document.createElement('input');
-             var checkbox_hidden = document.createElement('input');
-
-             // Assigning the attributes
-             // to created checkbox
-             checkbox.name = "check_box";
-             checkbox.value = check_list_item_name;
-
-             checkbox.id = "id_"+check_list_item_name;
-             checkbox.className  = "form-check-input";
-             checkbox.readOnly = 'true';
-             checkbox.style="background-color:white;boarder:none";
-             checkbox.type="checkbox";
-             if(item_state == 1)
-             {
-              checkbox.checked = true;
-             }
-             else{
-              checkbox.checked = false;
-             }
-
-              // Hidden
-             checkbox_hidden.id = "hidden_id_"+check_list_item_name;
-             checkbox_hidden.name = "check_box_hidden";
-             checkbox_hidden.value = check_list_item_name;
-             
-             checkbox_hidden.className  = "form-check-input";
-             checkbox_hidden.readOnly = 'true';
-             checkbox_hidden.style="background-color:white;boarder:none";
-             checkbox_hidden.type="hidden";
-              
-             // creating label for checkbox
-             var label = document.createElement('label');
-              
-             // assigning attributes for 
-             // the created label tag 
-             label.htmlFor = "id_"+check_list_item_name;
-              
-             // appending the created text to 
-             // the created label tag 
-             label.appendChild(document.createTextNode(check_list_item_name));
-             label.className = "form-check-label";
-             label.id = "label_id_"+check_list_item_name;
-
-             // appending the checkbox
-             // and label to div
-                          
-             check_list_div.appendChild(checkbox_hidden);
-             check_list_div.appendChild(checkbox);
-             check_list_div.appendChild(label);
-
-             cancel_item = document.createElement('button');
-             cancel_item.id = "btn_id_"+check_list_item_name;
-             cancel_item.type = "button";
-             cancel_item.className = "btn btn-md btn-danger";
-             cancel_item.setAttribute("onclick","remove_item('id_"+check_list_item_name+"')");
-             cancel_item.setAttribute("style", "margin-left:1rem;")
-
-             check_list_div.appendChild(cancel_item);
-             var br = document.createElement('br');
-             br.id = "br_id_"+check_list_item_name;
-             check_list_div.appendChild(br);
+             append_check_item(check_list_item_name, item_state == 1);
 
         }
 
