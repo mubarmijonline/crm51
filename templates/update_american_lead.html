@@ -1,163 +1,8 @@
 {% extends 'main.html' %}
+{% from "_macros.html" import page_header %}
 {% block body %}
 
-
-<style>
-  body {
-    font: 90%/1.45em "Helvetica Neue", HelveticaNeue, Verdana, Arial, Helvetica, sans-serif;
-    margin: 0;
-    padding: 0;
-    color: #333;
-    background-color: #f2f3f7;
-  }
-
-
-  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
-
-
-
-
-  ::selection {
-    color: #fff;
-    background: #664AFF;
-  }
-
-  .containerss {
-    max-width: 600px;
-    width: 500px;
-    margin: 30px auto;
-  }
-
-  .containerss .searchInput {
-    background: #fff;
-    width: 100%;
-    border-radius: 5px;
-    position: relative;
-    box-shadow: 0px 1px 5px 3px rgba(0, 0, 0, 0.12);
-  }
-
-  .searchInput input {
-    height: 55px;
-    width: 100%;
-    outline: none;
-    border: none;
-    border-radius: 5px;
-    padding: 0 60px 0 20px;
-    font-size: 18px;
-    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.1);
-  }
-
-  .searchInput.active input {
-    border-radius: 5px 5px 0 0;
-  }
-
-  .searchInput .resultBox {
-    padding: 0;
-    opacity: 0;
-    pointer-events: none;
-    max-height: 280px;
-    overflow-y: auto;
-  }
-
-  .searchInput.active .resultBox {
-    padding: 10px 8px;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .resultBox li {
-    list-style: none;
-    padding: 8px 12px;
-    display: none;
-    width: 100%;
-    cursor: default;
-    border-radius: 3px;
-  }
-
-  .searchInput.active .resultBox li {
-    display: block;
-  }
-
-  .resultBox li:hover {
-    background: #efefef;
-  }
-
-  .searchInput .icon {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    height: 55px;
-    width: 55px;
-    text-align: center;
-    line-height: 55px;
-    font-size: 20px;
-    color: maroon;
-    cursor: pointer;
-  }
-
-
-  .switch {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-  }
-
-  .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    -webkit-transition: .4s;
-    transition: .4s;
-  }
-
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    -webkit-transition: .4s;
-    transition: .4s;
-  }
-
-  input:checked+.slider {
-    background-color: #2196F3;
-  }
-
-  input:focus+.slider {
-    box-shadow: 0 0 1px #2196F3;
-  }
-
-  input:checked+.slider:before {
-    -webkit-transform: translateX(26px);
-    -ms-transform: translateX(26px);
-    transform: translateX(26px);
-  }
-
-  /* Rounded sliders */
-  .slider.round {
-    border-radius: 34px;
-  }
-
-  .slider.round:before {
-    border-radius: 50%;
-  }
-</style>
-
-<body>
+{{ page_header('Search and update education lead', 'Find a lead, then edit its details, courses and notes.') }}
 
 
   <br>
@@ -173,123 +18,69 @@
   </div>
 
   <div id="update_section" style="display: none;">
-    <div class="card_customized" style="margin-left: 10%;margin-right: 5%;">
-
-
-      <center>
+    <div class="form-section">
         <br>
-        <h3 style="font-family: 'Trebuchet MS', sans-serif;text-align: center;color:tomato"><u>Search and Update Education Lead Form</u>
-        </h3>
-      </center>
       <form id="update_american_lead" name="update_american_lead">
-        <table cellpadding="10">
-          <tr>
+        <div class="form-grid">
             <div class="form-group">
 
-              <label for="exampleFormControlInput1"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Student
+              <label for="exampleFormControlInput1">Student
                 ID</label>
               <br>
-              <input class="form-control" maxlength="16" id="student_id" name="student_id" readonly
-                style="font-weight:bold;color:gray;background-color: white;border:none" required
+              <input class="form-control" maxlength="16" id="student_id" name="student_id" readonly required aria-required="true"
                 oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
             </div>
-
-          </tr>
-          <tr>
-            <td>
               <div class="form-group">
 
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Student
+                <label for="exampleFormControlInput1">Student
                   Mobile</label>
                 <br>
-                <input class="form-control" maxlength="16" id="student_mobile" name="student_mobile"
-                  style="font-weight:bold;color:gray" required
+                <input class="form-control" maxlength="16" id="student_mobile" name="student_mobile" required aria-required="true"
                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
               </div>
-            </td>
-
-            <td>
               <div class="form-group">
 
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Name</label>
-                <input id="student_name" class="form-control" name="student_name" maxlength="100"
-                  style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" required>
+                <label for="exampleFormControlInput1">Name</label>
+                <input id="student_name" class="form-control" name="student_name" maxlength="100" required aria-required="true">
               </div>
-
-            </td>
-
-
-          </tr>
-
-          <tr>
-            <td>
               <div class="form-group">
 
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Parent
+                <label for="exampleFormControlInput1">Parent
                   Mobile</label>
                 <br>
                 <input class="form-control" maxlength="16" id="parent_mobile" name="parent_mobile"
-                  style="font-weight:bold;color:gray"
                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
               </div>
-            </td>
-
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Gender</label>
-                <select id="gender" name="gender" class="form-control"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;width: 3000px;max-width: 300px;">
+                <label for="exampleFormControlInput1">Gender</label>
+                <select id="gender" name="gender" class="form-control">
                   <option value="" disabled selected>Choose gender</option>
                   <option>Male</option>
                   <option>Female</option>
                 </select>
 
               </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Year</label>
+                <label for="exampleFormControlInput1">Year</label>
                 <input type="text" class="form-control" name="year" id="year">
 
               </div>
-            </td>
-
-            <td>
               <div class="form-group">
 
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">School</label>
-                <input id="school" class="form-control" name="school" maxlength="100"
-                  style="font-weight:bold;color:gray;width: 600px;max-width: 600px;">
+                <label for="exampleFormControlInput1">School</label>
+                <input id="school" class="form-control" name="school" maxlength="100">
               </div>
-
-
-            </td>
-          </tr>
-
           <hr>
-          <tr>
-            <td>
               <div class="form-group">
 
                 <!-- educational system -->
 
-                <label for="educational_system"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Educational
+                <label for="educational_system">Educational
                   System</label>
-                <select required type="text" class="form-control" maxlength="50" id="educational_system"
+                <select required aria-required="true" type="text" class="form-control" maxlength="50" id="educational_system"
                   placeholder="Choose Educational System" name="educational_system" id="educational_system"></select>
 
               </div>
@@ -323,75 +114,37 @@
 
                 }
               </script>
-
-            </td>
-
-
-
-          </tr>
-
-
-          <tr>
-            <td>
               <div class="form-group">
 
                 <!-- educational system -->
 
-                <label for="exam_trial"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
+                <label for="exam_trial">Course</label>
                 <select id="course" name="course[]" class="form-control" multiple="multiple"
-                  style="width: 600px;max-width: 600px;" required >
+                  style="width: 600px;max-width: 600px;" required aria-required="true" >
 
                 </select>
 
 
 
               </div>
-
-
-            </td>
-            <td>
               <button data-toggle="modal" type="button" class="btn btn-secondary"
               data-target="#course_status_modal">Course Status</button>
             
               <button type="button" title="Add Course to list" class="btn btn-danger" style="height: 40%;" data-toggle="modal"
             data-target="#add_course_modal"><i class="fa-solid fa-plus"> quick add courses </i></button>
-            </td>
-
-
-
-
-          </tr>
-
-
-
-          <tr>
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Email</label>
-                <input style="font-weight:bold;color:gray;width: 600px;max-width: 600px;" type="text"
+                <label for="exampleFormControlInput1">Email</label>
+                <input type="text"
                   class="form-control" id="email" type="email" name="email" maxlength="70">
               </div>
-            </td>
-
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Source</label>
-                <input style="font-weight:bold;color:gray;width: 50;" type="text" class="form-control" id="source"
+                <label for="exampleFormControlInput1">Source</label>
+                <input type="text" class="form-control" id="source"
                   name="source">
               </div>
-            </td>
-          </tr>
-
-          <tr>
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Status</label>
-                <select required id="status" name="status" class="form-control"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;"
+                <label for="exampleFormControlInput1">Status</label>
+                <select required aria-required="true" id="status" name="status" class="form-control"
                   onchange="check_status(this.value,'')">
                   <option value="">Select Status</option>
                   <option value="enrol">Enrol</option>
@@ -399,18 +152,13 @@
                   <option value="not_interested">Not Interested</option>
                 </select>
               </div>
-            </td>
-
-
-            <td>
               <div class="form-group" id="recall_date_section">
 
-                <label for="recall_date"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Recall
+                <label for="recall_date">Recall
                   Date</label>
                 <input
                   style="text-align:center;color:gray;font-size:15px;background-color: white;width:300px;height:calc(1.5em + .75rem + 2px);"
-                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required>
+                  type="text" class="form-control" readonly id="recall_date" name="recall_date" required aria-required="true">
 
               </div>
               <script>
@@ -427,8 +175,7 @@
 
               <div class="form-group" id="not_interested_notes_section" disabled hidden>
 
-                <label for="recall_date"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Reason</label>
+                <label for="recall_date">Reason</label>
                 <input
                   style="text-align:center;color:gray;font-size:15px;background-color: white; height:calc(1.5em + .75rem + 2px);"
                   type="text" class="form-control" id="not_interested_notes" name="not_interested_notes" >
@@ -437,8 +184,7 @@
 
               <div class="form-group" id="edu_student_id_section" disabled hidden>
 
-                <label for="recall_date"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Edu
+                <label for="recall_date">Edu
                   Student ID</label>
                 <input
                   style="text-align:center;color:gray;font-size:15px;background-color: white; height:calc(1.5em + .75rem + 2px);"
@@ -446,28 +192,16 @@
                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
 
               </div>
-            </td>
-
-          </tr>
-
           <!-- Trail -->
-          <tr>
-            <td>
               <div class="form-group">
-                <label for="trial"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Trial</label>
-                <select required id="trial" name="trial" class="form-control"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;" onchange="check_trial()">
+                <label for="trial">Trial</label>
+                <select required aria-required="true" id="trial" name="trial" class="form-control" onchange="check_trial()">
                   <option value="0" selected>No</option>
                   <option value="1">Yes</option>
                 </select>
               </div>
-            </td>
-
-            <td>
               <div class="form-group" id="sat_scores" disabled hidden>
-                <label for="trial"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Sat
+                <label for="trial">Sat
                   Scores</label>
                 <input type="text" class="form-control" id="math" name="math" placeholder="Maths Score" default="0"
                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
@@ -476,10 +210,6 @@
                 <input type="text" class="form-control" id="other" name="other" placeholder="Other Score" default="0"
                   oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
               </div>
-            </td>
-
-          </tr>
-
           <script>
             function check_trial() {
               val = document.getElementById('trial').value
@@ -498,50 +228,29 @@
           </script>
 
           <!-- Trail -->
-
-          <tr>
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Deposit</label>
-                <select id="deposit" name="deposit" class="form-control"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;">
+                <label for="exampleFormControlInput1">Deposit</label>
+                <select id="deposit" name="deposit" class="form-control">
                   <option value="" disabled selected></option>
                   <option value=1>YES</option>
                   <option value=0>NO</option>
                 </select>
 
               </div>
-            </td>
-            <td>
               <div class="form-group">
-                <label for="exampleFormControlInput1"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Assigned
+                <label for="exampleFormControlInput1">Assigned
                   to</label>
                 <select id="assigned_to" name="assigned_to[]" class="form-control" multiple="multiple"
                   style="width: 600px;max-width: 600px;">
 
                 </select>
               </div>
-
-
-
-            </td>
-          </tr>
-          <tr>
-
-            <td>
               <div class="form-group">
-                <label for="notes"
-                  style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">
+                <label for="notes">
                   Notes</label>
                 <br>
-                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" style="font-weight: bold;font-family: 'Trebuchet MS', sans-serif;color: gray;" required></textarea>
+                <textarea col="60" rows="4" class="form-control" id="notes" name="notes" value="" required aria-required="true"></textarea>
               </div>
-            </td>
-
-          </tr>
-
         </table>
         <hr>
 
@@ -558,24 +267,13 @@
 
 
 
-    <div class="card_customized" style="margin-left: 10%;margin-right: 5%">
-      <center>
-        <h3 style="color:tomato;font-family:  'Trebuchet MS', sans-serif;"><u>Notes Log</u></h3>
-      </center>
-      <table id="notes_table" style="width: 100%;">
-        <thead>
-
-          <tr>
-            <th style="display:none">ID</th>
-            <th style="width: 950px;min-width: 950px;">Notes</th>
-            <th>Added_by</th>
-            <th>Added_date</th>
-          </tr>
-
-        </thead>
-      </table>
-
-    </div>
+    <div class="form-section">
+        <div class="form-section__head">
+          <h2 class="form-section__title">Notes log</h2>
+          <p class="form-section__desc">Everything the team has recorded on this lead, newest first.</p>
+        </div>
+        <div id="notes_timeline" class="notes"></div>
+      </div>
 
 
     <div class="modal fade" id="course_status_modal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
@@ -590,16 +288,11 @@
             <div class="modal-body">
               <table id="course_status_table" style="width: 100%;">
                 <thead>
-        
-                  <tr>
                     <th style="display:none">ID</th>
                     <th>Course ID</th>
                     <th>Student ID</th>
                     <th>Course</th>
                     <th style="width: 400px;">Status</th>
-
-                  </tr>
-        
                 </thead>
 
               </table>
@@ -768,47 +461,9 @@
   <script>
 
     function get_notes(id) {
-
-      $('#notes_table').DataTable().destroy();
-      var table = $('#notes_table').DataTable({
-        ajax: { url: '/get_american_notes?id=' + id, mimeType: 'json' },
-        deferRender: true,
-        columns: [
-          { data: '_id', "visible": false },
-          {
-            mRender: function (data, type, row) {
-              mynotes = row.notes
-              const matches = mynotes.match(/\r\n|\n\r|\n|\r/g);
-              const count = matches ? matches.length + 1 : 1;
-              return '<textarea id="mytextarea' + row._id + '" rows="' + count + '" class="form-control" width="100%" height="auto" readonly style="boarder:none;background-color:white;position: relative;border: 1px solid #888;background: #fff;" contenteditable>' + row.notes + '</textarea>'
-            },
-          },
-          { data: 'added_by' },
-          { data: 'added_date' },
-        ],
-
-
-        rowId: 'extn',
-        select: true,
-        paging: false,
-        dom: 'Bfrtip',
-        scrollX: true,
-        select: false,
-        "order": [[0, "desc"]],
-        buttons: [
-
-          {
-            text: 'Refresh',
-
-            action: function () {
-              table.ajax.reload();
-            }
-          }
-        ]
-
-      });
-
-
+      // Was a DataTable whose single visible column rendered a readonly
+      // <textarea> per row. Notes are a conversation, so they read as one.
+      crmNotes('#notes_timeline', { url: '/get_american_notes?id=' + id });
     }
 
   </script>
@@ -1074,16 +729,12 @@
         <span id="error" style="color:red;font-weight:500;"></span>
 
       <table>
-
-        <tr>
-          <td>
                   <div class="form-group">
 
                     <!-- educational system -->
 
-                      <label for="subject"
-                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Subject</label>
-                      <select required type="text" class="form-control" maxlength="50" id="subject"
+                      <label for="subject">Subject</label>
+                      <select required aria-required="true" type="text" class="form-control" maxlength="50" id="subject"
                         placeholder="Choose Subject" name="subject" id="subject" onchange="get_course()"></select>
                     
                     </div>
@@ -1110,21 +761,12 @@
                       
                     }
                     </script>
-
-          </td>
-
-
-
-        </tr>
-        <tr>
-          <td>
                   <div class="form-group">
 
                     <!-- educational system -->
 
-                      <label for="exam_trial"
-                      style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Exam Trial</label>
-                      <select required type="text" class="form-control" maxlength="50" id="exam_trial"
+                      <label for="exam_trial">Exam Trial</label>
+                      <select required aria-required="true" type="text" class="form-control" maxlength="50" id="exam_trial"
                         placeholder="Choose Exam Trial" name="exam_trial" id="exam_trial" onchange="get_course()"></select>
                     
                     </div>
@@ -1151,9 +793,6 @@
                       
                     }
                     </script>
-
-          </td>
-        </tr>
           <script>
             function get_course()
             {
@@ -1166,26 +805,15 @@
               }
             }
           </script>
-  <tr>
-          <td>
             <div class="form-group">
 
               <!-- educational system -->
   
-                <label for="exam_trial"
-                style="font-weight: bold;;font-family: 'Trebuchet MS', sans-serif;color: cadetblue;font-size: 18px;">Course</label>
-                <input required type="text" class="form-control" maxlength="140" id="course1"
-                   name="course1" id="course1" readonly
-                   style="font-weight:bold;color:gray;background-color: white;">
+                <label for="exam_trial">Course</label>
+                <input required aria-required="true" type="text" class="form-control" maxlength="140" id="course1"
+                   name="course1" id="course1" readonly>
               
               </div>
-          </td>
-
-         
-
-        </tr>
-
-        
       </table>
         
             
@@ -1334,9 +962,5 @@
   
  })
 </script>
-
-
-
-</body>
 
 {% endblock %}
