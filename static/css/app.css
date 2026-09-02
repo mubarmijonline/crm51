@@ -966,3 +966,70 @@ table.dataTable tbody tr.selected:hover > td { background: var(--surface-selecte
   .fc-toolbar .fc-left, .fc-toolbar .fc-center, .fc-toolbar .fc-right { float: none; text-align: center; }
   .fc button.fc-button { height: var(--control-height-md); }
 }
+
+
+/* ===========================================================================
+   Toasts.
+   =========================================================================== */
+
+.crm-toasts {
+  position: fixed;
+  top: calc(56px + var(--space-5));      /* clear of the top bar */
+  inset-inline-end: var(--space-6);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  pointer-events: none;
+}
+
+.crm-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  min-width: 280px;
+  max-width: 420px;
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-inverse);
+  color: var(--text-inverse);
+  border: 1px solid var(--chrome-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-dialog);
+  font: var(--type-body-sm);
+  animation: crm-toast-in var(--duration-base) var(--ease-standard);
+}
+
+@keyframes crm-toast-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+.crm-toast.is-going { opacity: 0; transform: translateY(-6px); transition: opacity var(--duration-fast), transform var(--duration-fast); }
+@media (prefers-reduced-motion: reduce) { .crm-toast { animation: none; } .crm-toast.is-going { transition: none; } }
+
+.crm-toast__text { flex: 1 1 auto; }
+
+.crm-toast__action {
+  flex: none;
+  padding: var(--space-2) var(--space-4);
+  background: transparent;
+  border: 1px solid var(--chrome-border);
+  border-radius: var(--radius-control);
+  color: var(--text-inverse);
+  font: var(--weight-semibold) var(--text-sm)/1 var(--font-sans);
+  cursor: pointer;
+}
+.crm-toast__action:hover { background: var(--sidebar-hover); }
+.crm-toast__action:focus-visible { outline: 2px solid var(--red); outline-offset: 1px; }
+
+.crm-toast__close {
+  flex: none; width: 22px; height: 22px; padding: 0;
+  background: none; border: 0; border-radius: var(--radius-xs);
+  color: var(--chrome-muted); font-size: 18px; line-height: 1; cursor: pointer;
+}
+.crm-toast__close:hover { color: var(--text-inverse); }
+
+.crm-toast--danger { border-color: var(--status-danger-fg); }
+.crm-toast--success { border-color: var(--success); }
+
+@media (max-width: 767px) {
+  .crm-toasts { inset-inline: var(--space-5); top: auto; bottom: var(--space-6); }
+  .crm-toast { min-width: 0; max-width: none; }
+}

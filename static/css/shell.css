@@ -317,6 +317,10 @@ main {
   padding: var(--space-9) var(--space-8);
 }
 
+/* Pages that are a grid rather than a document: the calendar week view gets
+   more useful with every extra column pixel, so the reading cap comes off. */
+main.is-wide { max-width: none; }
+
 footer {
   flex: none;
   border-top: 1px solid var(--line);

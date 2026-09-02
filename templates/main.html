@@ -167,7 +167,10 @@ try {
       </div>
     </header>
 
-    <main>
+    {# A page can opt out of the 1600px reading cap by setting
+       {% set wide_page = true %}. A week grid wants every pixel; a form does
+       not, which is why the cap stays the default. #}
+    <main{% if wide_page %} class="is-wide"{% endif %}>
 {% block body %}{% endblock %}
     </main>
 

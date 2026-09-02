@@ -2,6 +2,7 @@
 {% block title %}Calendar — 51 American CRM{% endblock %}
 
 {% from "_macros.html" import page_header %}
+{% set wide_page = true %}
 
 {% block head_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fullcalendar/fullcalendar.min.css') }}">
@@ -33,10 +34,10 @@
     <div class="form-group" style="margin-bottom:0">
       <label class="form-label">Editing</label>
       <div class="crm-mode" role="group" aria-label="Editing mode">
-        <button type="button" id="edit_on" style="width:auto;padding:0 var(--space-5)"><i data-lucide="move"></i>On</button>
-        <button type="button" id="edit_off" class="is-on" style="width:auto;padding:0 var(--space-5)"><i data-lucide="lock"></i>Off</button>
+        <button type="button" id="edit_on" class="is-on" style="width:auto;padding:0 var(--space-5)"><i data-lucide="move"></i>On</button>
+        <button type="button" id="edit_off" style="width:auto;padding:0 var(--space-5)"><i data-lucide="lock"></i>Off</button>
       </div>
-      <small class="form-text">Off by default, so nothing moves by accident.</small>
+      <small class="form-text">Turn off to browse without moving anything.</small>
     </div>
 
     <div style="margin-inline-start:auto;text-align:end">
@@ -69,7 +70,13 @@
   var $count = $('#cal_count');
   var $note = $('#cal_conflict_note');
   var showFinished = false;
-  var editing = false;
+  // On by default now. The preference is remembered, so turning it off is a
+  // choice that sticks rather than something to redo every visit.
+  var EDIT_KEY = 'crm51.calendar.editing';
+  var editing = (function () {
+    try { var v = localStorage.getItem(EDIT_KEY); return v === null ? true : v === '1'; }
+    catch (e) { return true; }
+  })();
   var conflictIds = {};
 
   // The T must be bracketed. Moment treats unescaped letters in a format
@@ -156,7 +163,7 @@
     allDaySlot: false,
     selectable: true,
     selectHelper: true,
-    editable: false,               // switched on by the Editing toggle
+    editable: false,               // set from `editing` once the view exists
     eventDurationEditable: true,
     // The two that make overlap impossible in the UI.
     eventOverlap: false,
@@ -204,10 +211,16 @@
       });
     },
 
+    /* Remember where it was before the pointer moved it. delta could be
+       subtracted instead, but that breaks the moment a move is rejected and
+       reverted, and this is unambiguous. */
+    eventDragStart: function (ev) { snapshot(ev); },
+    eventResizeStart: function (ev) { snapshot(ev); },
+
     /* drag to move */
-    eventDrop: function (ev, delta, revert) { persist(ev, revert); },
+    eventDrop: function (ev, delta, revert) { persist(ev, revert, 'moved'); },
     /* drag an edge to resize */
-    eventResize: function (ev, delta, revert) { persist(ev, revert); },
+    eventResize: function (ev, delta, revert) { persist(ev, revert, 'resized'); },
 
     eventClick: function (ev) {
       var p = ev.extendedProps || ev.raw || {};
@@ -247,26 +260,63 @@
     }
   });
 
-  function persist(ev, revert) {
+  var before = {};      // id -> where it sat before the current drag
+
+  function snapshot(ev) {
+    before[ev.id] = {
+      start: toIso(ev.start),
+      end: toIso(ev.end || ev.start.clone().add(1, 'hour')),
+      room: $room.val()
+    };
+  }
+
+  function undoTo(id, was, what) {
+    $.post('/api/calendar/move', { id: id, room: was.room, start: was.start, end: was.end })
+      .done(function () {
+        load();
+        crmToast({ text: 'Put back where it was.', tone: 'success', duration: 3000 });
+      })
+      .fail(function (xhr) {
+        // The old slot can be taken in the meantime - by a repeat, or by
+        // someone else - so undo is an attempt, not a promise.
+        var p = xhr.responseJSON || {};
+        if (xhr.status === 409) conflictDialog(p);
+        else say('error', 'Could not undo', 'The original slot is no longer free.');
+        load();
+      });
+  }
+
+  function persist(ev, revert, what) {
+    var was = before[ev.id];
     $.post('/api/calendar/move', {
       id: ev.id, room: $room.val(), start: toIso(ev.start),
       end: toIso(ev.end || ev.start.clone().add(1, 'hour'))
-    }).done(function () { load(); })
-      .fail(function (xhr) {
-        revert();                                  // put it back where it was
-        var p = xhr.responseJSON || {};
-        if (xhr.status === 409) conflictDialog(p);
-        else say('error', 'Not moved', 'The change was refused (' + (p.state || xhr.status) + ').');
-      });
+    }).done(function () {
+      var id = ev.id;
+      load();
+      if (was) {
+        crmToast({
+          text: 'Booking ' + (what || 'moved') + '.',
+          action: 'Undo',
+          onAction: function () { undoTo(id, was, what); }
+        });
+      }
+    }).fail(function (xhr) {
+      revert();                                    // put it back where it was
+      var p = xhr.responseJSON || {};
+      if (xhr.status === 409) conflictDialog(p);
+      else say('error', 'Not moved', 'The change was refused (' + (p.state || xhr.status) + ').');
+    });
   }
 
   /* --- controls --------------------------------------------------------- */
 
-  function setEditing(on) {
+  function setEditing(on, quiet) {
     editing = on;
     $('#edit_on').toggleClass('is-on', on);
     $('#edit_off').toggleClass('is-on', !on);
     $cal.fullCalendar('option', 'editable', on && !showFinished);
+    if (!quiet) { try { localStorage.setItem(EDIT_KEY, on ? '1' : '0'); } catch (e) {} }
     load();
   }
 
@@ -303,6 +353,10 @@
       });
     });
   });
+
+  // Reflect the remembered editing state in the toggle and the calendar
+  // before the first load, so nothing flickers between on and off.
+  setEditing(editing, true);
 
   $.getJSON('/room_data').done(function (rooms) {
     $room.empty();
