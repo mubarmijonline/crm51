@@ -136,6 +136,17 @@
   }
   function money(v) { return Number(v || 0).toLocaleString(); }
 
+  // Checklist and assignment revisions hold JSON, which is unreadable in a
+  // history row; show how many items rather than the whole blob.
+  function shorten(v) {
+    if (v === null || v === undefined || v === '') return 'empty';
+    var s = String(v);
+    if (s.charAt(0) === '[') {
+      try { return JSON.parse(s).length + ' items'; } catch (e) { /* fall through */ }
+    }
+    return s.length > 40 ? s.slice(0, 40) + '…' : s;
+  }
+
   var TONE = { enrol:'success', completed:'success', pending:'warning',
                not_interested:'danger', not_contacted:'secondary',
                hot:'danger', cold:'info' };
@@ -156,8 +167,8 @@
         state.client = payload.client;
         state.events = payload.events || [];
         if (openEventId) state.open = Number(openEventId);
-        else if (state.open === null && state.events.length === 1)
-          state.open = state.events[0].event_id;
+        else if (state.open === null && state.events.length)
+          state.open = state.events[0].event_id;   // newest, first in the list
         paintClient();
         paintEvents();
       })
@@ -324,17 +335,12 @@
       '<h4 class="crm-event__sub">File</h4>' +
       fileRow(e) +
 
-      '<h4 class="crm-event__sub">Note and assignment</h4>' +
+      '<h4 class="crm-event__sub">Assignment</h4>' +
       '<div class="form-grid">' +
         '<div class="form-group span-2">' +
-          '<label for="notes_' + id + '">Note<span class="form-label__req">*</span></label>' +
-          '<textarea class="form-control" id="notes_' + id + '" name="notes" rows="3" required ' +
-                    'placeholder="What happened on this contact?"></textarea>' +
-        '</div>' +
-        '<div class="form-group span-2">' +
-          '<label for="assigned_' + id + '">Assigned to<span class="form-label__req">*</span></label>' +
+          '<label for="assigned_' + id + '">Assigned to</label>' +
           '<select class="form-control" id="assigned_' + id + '" name="assigned_to[]" ' +
-                  'multiple required></select>' +
+                  'multiple></select>' +
         '</div>' +
       '</div>' +
 
@@ -342,11 +348,22 @@
         (MY_ROLE === 'admin'
           ? '<button type="button" class="btn btn-secondary crm-event__delete">' +
             '<i data-lucide="trash-2"></i>Delete event</button>' : '') +
-        '<span class="crm-event__note">Every save records a note against this event.</span>' +
-        '<button type="submit" class="btn btn-primary">Save event</button>' +
+        '<button type="button" class="btn btn-secondary crm-event__history">' +
+          '<i data-lucide="history"></i>History</button>' +
+        '<button type="button" class="btn btn-secondary crm-event__undo" disabled>' +
+          '<i data-lucide="undo-2"></i>Undo</button>' +
+        '<span class="crm-save" data-save aria-live="polite"></span>' +
       '</div>' +
 
-      '<h4 class="crm-event__sub">Notes log</h4>' +
+      '<div class="crm-history" data-history hidden></div>' +
+
+      '<h4 class="crm-event__sub">Notes</h4>' +
+      '<div class="crm-note-add">' +
+        '<textarea class="form-control" id="notes_' + id + '" rows="3" ' +
+                  'placeholder="Add a note about this event"></textarea>' +
+        '<button type="button" class="btn btn-secondary crm-note-add__btn">' +
+          '<i data-lucide="message-square-plus"></i>Add note</button>' +
+      '</div>' +
       '<div class="notes" data-notes="' + id + '"></div>' +
     '</form>';
   }
@@ -447,6 +464,11 @@
       // Only an admin reassigns work; everyone else sees who it is on.
       if (MY_ROLE !== 'admin') $sel.prop('disabled', true);
       $sel.select2({ width: '100%', placeholder: 'Choose one or more people' });
+      // Bound after select2 is up, so populating the list does not count as a
+      // change and save an unchanged value on every open.
+      $sel.on('change', function () {
+        save('assigned_to', JSON.stringify($(this).val() || []));
+      });
     });
 
     // crmNotes takes a selector, not an element.
@@ -489,6 +511,7 @@
     $form.on('click', '.crm-check__remove', function () {
       $(this).closest('.crm-check').remove();
       recount($form);
+      $form.trigger('crm:checklist-changed');
     });
 
     $form.on('click', '.crm-checklist__add', function () {
@@ -531,26 +554,150 @@
         });
     });
 
-    $form.on('submit', function (ev) {
-      ev.preventDefault();
-      var data = $form.serializeArray()
-        .concat($('#client_form').serializeArray());
-      var $save = $form.find('[type=submit]');
-      $save.prop('disabled', true).text('Saving…');
+    /* --- auto-save ------------------------------------------------------
+       Every field saves itself. Text fields save when you leave them or after
+       a pause, so a save is not fired per keystroke; selects and checkboxes
+       save at once, because a change there is already deliberate. */
 
-      $.post('/update_event_lead?update_event_lead', $.param(data))
-        .done(function (res) {
-          if (res.state === 'success') {
-            Swal.fire({ icon: 'success', title: 'Event saved', showConfirmButton: false,
-                        timer: 1200 });
-            load(state.client.client_id, id);
-          } else {
-            Swal.fire('Not saved', res.reason || 'The event was not saved.', 'error');
-          }
-        })
-        .fail(function () { Swal.fire('Not saved', 'The event was not saved.', 'error'); })
-        .always(function () { $save.prop('disabled', false).text('Save event'); });
+    var $status = $form.find('[data-save]');
+    var timers  = {};
+
+    function say(text, tone) {
+      $status.attr('class', 'crm-save' + (tone ? ' is-' + tone : '')).text(text);
+      if (tone === 'ok') {
+        window.clearTimeout(timers.__msg);
+        timers.__msg = window.setTimeout(function () { $status.text(''); }, 2500);
+      }
+    }
+
+    function save(field, value) {
+      say('Saving…', 'busy');
+      return $.post('/api/event_field', {
+        client_id: state.client.client_id, event_id: id, field: field, value: value
+      }).done(function (res) {
+        if (res.state === 'success') {
+          say('Saved', 'ok');
+          $form.find('.crm-event__undo').prop('disabled', false);
+          refreshBar(field, value);
+        } else if (res.state === 'unchanged') {
+          say('', '');
+        } else {
+          say(res.reason || 'Not saved', 'bad');
+        }
+      }).fail(function () { say('Not saved', 'bad'); });
+    }
+
+    // Keep the collapsed summary honest without refetching the whole client.
+    function refreshBar(field, value) {
+      var ev = state.events.filter(function (x) { return Number(x.event_id) === Number(id); })[0];
+      if (!ev) return;
+      if (field in ev) ev[field] = value;
+      var $bar = $('.crm-event[data-event="' + id + '"]');
+      $bar.find('.crm-event__meta').html(summary(ev));
+      if (field === 'event_name') $bar.find('.crm-event__name').text(value);
+    }
+
+    function debounce(field, value) {
+      window.clearTimeout(timers[field]);
+      timers[field] = window.setTimeout(function () { save(field, value); }, 600);
+    }
+
+    $form.on('change', 'select[name], input[name=recall_date]', function () {
+      if (FIELDS.indexOf(this.name) === -1) return;   // assigned_to[] has its own
+      save(this.name, this.value);
     });
+
+    $form.on('input', 'input[name=event_name], input[name=not_interested_notes],' +
+                      ' input[name=total], input[name=deposit], textarea[name=assets_list]',
+      function () { debounce(this.name, this.value); });
+
+    // Only the event's own fields. The checklist rows carry inputs named
+    // check_box and check_box_hidden, which are not fields and were being
+    // posted on blur and rejected.
+    var FIELDS = ['event_name', 'status', 'temperature', 'recall_date',
+                  'not_interested_notes', 'payment_status', 'deposit_flag',
+                  'deposit', 'total', 'remaining', 'assets_list', 'done'];
+
+    $form.on('blur', 'input[name], textarea[name]', function () {
+      if (FIELDS.indexOf(this.name) === -1) return;
+      window.clearTimeout(timers[this.name]);
+      save(this.name, this.value);
+    });
+
+    // remaining is derived, so it is saved alongside the two that drive it.
+    $form.on('input', '[name=total], [name=deposit]', function () {
+      debounce('remaining', $form.find('[name=remaining]').val());
+    });
+
+    function saveCheckList() {
+      var items = $form.find('.crm-check').map(function () {
+        return { item: $(this).find('input[name=check_box_hidden]').val(),
+                 checked: $(this).find('input[type=checkbox]').is(':checked') ? 1 : 0 };
+      }).get();
+      save('check_list', JSON.stringify(items));
+    }
+    $form.on('change', '.crm-check input[type=checkbox]', saveCheckList);
+    $form.on('crm:checklist-changed', saveCheckList);
+
+    $form.find('.crm-event__undo').on('click', function () {
+      var $btn = $(this);
+      $btn.prop('disabled', true);
+      $.post('/api/event_undo', { client_id: state.client.client_id, event_id: id })
+        .done(function (res) {
+          if (res.state === 'nothing_to_undo') { say('Nothing to undo', ''); return; }
+          if (res.state !== 'success') { say('Could not undo', 'bad'); $btn.prop('disabled', false); return; }
+          say('Undone', 'ok');
+          load(state.client.client_id, id);
+        })
+        .fail(function () { say('Could not undo', 'bad'); $btn.prop('disabled', false); });
+    });
+
+    $form.find('.crm-event__history').on('click', function () {
+      var $panel = $form.find('[data-history]');
+      if (!$panel.prop('hidden')) { $panel.prop('hidden', true); return; }
+      $panel.prop('hidden', false).html('<p class="crm-history__empty">Loading…</p>');
+      $.getJSON('/api/event_history?client_id=' + state.client.client_id + '&event_id=' + id)
+        .done(function (res) {
+          var rows = (res.data || []);
+          if (!rows.length) {
+            $panel.html('<p class="crm-history__empty">No changes recorded yet.</p>');
+            return;
+          }
+          $panel.html('<ol class="crm-history__list">' + rows.map(function (r) {
+            return '<li class="crm-history__row' + (Number(r.undone) ? ' is-undone' : '') + '">' +
+              '<span class="crm-history__field">' + esc(String(r.field).replace(/_/g, ' ')) + '</span>' +
+              '<span class="crm-history__change">' +
+                '<del>' + esc(shorten(r.old_value)) + '</del> ' +
+                '<ins>' + esc(shorten(r.new_value)) + '</ins>' +
+              '</span>' +
+              '<span class="crm-history__who">' + esc(r.changed_by) + ' · ' +
+                esc(r.changed_at) + (Number(r.undone) ? ' · undone' : '') + '</span>' +
+            '</li>';
+          }).join('') + '</ol>');
+        });
+    });
+
+    $form.find('.crm-note-add__btn').on('click', function () {
+      var $box = $form.find('#notes_' + id);
+      var text = $box.val().trim();
+      if (!text) { $box.focus(); return; }
+      var $btn = $(this).prop('disabled', true);
+      $.post('/api/event_note', { client_id: state.client.client_id, event_id: id, notes: text })
+        .done(function (res) {
+          if (res.state !== 'success') { Swal.fire('Not added', 'The note was not added.', 'error'); return; }
+          $box.val('');
+          crmNotes('[data-event-form="' + id + '"] [data-notes]',
+                   { url: '/get_events_notes?event_id=' + id });
+        })
+        .always(function () { $btn.prop('disabled', false); });
+    });
+
+    // Undo is only offered once there is something to undo.
+    $.getJSON('/api/event_history?client_id=' + state.client.client_id + '&event_id=' + id)
+      .done(function (res) {
+        var live = (res.data || []).filter(function (r) { return !Number(r.undone); });
+        $form.find('.crm-event__undo').prop('disabled', !live.length);
+      });
   }
 
   /* --- page-level wiring --------------------------------------------------- */
@@ -585,6 +732,7 @@
     $list.prepend(checklistItem(name, false));
     if (window.lucide) lucide.createIcons({ nameAttr: 'data-lucide' });
     recount($form);
+    $form.trigger('crm:checklist-changed');
     $('#add_item_modal').modal('hide');
   });
 
@@ -601,6 +749,17 @@
         load(state.client.client_id, Number($('#event_id_file_upload').val()));
       })
       .fail(function () { Swal.fire('Not uploaded', 'The file was not uploaded.', 'error'); });
+  });
+
+  // The client's own fields save the same way, with no event attached.
+  $('#client_form').on('blur', 'input[name]', function () {
+    if (!state.client || this.name === 'client_id') return;
+    var field = this.name === 'email' ? 'client_email' : this.name;
+    $.post('/api/event_field', {
+      client_id: state.client.client_id, field: field, value: this.value
+    }).done(function (res) {
+      if (res.state === 'success') state.client[field] = res.new;
+    });
   });
 
   window.clear_data = function () {

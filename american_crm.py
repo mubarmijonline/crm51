@@ -1853,7 +1853,9 @@ def api_event_client():
             " assets_list, done, file_name,"
             " CONVERT(added_date, CHAR) AS added_date, added_by,"
             " CONVERT(modified_date, CHAR) AS modified_date, modified_by"
-            " FROM event_event WHERE client_id = %s ORDER BY event_id", (client_id,))
+            # Newest first: the event someone is working on is almost always
+            # the one just booked, not the one from two years ago.
+            " FROM event_event WHERE client_id = %s ORDER BY event_id DESC", (client_id,))
         heads = [d[0] for d in cur.description]
         events = [dict(zip(heads, r)) for r in cur.fetchall()]
 
@@ -1883,6 +1885,284 @@ def api_event_client():
     return app.response_class(
         json.dumps({'client': client, 'events': events}, default=str),
         mimetype='application/json')
+
+
+# =============================================================================
+# Auto-save.
+#
+# A change saves itself the moment it is made, so there is no Save button to
+# forget. Every change is recorded in event_revision with what the value was
+# and what it became, which is both the audit trail that the required note used
+# to provide and what Undo steps back through.
+#
+# Only the fields below can be written, and each is mapped to its column - the
+# field name from the request never reaches the SQL.
+# =============================================================================
+
+EVENT_FIELDS = {
+    'event_name':           'event_name',
+    'status':               'status',
+    'temperature':          'temperature',
+    'recall_date':          'recall_date',
+    'not_interested_notes': 'not_interested_notes',
+    'payment_status':       'payment_status',
+    'deposit_flag':         'deposit_flag',
+    'deposit':              'deposit',
+    'total':                'total',
+    'remaining':            'remaining',
+    'assets_list':          'assets_list',
+    'done':                 'done',
+}
+
+CLIENT_FIELDS = {
+    'client_name':   'client_name',
+    'client_mobile': 'client_mobile',
+    'client_email':  'client_email',
+}
+
+# Two things that are a set rather than a value. They are stored as their own
+# rows, so they are read and written whole and their revision holds JSON.
+SET_FIELDS = ('check_list', 'assigned_to')
+
+# Empty means "no date", not the string "".
+NULLABLE = ('recall_date',)
+
+
+def _read_check_list(cur, event_id):
+    cur.execute("SELECT item, checked FROM event_check_list WHERE event_id=%s ORDER BY id",
+                (event_id,))
+    return [{'item': i, 'checked': int(c)} for i, c in cur.fetchall()]
+
+
+def _read_assigned(cur, event_id):
+    cur.execute("SELECT username FROM event_assignation WHERE event_id=%s ORDER BY username",
+                (event_id,))
+    return [r[0] for r in cur.fetchall()]
+
+
+def _write_check_list(cur, client_id, event_id, items):
+    cur.execute("DELETE FROM event_check_list WHERE event_id=%s", (event_id,))
+    for it in items:
+        cur.execute("INSERT INTO event_check_list (client_id, event_id, item, checked)"
+                    " VALUES (%s,%s,%s,%s)",
+                    (client_id, event_id, it.get('item', '')[:40],
+                     1 if it.get('checked') else 0))
+
+
+def _write_assigned(cur, client_id, event_id, usernames, client_mobile):
+    cur.execute("SELECT username FROM event_assignation WHERE event_id=%s", (event_id,))
+    already = {r[0] for r in cur.fetchall()}
+    for username in usernames:
+        if username in already:
+            continue
+        cur.execute("SELECT user_id FROM user WHERE username=%s", (username,))
+        u = cur.fetchone()
+        cur.execute("INSERT INTO event_assignation (client_id, event_id, user_id, username,"
+                    " client_mobile) VALUES (%s,%s,%s,%s,%s)",
+                    (client_id, event_id, int(u[0]) if u else None, username, client_mobile))
+    for username in already - set(usernames):
+        cur.execute("DELETE FROM event_assignation WHERE event_id=%s AND username=%s",
+                    (event_id, username))
+
+
+def _record(cur, client_id, event_id, field, old, new):
+    cur.execute("INSERT INTO event_revision (event_id, client_id, field, old_value,"
+                " new_value, changed_by, changed_at) VALUES (%s,%s,%s,%s,%s,%s,NOW())",
+                (event_id, client_id, field,
+                 None if old is None else str(old),
+                 None if new is None else str(new),
+                 session['name']))
+
+
+def _apply(cur, client_id, event_id, field, value):
+    """Write one field and return (old, new) as they were stored."""
+    if field in SET_FIELDS:
+        try:
+            parsed = json.loads(value) if isinstance(value, str) else value
+        except ValueError:
+            raise ValueError('bad value')
+        if field == 'check_list':
+            old = _read_check_list(cur, event_id)
+            _write_check_list(cur, client_id, event_id, parsed or [])
+            return json.dumps(old), json.dumps(parsed or [])
+        old = _read_assigned(cur, event_id)
+        cur.execute("SELECT client_mobile FROM event_client WHERE client_id=%s", (client_id,))
+        row = cur.fetchone()
+        _write_assigned(cur, client_id, event_id, parsed or [], row[0] if row else '')
+        return json.dumps(old), json.dumps(sorted(parsed or []))
+
+    if field in CLIENT_FIELDS:
+        column = CLIENT_FIELDS[field]
+        cur.execute("SELECT `%s` FROM event_client WHERE client_id=%%s" % column, (client_id,))
+        row = cur.fetchone()
+        old = None if row is None else row[0]
+        cur.execute("UPDATE event_client SET `%s`=%%s, modified_date=NOW(), modified_by=%%s"
+                    " WHERE client_id=%%s" % column, (value, session['name'], client_id))
+        return old, value
+
+    column = EVENT_FIELDS[field]
+    if field in NULLABLE and (value is None or str(value).strip() == ''):
+        value = None
+    cur.execute("SELECT `%s` FROM event_event WHERE event_id=%%s" % column, (event_id,))
+    row = cur.fetchone()
+    old = None if row is None else row[0]
+    cur.execute("UPDATE event_event SET `%s`=%%s, modified_date=NOW(), modified_by=%%s"
+                " WHERE event_id=%%s" % column, (value, session['name'], event_id))
+    return old, value
+
+
+@app.route('/api/event_field', methods=["POST"])
+def api_event_field():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+
+    field = request.form.get('field', '')
+    if field not in EVENT_FIELDS and field not in CLIENT_FIELDS and field not in SET_FIELDS:
+        return jsonify({'state': 'failed', 'reason': 'unknown field'}), 400
+
+    try:
+        client_id = int(request.form['client_id'])
+        event_id  = int(request.form['event_id']) if request.form.get('event_id') else None
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'failed', 'reason': 'bad ids'}), 400
+
+    if event_id is None and field not in CLIENT_FIELDS:
+        return jsonify({'state': 'failed', 'reason': 'event required'}), 400
+
+    conn, cur = connection()
+    try:
+        if event_id is not None:
+            cur.execute("SELECT client_id FROM event_event WHERE event_id=%s", (event_id,))
+            row = cur.fetchone()
+            if row is None or int(row[0]) != client_id:
+                return jsonify({'state': 'failed', 'reason': 'wrong event'}), 400
+
+        old, new = _apply(cur, client_id, event_id, field, request.form.get('value', ''))
+
+        # Nothing changed, so nothing worth recording or undoing.
+        if str(old) == str(new):
+            conn.commit()
+            return jsonify({'state': 'unchanged'})
+
+        _record(cur, client_id, event_id, field, old, new)
+        conn.commit()
+    except ValueError:
+        conn.rollback()
+        return jsonify({'state': 'failed', 'reason': 'bad value'}), 400
+    except Exception:
+        conn.rollback()
+        app.logger.exception('event_field failed')
+        return jsonify({'state': 'failed', 'reason': 'not saved'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    return app.response_class(json.dumps({'state': 'success', 'field': field,
+                                          'old': old, 'new': new}, default=str),
+                              mimetype='application/json')
+
+
+@app.route('/api/event_undo', methods=["POST"])
+def api_event_undo():
+    """Step back the most recent change that has not already been stepped back."""
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.form['client_id'])
+        event_id  = int(request.form['event_id']) if request.form.get('event_id') else None
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+
+    conn, cur = connection()
+    try:
+        if event_id is not None:
+            cur.execute("SELECT id, field, old_value FROM event_revision"
+                        " WHERE undone = 0 AND (event_id = %s OR"
+                        "       (event_id IS NULL AND client_id = %s))"
+                        " ORDER BY id DESC LIMIT 1", (event_id, client_id))
+        else:
+            cur.execute("SELECT id, field, old_value FROM event_revision"
+                        " WHERE undone = 0 AND client_id = %s"
+                        " ORDER BY id DESC LIMIT 1", (client_id,))
+        row = cur.fetchone()
+        if row is None:
+            return jsonify({'state': 'nothing_to_undo'})
+
+        rev_id, field, old_value = row
+
+        # Restoring is just another write, but it is not recorded as a fresh
+        # change - the revision it reverses is marked instead, so undoing twice
+        # steps back two changes rather than ping-ponging on one.
+        _apply(cur, client_id, event_id, field, old_value)
+        cur.execute("UPDATE event_revision SET undone = 1 WHERE id = %s", (rev_id,))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        app.logger.exception('event_undo failed')
+        return jsonify({'state': 'failed'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    return jsonify({'state': 'success', 'field': field})
+
+
+@app.route('/api/event_history')
+def api_event_history():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.args['client_id'])
+        event_id  = int(request.args['event_id']) if request.args.get('event_id') else None
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad ids'}), 400
+
+    conn, cur = connection()
+    try:
+        cur.execute("SELECT id, field, old_value, new_value, changed_by,"
+                    " CONVERT(changed_at, CHAR) AS changed_at, undone"
+                    " FROM event_revision"
+                    " WHERE (event_id = %s OR (event_id IS NULL AND client_id = %s))"
+                    " ORDER BY id DESC LIMIT 50", (event_id, client_id))
+        heads = [d[0] for d in cur.description]
+        rows = [dict(zip(heads, r)) for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+    return app.response_class(json.dumps({'data': rows}, default=str),
+                              mimetype='application/json')
+
+
+@app.route('/api/event_note', methods=["POST"])
+def api_event_note():
+    """A note is now something someone chooses to write, not a toll on saving."""
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    note = (request.form.get('notes') or '').strip()
+    if not note:
+        return jsonify({'state': 'failed', 'reason': 'empty note'}), 400
+    try:
+        client_id = int(request.form['client_id'])
+        event_id  = int(request.form['event_id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+
+    conn, cur = connection()
+    try:
+        cur.execute("SELECT c.client_mobile FROM event_client c"
+                    " JOIN event_event e ON e.client_id = c.client_id"
+                    " WHERE e.event_id = %s AND c.client_id = %s", (event_id, client_id))
+        row = cur.fetchone()
+        if row is None:
+            return jsonify({'state': 'failed', 'reason': 'wrong event'}), 400
+        mobile = row[0]
+    finally:
+        cur.close()
+        conn.close()
+
+    add_event_notes(client_id, mobile, note, event_id)
+    return jsonify({'state': 'success'})
 
 
 @app.route('/api/event_add', methods=["POST"])

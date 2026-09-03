@@ -846,3 +846,72 @@ form:has(> .form-actions) .form-section { scroll-margin-block-end: 96px; }
   background: var(--status-danger-bg);
 }
 .crm-check__remove i, .crm-check__remove svg { width: 14px; height: 14px; }
+
+
+/* ===========================================================================
+   Auto-save: status, history, and adding a note.
+
+   There is no Save button any more, so the page has to say what it is doing.
+   The status line is the whole of that feedback - quiet when nothing is
+   happening, and never a blocking dialog.
+   =========================================================================== */
+
+.crm-save {
+  margin-inline-start: auto;
+  font: var(--type-body-sm);
+  color: var(--text-muted);
+  min-height: 1em;
+}
+.crm-save.is-busy { color: var(--text-muted); }
+.crm-save.is-ok   { color: var(--status-success-fg); }
+.crm-save.is-bad  { color: var(--text-danger); }
+
+.crm-history {
+  margin-top: var(--space-5);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+  padding: var(--space-5);
+}
+.crm-history__empty { margin: 0; font: var(--type-body-sm); color: var(--text-muted); }
+
+.crm-history__list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: var(--space-3);
+}
+.crm-history__row {
+  display: grid; gap: var(--space-1) var(--space-4);
+  grid-template-columns: minmax(120px, max-content) 1fr;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-hairline);
+}
+.crm-history__row:last-child { border-bottom: 0; padding-bottom: 0; }
+/* A reverted change stays in the list - the fact that it happened is part of
+   the record - but it reads as spent. */
+.crm-history__row.is-undone { opacity: .55; }
+
+.crm-history__field {
+  font: var(--weight-semibold) var(--text-sm)/1.4 var(--font-sans);
+  color: var(--text-title); text-transform: capitalize;
+}
+.crm-history__change { font: var(--type-body-sm); color: var(--text-body); min-width: 0; }
+.crm-history__change del {
+  color: var(--text-muted); text-decoration: line-through;
+}
+.crm-history__change ins {
+  color: var(--status-success-fg); text-decoration: none;
+}
+.crm-history__who {
+  grid-column: 1 / -1;
+  font: var(--type-caption); color: var(--text-subtle);
+}
+
+.crm-note-add {
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: var(--space-4); margin-bottom: var(--space-6);
+}
+.crm-note-add textarea { width: 100%; }
+
+@media (max-width: 640px) {
+  .crm-save { width: 100%; margin-inline-start: 0; }
+}
