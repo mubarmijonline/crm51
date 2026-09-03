@@ -2134,6 +2134,235 @@ def api_event_history():
                               mimetype='application/json')
 
 
+# =============================================================================
+# Draft calendar.
+#
+# Pencilled-in dates for a client, kept apart from the real room calendar: a
+# draft holds no room, never shows on /calendar, and cannot clash with anything.
+# It is a planning surface, not a booking.
+#
+# Confirming is the only place the two meet. That checks the room the same way
+# a real move does, writes an appointment, and records which one the draft
+# became.
+# =============================================================================
+
+def _draft_rows(cur, client_id, event_id=None):
+    sql = ("SELECT draft_id, client_id, event_id, title, room, start, end, notes,"
+           " status, appointment_id, created_by, CONVERT(created_at, CHAR) AS created_at"
+           " FROM event_draft_appointment WHERE client_id = %s")
+    params = [client_id]
+    if event_id is not None:
+        sql += " AND event_id = %s"
+        params.append(event_id)
+    cur.execute(sql + " ORDER BY start", params)
+    heads = [d[0] for d in cur.description]
+    return [dict(zip(heads, r)) for r in cur.fetchall()]
+
+
+@app.route('/api/draft_list')
+def api_draft_list():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.args['client_id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad_client_id'}), 400
+
+    conn, cur = connection()
+    try:
+        drafts = _draft_rows(cur, client_id)
+        # The client's events, so a draft can say which one it is for.
+        cur.execute("SELECT event_id, event_name FROM event_event"
+                    " WHERE client_id = %s ORDER BY event_id DESC", (client_id,))
+        events = [{'event_id': r[0], 'event_name': r[1]} for r in cur.fetchall()]
+    finally:
+        cur.close()
+        conn.close()
+
+    return app.response_class(json.dumps({'data': drafts, 'events': events}, default=str),
+                              mimetype='application/json')
+
+
+@app.route('/api/draft_save', methods=["POST"])
+def api_draft_save():
+    """Create or move a draft. No room check: a draft holds nothing."""
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.form['client_id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+
+    draft_id = request.form.get('draft_id')
+    start = request.form.get('start', '')
+    end   = request.form.get('end', '')
+    # _valid_slot returns (start, end, error) - a tuple, which is always truthy,
+    # so it has to be unpacked rather than tested.
+    _s, _e, slot_error = _valid_slot(start, end)
+    if slot_error:
+        return jsonify({'state': 'failed', 'reason': {
+            'bad_format':       'That is not a valid date and time.',
+            'end_before_start': 'A draft needs to end after it starts.',
+            'spans_days':       'A draft has to start and end on the same day.',
+        }.get(slot_error, 'That slot is not valid.')}), 400
+
+    event_id = request.form.get('event_id') or None
+    title    = (request.form.get('title') or '').strip()[:120] or 'Untitled'
+    room     = (request.form.get('room') or '').strip()[:20] or None
+    notes    = (request.form.get('notes') or '').strip()[:500] or None
+
+    conn, cur = connection()
+    try:
+        if event_id is not None:
+            cur.execute("SELECT COUNT(*) FROM event_event WHERE event_id=%s AND client_id=%s",
+                        (event_id, client_id))
+            if int(cur.fetchone()[0]) == 0:
+                return jsonify({'state': 'failed', 'reason': 'wrong event'}), 400
+
+        if draft_id:
+            cur.execute("SELECT status FROM event_draft_appointment"
+                        " WHERE draft_id=%s AND client_id=%s", (draft_id, client_id))
+            row = cur.fetchone()
+            if row is None:
+                return jsonify({'state': 'failed', 'reason': 'no such draft'}), 404
+            if row[0] == 'confirmed':
+                return jsonify({'state': 'failed',
+                                'reason': 'That draft is already a real booking.'}), 400
+            cur.execute("UPDATE event_draft_appointment SET event_id=%s, title=%s, room=%s,"
+                        " start=%s, end=%s, notes=%s WHERE draft_id=%s",
+                        (event_id, title, room, start, end, notes, draft_id))
+        else:
+            cur.execute("INSERT INTO event_draft_appointment (client_id, event_id, title,"
+                        " room, start, end, notes, created_by, created_at)"
+                        " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,NOW())",
+                        (client_id, event_id, title, room, start, end, notes, session['name']))
+            draft_id = cur.lastrowid
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        app.logger.exception('draft_save failed')
+        return jsonify({'state': 'failed'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    return jsonify({'state': 'success', 'draft_id': int(draft_id)})
+
+
+@app.route('/api/draft_delete', methods=["POST"])
+def api_draft_delete():
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.form['client_id'])
+        draft_id  = int(request.form['draft_id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+
+    conn, cur = connection()
+    try:
+        # Deleting a confirmed draft would orphan the real booking it made, so
+        # the booking has to be dealt with on the calendar first.
+        cur.execute("SELECT status FROM event_draft_appointment"
+                    " WHERE draft_id=%s AND client_id=%s", (draft_id, client_id))
+        row = cur.fetchone()
+        if row is None:
+            return jsonify({'state': 'failed', 'reason': 'no such draft'}), 404
+        if row[0] == 'confirmed':
+            return jsonify({'state': 'failed',
+                            'reason': 'This is a real booking now. Remove it from the calendar.'}), 400
+        cur.execute("DELETE FROM event_draft_appointment WHERE draft_id=%s", (draft_id,))
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+    return jsonify({'state': 'success'})
+
+
+@app.route('/api/draft_confirm', methods=["POST"])
+def api_draft_confirm():
+    """Turn a draft into a real appointment, if the room is free."""
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        client_id = int(request.form['client_id'])
+        draft_id  = int(request.form['draft_id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'state': 'failed'}), 400
+
+    room = (request.form.get('room') or '').strip()
+
+    conn, cur = connection()
+    try:
+        cur.execute("SELECT event_id, title, room, start, end, notes, status"
+                    " FROM event_draft_appointment WHERE draft_id=%s AND client_id=%s",
+                    (draft_id, client_id))
+        row = cur.fetchone()
+        if row is None:
+            return jsonify({'state': 'failed', 'reason': 'no such draft'}), 404
+        event_id, title, draft_room, start, end, notes, status = row
+        if status == 'confirmed':
+            return jsonify({'state': 'failed', 'reason': 'Already confirmed.'}), 400
+
+        room = room or draft_room
+        if not room:
+            return jsonify({'state': 'failed', 'reason': 'Choose a room to confirm into.'}), 400
+
+        # The same check a real move makes. A draft has never held a room, so
+        # this is the first time the slot is tested against anything.
+        clashes = _conflicts(cur, room, start, end)
+        if clashes:
+            return _conflict_response(clashes)
+
+        cur.execute("INSERT INTO appointment (title, room, start, end, username, finished,"
+                    " code, client_id, event_id, actual_date, appointment_date)"
+                    " VALUES (%s,%s,%s,%s,%s,0,%s,%s,%s,NOW(),NOW())",
+                    (title, room, start, end, session['name'], CALENDAR_CODE,
+                     client_id, event_id))
+        appointment_id = cur.lastrowid
+
+        cur.execute("UPDATE event_draft_appointment SET status='confirmed', room=%s,"
+                    " appointment_id=%s WHERE draft_id=%s", (room, appointment_id, draft_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        app.logger.exception('draft_confirm failed')
+        return jsonify({'state': 'failed'}), 500
+    finally:
+        cur.close()
+        conn.close()
+
+    return jsonify({'state': 'success', 'appointment_id': int(appointment_id), 'room': room})
+
+
+@app.route('/api/event_appointments')
+def api_event_appointments():
+    """The real bookings that came from one event."""
+    if 'name' not in session:
+        return jsonify({'error': 'not_authenticated'}), 401
+    try:
+        event_id = int(request.args['event_id'])
+    except (KeyError, TypeError, ValueError):
+        return jsonify({'error': 'bad_event_id'}), 400
+
+    conn, cur = connection()
+    try:
+        cur.execute("SELECT appointment_id, title, room, start, end, finished"
+                    " FROM appointment WHERE event_id = %s AND code = %s"
+                    " ORDER BY start", (event_id, CALENDAR_CODE))
+        heads = [d[0] for d in cur.description]
+        rows = [dict(zip(heads, r)) for r in cur.fetchall()]
+
+        drafts = _draft_rows(cur, int(request.args.get('client_id') or 0), event_id) \
+                 if request.args.get('client_id') else []
+    finally:
+        cur.close()
+        conn.close()
+
+    return app.response_class(json.dumps({'data': rows, 'drafts': drafts}, default=str),
+                              mimetype='application/json')
+
+
 @app.route('/api/event_note', methods=["POST"])
 def api_event_note():
     """A note is now something someone chooses to write, not a toll on saving."""

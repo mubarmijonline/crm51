@@ -70,6 +70,81 @@
     <div id="events_list" class="crm-events"></div>
   </div>
 
+  {# --- the client's draft calendar --------------------------------------
+     Pencilled-in dates for this client, shared across their events. Nothing
+     here holds a room or shows on the real calendar until it is confirmed. #}
+  <div class="form-section">
+    <div class="form-section__head crm-events__head">
+      <div>
+        <h2 class="form-section__title">Draft calendar</h2>
+        <p class="form-section__desc">
+          Dates you are working through with this client. Drag to move them.
+          Nothing here holds a room or appears on the real calendar until you
+          confirm it.
+        </p>
+      </div>
+      <button type="button" class="btn btn-secondary" id="draft_add_btn">
+        <i data-lucide="plus"></i>Add a date
+      </button>
+    </div>
+    <div id="draft_calendar_wrap" style="position:relative">
+      <div id="draft_calendar"></div>
+      <div id="draft_skeleton" style="position:absolute;inset:0;z-index:4;
+           background:var(--surface-raised)"></div>
+    </div>
+  </div>
+
+</div>
+
+{# --- one draft --------------------------------------------------------- #}
+<div class="modal fade" id="draft_modal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title" id="draft_modal_title">Draft date</h5></div>
+      <div class="modal-body">
+        <input type="hidden" id="draft_id">
+        <div class="form-group">
+          <label for="draft_title">What is it</label>
+          <input class="form-control" id="draft_title" maxlength="120"
+                 placeholder="Site visit, tasting, rehearsal…">
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="draft_start">Starts</label>
+            <input class="form-control mono" id="draft_start" placeholder="yyyy-mm-dd hh:mm">
+          </div>
+          <div class="form-group">
+            <label for="draft_end">Ends</label>
+            <input class="form-control mono" id="draft_end" placeholder="yyyy-mm-dd hh:mm">
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="draft_event">For which event</label>
+            <select class="form-control" id="draft_event"></select>
+          </div>
+          <div class="form-group">
+            <label for="draft_room">Room</label>
+            <select class="form-control" id="draft_room"></select>
+            <small class="form-text">A preference. The room is only held once confirmed.</small>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="draft_notes">Notes</label>
+          <textarea class="form-control" id="draft_notes" rows="2" maxlength="500"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="draft_delete_btn">
+          <i data-lucide="trash-2"></i>Delete</button>
+        <span style="margin-inline-end:auto"></span>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" id="draft_confirm_btn">
+          <i data-lucide="calendar-check"></i>Confirm booking</button>
+        <button type="button" class="btn btn-primary" id="draft_save_btn">Save draft</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 {# --- the add-item dialog, shared by every event ------------------------- #}
@@ -121,6 +196,10 @@
 
 
 {% block scripts %}
+{# FullCalendar for the draft calendar. Only this page and /calendar need it,
+   so it is not in the shared head. jQuery and moment come from the base. #}
+<link rel="stylesheet" href="{{ url_for('static', filename='vendor/fullcalendar/fullcalendar.min.css') }}">
+<script src="{{ url_for('static', filename='vendor/fullcalendar/fullcalendar.min.js') }}"></script>
 <script>
 (function () {
   'use strict';
@@ -171,6 +250,7 @@
           state.open = state.events[0].event_id;   // newest, first in the list
         paintClient();
         paintEvents();
+        loadDrafts();
       })
       .fail(function () {
         $('#events_list').html('<div class="crm-state">' +
@@ -240,6 +320,23 @@
   /* --- one event's form --------------------------------------------------- */
 
   function form(e) {
+    var id = e.event_id;
+    return '' +
+      '<div class="crm-tabs" data-tabs="' + id + '">' +
+        '<div class="crm-tabs__bar" role="tablist">' +
+          '<button type="button" class="crm-tabs__tab is-active" role="tab" ' +
+                  'aria-selected="true" data-tab="details">Details</button>' +
+          '<button type="button" class="crm-tabs__tab" role="tab" ' +
+                  'aria-selected="false" data-tab="appointments">Appointments</button>' +
+        '</div>' +
+        '<div class="crm-tabs__panel" data-panel="details">' + detailsForm(e) + '</div>' +
+        '<div class="crm-tabs__panel" data-panel="appointments" hidden>' +
+          '<div class="crm-appts" data-appts="' + id + '"></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function detailsForm(e) {
     var id = e.event_id;
     var recallOpen = (e.status === 'pending' || e.status === 'not_contacted');
     var reasonOpen = (e.status === 'not_interested');
@@ -700,6 +797,69 @@
       });
   }
 
+  /* --- tabs ---------------------------------------------------------------- */
+
+  $('#events_list').on('click', '.crm-tabs__tab', function () {
+    var $tab   = $(this);
+    var $tabs  = $tab.closest('.crm-tabs');
+    var which  = $tab.data('tab');
+    $tabs.find('.crm-tabs__tab').removeClass('is-active').attr('aria-selected', 'false');
+    $tab.addClass('is-active').attr('aria-selected', 'true');
+    $tabs.find('.crm-tabs__panel').prop('hidden', true);
+    $tabs.find('[data-panel="' + which + '"]').prop('hidden', false);
+    if (which === 'appointments') loadAppointments($tabs.data('tabs'));
+  });
+
+  function loadAppointments(eventId) {
+    var $host = $('[data-appts="' + eventId + '"]');
+    if ($host.data('loaded')) return;
+    crmSkeleton.text($host.get(0), 3);
+    $.getJSON('/api/event_appointments?event_id=' + eventId +
+              '&client_id=' + state.client.client_id)
+      .done(function (res) {
+        $host.data('loaded', true);
+        var real   = res.data   || [];
+        var drafts = (res.drafts || []).filter(function (d) { return d.status !== 'confirmed'; });
+
+        var html = '';
+
+        html += '<h4 class="crm-event__sub crm-event__sub--flush">Booked</h4>';
+        html += real.length
+          ? '<ul class="crm-appt-list">' + real.map(function (a) {
+              return '<li class="crm-appt">' +
+                '<span class="crm-appt__when mono">' + esc(when(a.start, a.end)) + '</span>' +
+                '<span class="crm-appt__title">' + esc(a.title) + '</span>' +
+                '<span class="badge badge-secondary">' + esc(a.room) + '</span>' +
+                (Number(a.finished) ? '<span class="badge badge-success">Finished</span>' : '') +
+              '</li>';
+            }).join('') + '</ul>'
+          : '<p class="crm-appt__empty">Nothing booked for this event yet.</p>';
+
+        html += '<h4 class="crm-event__sub">Pencilled in</h4>';
+        html += drafts.length
+          ? '<ul class="crm-appt-list">' + drafts.map(function (d) {
+              return '<li class="crm-appt is-draft">' +
+                '<span class="crm-appt__when mono">' + esc(when(d.start, d.end)) + '</span>' +
+                '<span class="crm-appt__title">' + esc(d.title) + '</span>' +
+                '<span class="badge badge-warning">Draft</span>' +
+              '</li>';
+            }).join('') + '</ul>'
+          : '<p class="crm-appt__empty">Nothing pencilled in for this event. ' +
+            'Add dates on the client\'s draft calendar below.</p>';
+
+        $host.html(html);
+      })
+      .fail(function () {
+        $host.html('<p class="crm-appt__empty">Could not load appointments.</p>');
+      });
+  }
+
+  function when(start, end) {
+    var s = String(start).replace('T', ' ');
+    var e = String(end || '').split('T')[1] || '';
+    return e ? s + ' – ' + e : s;
+  }
+
   /* --- page-level wiring --------------------------------------------------- */
 
   $('#events_list').on('click', '.crm-event__toggle', function () {
@@ -773,6 +933,188 @@
     var id = String(value).split(' - ')[0];
     if (id) load(id);
   };
+
+  /* --- the draft calendar --------------------------------------------------
+     Its own FullCalendar over event_draft_appointment. Nothing here touches
+     the real room calendar until Confirm. */
+
+  var $cal = $('#draft_calendar');
+  var calBuilt = false, draftEvents = [], draftRooms = [];
+
+  function draftIso(m) { return m.format('YYYY-MM-DD[T]HH:mm'); }
+
+  function buildCalendar() {
+    if (calBuilt) return;
+    calBuilt = true;
+    $cal.fullCalendar({
+      header: { left: 'prev,next today', center: 'title',
+                right: 'month,agendaWeek,agendaDay,listWeek' },
+      defaultView: 'agendaWeek',
+      height: 'auto',
+      nowIndicator: true,
+      slotDuration: '00:30:00',
+      snapDuration: '00:15:00',
+      minTime: '08:00:00',
+      maxTime: '23:00:00',
+      editable: true,
+      selectable: true,
+      selectHelper: true,
+      // Drafts are provisional by definition, so two of them may overlap.
+      eventOverlap: true,
+      selectOverlap: true,
+      select: function (start, end) {
+        openDraft(null, draftIso(start), draftIso(end));
+        $cal.fullCalendar('unselect');
+      },
+      eventClick: function (ev) { openDraft(ev.draft); },
+      eventDrop:   function (ev, delta, revert) { moveDraft(ev, revert); },
+      eventResize: function (ev, delta, revert) { moveDraft(ev, revert); }
+    });
+  }
+
+  function moveDraft(ev, revert) {
+    var d = ev.draft;
+    if (d.status === 'confirmed') {
+      crmToast({ text: 'That is a real booking now. Move it on the calendar.', tone: 'danger' });
+      revert();
+      return;
+    }
+    $.post('/api/draft_save', {
+      client_id: state.client.client_id, draft_id: d.draft_id, event_id: d.event_id || '',
+      title: d.title, room: d.room || '', notes: d.notes || '',
+      start: draftIso(ev.start), end: draftIso(ev.end || ev.start.clone().add(1, 'hour'))
+    }).done(function (res) {
+      if (res.state !== 'success') { crmToast({ text: res.reason || 'Not moved', tone: 'danger' }); revert(); return; }
+      crmToast({ text: 'Draft moved' });
+      loadDrafts();
+    }).fail(function () { revert(); });
+  }
+
+  function loadDrafts() {
+    $.getJSON('/api/draft_list?client_id=' + state.client.client_id).done(function (res) {
+      draftEvents = res.data || [];
+      var events = res.events || [];
+
+      $('#draft_event').html('<option value="">Not decided yet</option>' +
+        events.map(function (e) {
+          return '<option value="' + e.event_id + '">' + esc(e.event_name) + '</option>';
+        }).join(''));
+
+      buildCalendar();
+      $('#draft_skeleton').remove();
+      $cal.fullCalendar('removeEvents');
+      $cal.fullCalendar('addEventSource', draftEvents.map(function (d) {
+        var confirmed = d.status === 'confirmed';
+        return {
+          id: d.draft_id, title: d.title, start: d.start, end: d.end,
+          editable: !confirmed,
+          className: confirmed ? 'is-confirmed' : 'is-draft',
+          draft: d
+        };
+      }));
+      $cal.fullCalendar('render');
+    });
+  }
+
+  function openDraft(d, start, end) {
+    $('#draft_id').val(d ? d.draft_id : '');
+    $('#draft_title').val(d ? d.title : '');
+    $('#draft_start').val((d ? d.start : start || '').replace('T', ' '));
+    $('#draft_end').val((d ? d.end : end || '').replace('T', ' '));
+    $('#draft_event').val(d && d.event_id ? String(d.event_id) : '');
+    $('#draft_room').val(d && d.room ? d.room : '');
+    $('#draft_notes').val(d ? d.notes || '' : '');
+    $('#draft_modal_title').text(d ? 'Draft date' : 'New draft date');
+
+    var confirmed = d && d.status === 'confirmed';
+    $('#draft_save_btn, #draft_confirm_btn, #draft_delete_btn').prop('disabled', !!confirmed);
+    $('#draft_confirm_btn').prop('disabled', !d || confirmed);
+    $('#draft_modal').modal('show');
+  }
+
+  function draftForm() {
+    return {
+      client_id: state.client.client_id,
+      draft_id:  $('#draft_id').val(),
+      event_id:  $('#draft_event').val(),
+      title:     $('#draft_title').val(),
+      room:      $('#draft_room').val(),
+      notes:     $('#draft_notes').val(),
+      start:     $('#draft_start').val().trim().replace(' ', 'T'),
+      end:       $('#draft_end').val().trim().replace(' ', 'T')
+    };
+  }
+
+  $('#draft_add_btn').on('click', function () { openDraft(null, '', ''); });
+
+  $('#draft_save_btn').on('click', function () {
+    $.post('/api/draft_save', draftForm()).done(function (res) {
+      if (res.state !== 'success') {
+        Swal.fire('Not saved', res.reason || 'The draft was not saved.', 'error'); return;
+      }
+      $('#draft_modal').modal('hide');
+      loadDrafts();
+    });
+  });
+
+  $('#draft_delete_btn').on('click', function () {
+    var id = $('#draft_id').val();
+    if (!id) { $('#draft_modal').modal('hide'); return; }
+    $.post('/api/draft_delete', { client_id: state.client.client_id, draft_id: id })
+      .done(function (res) {
+        if (res.state !== 'success') {
+          Swal.fire('Not deleted', res.reason || 'The draft was not deleted.', 'error'); return;
+        }
+        $('#draft_modal').modal('hide');
+        loadDrafts();
+      });
+  });
+
+  // Confirming is the only thing here that touches the real calendar, so it
+  // asks first and surfaces a clash rather than silently failing.
+  $('#draft_confirm_btn').on('click', function () {
+    var room = $('#draft_room').val();
+    if (!room) { Swal.fire('Choose a room', 'A booking needs a room.', 'info'); return; }
+    Swal.fire({
+      title: 'Confirm this booking?',
+      text: 'It becomes a real appointment in ' + room + ' and holds the room.',
+      icon: 'question', showCancelButton: true,
+      confirmButtonText: 'Confirm booking', cancelButtonText: 'Cancel'
+    }).then(function (r) {
+      if (!r.isConfirmed) return;
+      $.post('/api/draft_confirm', { client_id: state.client.client_id,
+                                     draft_id: $('#draft_id').val(), room: room })
+        .done(function (res) {
+          $('#draft_modal').modal('hide');
+          Swal.fire({ icon: 'success', title: 'Booked', showConfirmButton: false, timer: 1400 });
+          loadDrafts();
+          $('[data-appts]').data('loaded', false);
+        })
+        .fail(function (xhr) {
+          var res = xhr.responseJSON || {};
+          if (res.state === 'conflict') {
+            var list = (res.conflicts || []).map(function (c) {
+              return '<li>' + esc(c.title || 'Untitled') + ' — ' +
+                     esc(String(c.start).replace('T', ' ')) + '</li>';
+            }).join('');
+            Swal.fire({ icon: 'warning', title: 'That room is taken',
+                        html: '<p>' + esc(res.message || '') + '</p><ul style="text-align:start">' +
+                              list + '</ul>' });
+          } else {
+            Swal.fire('Not confirmed', res.reason || 'The booking was not made.', 'error');
+          }
+        });
+    });
+  });
+
+  // Rooms, once, for the draft dialog.
+  $.getJSON('/room_data').done(function (rooms) {
+    draftRooms = rooms || [];
+    $('#draft_room').html('<option value="">No preference</option>' +
+      draftRooms.map(function (r) {
+        return '<option value="' + esc(r.room_name) + '">' + esc(r.room_name) + '</option>';
+      }).join(''));
+  });
 
   /* --- the search box -----------------------------------------------------
      Same autocomplete the page always had - filter a list of

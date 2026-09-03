@@ -915,3 +915,63 @@ form:has(> .form-actions) .form-section { scroll-margin-block-end: 96px; }
 @media (max-width: 640px) {
   .crm-save { width: 100%; margin-inline-start: 0; }
 }
+
+
+/* ===========================================================================
+   Event tabs, appointments, and the draft calendar.
+   =========================================================================== */
+
+.crm-tabs__bar {
+  display: flex; gap: var(--space-2);
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: var(--space-7);
+}
+.crm-tabs__tab {
+  padding: var(--space-4) var(--space-5);
+  background: none; border: 0; cursor: pointer;
+  font: var(--type-label); color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.crm-tabs__tab:hover { color: var(--text-title); }
+.crm-tabs__tab.is-active {
+  color: var(--text-title);
+  border-bottom-color: var(--action-primary);
+}
+
+.crm-appt-list { list-style: none; margin: 0 0 var(--space-4); padding: 0;
+  display: flex; flex-direction: column; gap: var(--space-2); }
+
+.crm-appt {
+  display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap;
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background: var(--surface-sunken);
+}
+/* A pencilled-in date is not a booking, so it is drawn as an outline rather
+   than something solid. */
+.crm-appt.is-draft {
+  background: none;
+  border-style: dashed;
+}
+.crm-appt__when  { font: var(--type-body-sm); color: var(--text-muted); flex: none; }
+.crm-appt__title { font: var(--type-body-sm); color: var(--text-title); flex: 1 1 auto; min-width: 0; }
+.crm-appt__empty { margin: 0 0 var(--space-4); font: var(--type-body-sm); color: var(--text-muted); }
+
+#draft_calendar { min-height: 420px; }
+
+/* Same distinction on the calendar itself: a draft is an outline, a confirmed
+   booking is filled, so you can tell at a glance what is actually held. */
+#draft_calendar .fc-event.is-draft {
+  background: transparent;
+  border: 1px dashed var(--action-primary);
+  color: var(--text-title);
+}
+#draft_calendar .fc-event.is-confirmed {
+  background: var(--status-success-fg);
+  border-color: var(--status-success-fg);
+  color: var(--on-accent);
+}
+#draft_calendar .fc-event.is-draft .fc-title,
+#draft_calendar .fc-event.is-draft .fc-time { color: var(--text-title); }
